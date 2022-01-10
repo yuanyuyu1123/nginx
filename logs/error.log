@@ -1,0 +1,41 @@
+2022/01/03 01:03:09 [error] 11894#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:03:09 [error] 11894#0: *1 open() "/usr/local/nginx/html/favicon.ico" failed (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "192.168.2.104", referrer: "http://192.168.2.104/"
+2022/01/03 01:04:55 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:04:57 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:04:57 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:04:58 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:04:58 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:04:58 [error] 12678#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:02 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:04 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:04 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:04 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:04 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:05 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:15:15 [error] 12678#0: *3 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:17:18 [error] 12678#0: *5 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 127.0.0.1, server: localhost, request: "GET / HTTP/1.1", host: "localhost"
+2022/01/03 01:19:19 [error] 14276#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:19:36 [error] 14333#0: *1 "/usr/local/nginx/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:20:15 [error] 14362#0: *1 "/docs/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:47 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:48 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:49 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:49 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:49 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:50 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:50 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:50 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:36:51 [error] 17521#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:37:24 [error] 17549#0: *1 "/usr/local/nginx/./html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:37:45 [error] 17575#0: *1 "/usr/local/nginx/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/03 01:38:06 [error] 17600#0: *1 "/usr/local/nginx/doc/html/index.html" is not found (2: No such file or directory), client: 192.168.2.102, server: localhost, request: "GET / HTTP/1.1", host: "192.168.2.104"
+2022/01/04 15:08:37 [emerg] 3601#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:46
+2022/01/04 15:11:51 [emerg] 6534#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:46
+2022/01/04 15:19:58 [emerg] 6617#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:21:04 [emerg] 6666#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:21:10 [emerg] 6710#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:22:06 [emerg] 9620#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:29:09 [emerg] 9747#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:29:49 [emerg] 9772#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:46
+2022/01/04 15:37:32 [emerg] 12720#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
+2022/01/04 15:46:55 [error] 16405#0: *1 open() "/usr/local/nginx/docs/html/favicon.ico" failed (2: No such file or directory), client: 192.168.2.8, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "192.168.2.104", referrer: "http://192.168.2.104/"
