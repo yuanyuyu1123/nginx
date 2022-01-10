@@ -1,4 +1,5 @@
 # nginx
+说明：该源码为 1.21.5 版本 \
 环境搭建：\
 1.进入nginx/auto目录，分别执行 \
 ./configure \
