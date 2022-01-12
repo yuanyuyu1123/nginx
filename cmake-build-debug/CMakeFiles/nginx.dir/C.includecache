@@ -1402,14 +1402,6 @@ ngx_core.h
 ngx_event.h
 -
 
-/usr/local/nginx/src/ext/my_test_module/ngx_http_mytest_module.c
-ngx_config.h
--
-ngx_core.h
--
-ngx_http.h
--
-
 /usr/local/nginx/src/http/modules/ngx_http_access_module.c
 ngx_config.h
 -

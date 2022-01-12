@@ -480,15 +480,15 @@ ngx_show_version_info(void) {
                 "  -p prefix     : set prefix path (default: NONE)" NGX_LINEFEED
                 #endif
                 "  -e filename   : set error log file (default: "
-                #ifdef NGX_ERROR_LOG_STDERR
-                "stderr)" NGX_LINEFEED
-                #else
-                NGX_ERROR_LOG_PATH ")" NGX_LINEFEED
-                #endif
-                "  -c filename   : set configuration file (default: " NGX_CONF_PATH //指定配置文件
-                ")" NGX_LINEFEED
-                "  -g directives : set global directives out of configuration "
-                "file" NGX_LINEFEED NGX_LINEFEED
+#ifdef NGX_ERROR_LOG_STDERR
+        "stderr)" NGX_LINEFEED
+#else
+        NGX_ERROR_LOG_PATH ")" NGX_LINEFEED
+                           #endif
+                           "  -c filename   : set configuration file (default: " NGX_CONF_PATH //指定配置文件
+        ")" NGX_LINEFEED
+        "  -g directives : set global directives out of configuration "
+        "file" NGX_LINEFEED NGX_LINEFEED
         );
     }
 
@@ -1065,7 +1065,7 @@ ngx_process_options(ngx_cycle_t *cycle) {
 
 #else
 
-#ifdef NGX_CONF_PREFIX
+        #ifdef NGX_CONF_PREFIX
         ngx_str_set(&cycle->conf_prefix, NGX_CONF_PREFIX);
 #else
         ngx_str_set(&cycle->conf_prefix, NGX_PREFIX);

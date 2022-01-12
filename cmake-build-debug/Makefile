@@ -1209,30 +1209,6 @@ src/event/ngx_event_udp.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/src/event/ngx_event_udp.c.s
 .PHONY : src/event/ngx_event_udp.c.s
 
-src/ext/my_test_module/ngx_http_mytest_module.o: src/ext/my_test_module/ngx_http_mytest_module.c.o
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.o
-
-# target to build an object file
-src/ext/my_test_module/ngx_http_mytest_module.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/src/ext/my_test_module/ngx_http_mytest_module.c.o
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.c.o
-
-src/ext/my_test_module/ngx_http_mytest_module.i: src/ext/my_test_module/ngx_http_mytest_module.c.i
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.i
-
-# target to preprocess a source file
-src/ext/my_test_module/ngx_http_mytest_module.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/src/ext/my_test_module/ngx_http_mytest_module.c.i
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.c.i
-
-src/ext/my_test_module/ngx_http_mytest_module.s: src/ext/my_test_module/ngx_http_mytest_module.c.s
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.s
-
-# target to generate assembly for a file
-src/ext/my_test_module/ngx_http_mytest_module.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/nginx.dir/build.make CMakeFiles/nginx.dir/src/ext/my_test_module/ngx_http_mytest_module.c.s
-.PHONY : src/ext/my_test_module/ngx_http_mytest_module.c.s
-
 src/http/modules/ngx_http_access_module.o: src/http/modules/ngx_http_access_module.c.o
 .PHONY : src/http/modules/ngx_http_access_module.o
 
@@ -3177,9 +3153,6 @@ help:
 	@echo "... src/event/ngx_event_udp.o"
 	@echo "... src/event/ngx_event_udp.i"
 	@echo "... src/event/ngx_event_udp.s"
-	@echo "... src/ext/my_test_module/ngx_http_mytest_module.o"
-	@echo "... src/ext/my_test_module/ngx_http_mytest_module.i"
-	@echo "... src/ext/my_test_module/ngx_http_mytest_module.s"
 	@echo "... src/http/modules/ngx_http_access_module.o"
 	@echo "... src/http/modules/ngx_http_access_module.i"
 	@echo "... src/http/modules/ngx_http_access_module.s"

@@ -44,7 +44,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/nginx.dir/src/event/ngx_event_posted.c.o"
   "CMakeFiles/nginx.dir/src/event/ngx_event_timer.c.o"
   "CMakeFiles/nginx.dir/src/event/ngx_event_udp.c.o"
-  "CMakeFiles/nginx.dir/src/ext/my_test_module/ngx_http_mytest_module.c.o"
   "CMakeFiles/nginx.dir/src/http/modules/ngx_http_access_module.c.o"
   "CMakeFiles/nginx.dir/src/http/modules/ngx_http_auth_basic_module.c.o"
   "CMakeFiles/nginx.dir/src/http/modules/ngx_http_autoindex_module.c.o"
