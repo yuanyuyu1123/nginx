@@ -39,3 +39,7 @@
 2022/01/04 15:29:49 [emerg] 9772#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:46
 2022/01/04 15:37:32 [emerg] 12720#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:40
 2022/01/04 15:46:55 [error] 16405#0: *1 open() "/usr/local/nginx/docs/html/favicon.ico" failed (2: No such file or directory), client: 192.168.2.8, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "192.168.2.104", referrer: "http://192.168.2.104/"
+2022/01/13 21:32:33 [emerg] 3402#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
+2022/01/13 21:41:05 [emerg] 4090#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
+2022/01/13 22:50:02 [emerg] 5709#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
+2022/01/13 23:30:57 [emerg] 6506#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47

@@ -179,7 +179,7 @@ ngx_inet6_addr(u_char *p, size_t len, u_char *addr) {
 
 #endif
 
-
+//将socket绑定的地址转换为文本格式(ipv4和ipv6的不相同) ，把sa中的ip和端口转换为A.B.C.D:port格式字符串存入text中
 size_t
 ngx_sock_ntop(struct sockaddr *sa, socklen_t socklen, u_char *text, size_t len,
               ngx_uint_t port) {
@@ -551,7 +551,6 @@ ngx_cidr_match(struct sockaddr *sa, ngx_array_t *cidrs) {
     return NGX_DECLINED;
 }
 
-
 ngx_int_t
 ngx_parse_addr(ngx_pool_t *pool, ngx_addr_t *addr, u_char *text, size_t len) {
     in_addr_t inaddr;
@@ -671,9 +670,14 @@ ngx_parse_addr_port(ngx_pool_t *pool, ngx_addr_t *addr, u_char *text,
     return NGX_OK;
 }
 
-
+/*
+?ngx_parse_url()调用ngx_parse_inet_url()
+?ngx_parse_inet_url()调用ngx_inet_resolve_host()
+?ngx_inet_resolve_host()调用gethostbyname()
+?gethostbyname()函数就是通过域名获取IP的函数
+*/
 ngx_int_t
-ngx_parse_url(ngx_pool_t *pool, ngx_url_t *u) {
+ngx_parse_url(ngx_pool_t *pool, ngx_url_t *u) { //对u参数里面的url,unix,inet6等地址进行简析；
     u_char *p;
     size_t len;
 
@@ -768,9 +772,14 @@ ngx_parse_unix_domain_url(ngx_pool_t *pool, ngx_url_t *u) {
 #endif
 }
 
-
+/*
+?ngx_parse_url()调用ngx_parse_inet_url()
+?ngx_parse_inet_url()调用ngx_inet_resolve_host()
+?ngx_inet_resolve_host()调用gethostbyname()
+?gethostbyname()函数就是通过域名获取IP的函数
+*/
 static ngx_int_t
-ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) {
+ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) { //解析uri，如果uri是IP:PORT形式则获取他们，如果是域名www.xxx.com形式，则解析域名
     u_char *host, *port, *last, *uri, *args, *dash;
     size_t len;
     ngx_int_t n;
@@ -948,7 +957,7 @@ ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) {
 
     sin->sin_addr.s_addr = ngx_inet_addr(host, len);
 
-    if (sin->sin_addr.s_addr != INADDR_NONE) {
+    if (sin->sin_addr.s_addr != INADDR_NONE) { //如果是IP地址格式
 
         if (sin->sin_addr.s_addr == INADDR_ANY) {
             u->wildcard = 1;
@@ -957,7 +966,7 @@ ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) {
         return ngx_inet_add_addr(pool, u, &u->sockaddr.sockaddr, u->socklen, 1);
     }
 
-    if (u->no_resolve) {
+    if (u->no_resolve) { //如果置1了，直接返回，也不会解析域名
         return NGX_OK;
     }
 
@@ -1100,7 +1109,12 @@ ngx_parse_inet6_url(ngx_pool_t *pool, ngx_url_t *u) {
 
 
 #if (NGX_HAVE_GETADDRINFO && NGX_HAVE_INET6)
-
+/*
+?ngx_parse_url()调用ngx_parse_inet_url()
+?ngx_parse_inet_url()调用ngx_inet_resolve_host()
+?ngx_inet_resolve_host()调用gethostbyname()
+?gethostbyname()函数就是通过域名获取IP的函数
+*/
 ngx_int_t
 ngx_inet_resolve_host(ngx_pool_t *pool, ngx_url_t *u) {
     u_char *host;

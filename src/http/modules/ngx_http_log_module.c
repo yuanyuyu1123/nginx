@@ -575,7 +575,7 @@ ngx_http_log_script_write(ngx_http_request_t *r, ngx_http_log_script_t *script,
     of.log = 1;
     of.valid = llcf->open_file_cache_valid;
     of.min_uses = llcf->open_file_cache_min_uses;
-    of.directio = NGX_OPEN_FILE_DIRECTIO_OFF;
+    of.is_directio = NGX_OPEN_FILE_DIRECTIO_OFF;
 
     if (ngx_http_set_disable_symlinks(r, clcf, &log, &of) != NGX_OK) {
         /* simulate successful logging */
