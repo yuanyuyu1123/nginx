@@ -985,6 +985,10 @@ ngx_core.h
 ../src/os/unix/ngx_socket.h
 ngx_config.h
 -
+unistd.h
+-
+sys/socket.h
+-
 
 ../src/os/unix/ngx_solaris.h
 
@@ -1356,6 +1360,34 @@ ngx_config.h
 ngx_core.h
 -
 ngx_event.h
+-
+sys/socket.h
+-
+sys/wait.h
+-
+netinet/in.h
+-
+netinet/tcp.h
+-
+sys/epoll.h
+-
+sys/sendfile.h
+-
+sys/stat.h
+-
+unistd.h
+-
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+strings.h
+-
+fcntl.h
+-
+errno.h
 -
 
 /usr/local/nginx/src/event/ngx_event.c
@@ -1878,6 +1910,28 @@ ngx_config.h
 ngx_core.h
 -
 ngx_thread_pool.h
+-
+unistd.h
+-
+fcntl.h
+-
+fcntl.h
+-
+unistd.h
+-
+iostream
+-
+errno.h
+-
+unistd.h
+-
+fcntl.h
+-
+sys/vfs.h
+-
+sys/vfs.h
+-
+stdio.h
 -
 
 /usr/local/nginx/src/os/unix/ngx_linux_init.c

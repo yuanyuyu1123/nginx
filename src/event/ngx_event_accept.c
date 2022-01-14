@@ -21,13 +21,32 @@ static void ngx_reorder_accept_events(ngx_listening_t *ls);
 static void ngx_close_accepted_connection(ngx_connection_t *c);
 
 
-void
-ngx_event_accept(ngx_event_t *ev) {
+/*
+如何建立新连接
+    上文提刭过，处理新连接事件的回调函数是ngx_event_accept，其原型如下。void ngx_event_accept (ngx_event_t★ev)
+    下面简单介绍一下它的流程，如图9-6所示。
+    下面对流程中的7个步骤进行说明。
+    1)首先调用accept方法试图建立新连接，如果没有准备好的新连接事件，ngx_event_accept方法会直接返回。
+    2)设置负载均衡阈值ngx_accept_disabled，这个阈值是进程允许的总连接数的1/8减去空闲连接数，
+    3)调用ngx_get_connection方法由连接池中获取一个ngx_connection_t连接对象。
+    4)为ngx_connection_t中的pool指针建立内存池。在这个连接释放到空闲连接池时，释放pool内存池。
+    5)设置套接字的属性，如设为非阻塞套接字。
+    6)将这个新连接对应的读事件添加到epoll等事件驱动模块中，这样，在这个连接上如果接收到用户请求epoll_wait，就会收集到这个事件。
+    7)调用监听对象ngx_listening_t中的handler回调方法。ngx_listening_t结构俸的handler回调方法就是当新的TCP连接刚刚建立完成时在这里调用的。
+    最后，如果监听事件的available标志位为1，再次循环到第1步，否则ngx_event_accept方法结束。事件的available标志位对应着multi_accept配置
+    项。当available为l时，告诉Nginx -次性尽量多地建立新连接，它的实现原理也就在这里
+*/
+//这里的event是在ngx_event_process_init中从连接池中获取的 ngx_connection_t中的->read读事件
+//accept是在ngx_event_process_init(但进程或者不配置负载均衡的时候)或者(多进程，配置负载均衡)的时候把accept事件添加到epoll中
+void //该形参中的ngx_connection_t(ngx_event_t)是为accept事件连接准备的空间，当accept返回成功后，会重新获取一个ngx_connection_t(ngx_event_t)用来读写该连接
+ngx_event_accept(ngx_event_t *ev) { //在ngx_process_events_and_timers中执行
+    //一个accept事件对应一个ev，如当前一次有4个客户端accept，应该对应4个ev事件，一次来多个accept的处理在下面的do {}while中实现
     socklen_t socklen;
     ngx_err_t err;
     ngx_log_t *log;
     ngx_uint_t level;
     ngx_socket_t s;
+    //如果是文件异步i/o中的ngx_event_aio_t，则它来自ngx_event_aio_t->ngx_event_t(只有读),如果是网络事件中的event,则为ngx_connection_s中的event(包括读和写)
     ngx_event_t *rev, *wev;
     ngx_sockaddr_t sa;
     ngx_listening_t *ls;
@@ -58,23 +77,29 @@ ngx_event_accept(ngx_event_t *ev) {
     ngx_log_debug2(NGX_LOG_DEBUG_EVENT, ev->log, 0,
                    "accept on %V, ready: %d", &ls->addr_text, ev->available);
 
-    do {
+    do { /* 如果是一次读取一个accept事件的话，循环体只执行一次， 如果是一次性可以读取所有的accept事件，则这个循环体执行次数为accept事件数*/
         socklen = sizeof(ngx_sockaddr_t);
 
-#if (NGX_HAVE_ACCEPT4)
+#if (NGX_HAVE_ACCEPT4) //ngx_close_socket可以关闭套接字
         if (use_accept4) {
             s = accept4(lc->fd, &sa.sockaddr, &socklen, SOCK_NONBLOCK);
         } else {
             s = accept(lc->fd, &sa.sockaddr, &socklen);
         }
 #else
+        /*
+            针对非阻塞I/O执行的系统调用则总是立即返回，而不管事件足否已经发生。如果事件没有眭即发生，这些系统调用就
+        返回—1．和出错的情况一样。此时我们必须根据errno来区分这两种情况。对accept、send和recv而言，事件未发牛时errno
+        通常被设置成EAGAIN（意为“再来一次”）或者EWOULDBLOCK（意为“期待阻塞”）：对conncct而言，errno则被
+        设置成EINPROGRESS（意为“在处理中"）。
+          */
         s = accept(lc->fd, &sa.sockaddr, &socklen);
 #endif
 
         if (s == (ngx_socket_t) -1) {
             err = ngx_socket_errno;
-
-            if (err == NGX_EAGAIN) {
+            /* 如果要去一次性读取所有的accept信息，当读取完毕后，通过这里返回。所有的accept事件都读取完毕 */
+            if (err == NGX_EAGAIN) { //如果event{}开启multi_accept，则在accept完该listen ip:port对应的ip和端口连接后，会通过这里返回
                 ngx_log_debug0(NGX_LOG_DEBUG_EVENT, ev->log, err,
                                "accept() not ready");
                 return;
@@ -123,10 +148,11 @@ ngx_event_accept(ngx_event_t *ev) {
                         ngx_shmtx_unlock(&ngx_accept_mutex);
                         ngx_accept_mutex_held = 0;
                     }
-
+                    //当前进程连接accpet失败，则可以暂时设置为1，下次来的时候由其他进程竞争accpet锁，下下次该进程继续竞争该accept，因为在下次的时候ngx_process_events_and_timers
+                    //ngx_accept_disabled = 1; 减去1后为0，可以继续竞争
                     ngx_accept_disabled = 1;
 
-                } else {
+                } else { //如果是不需要实现负载均衡，则扫尾延时下继续在ngx_process_events_and_timers中accept
                     ngx_add_timer(ev, ecf->accept_mutex_delay);
                 }
             }
@@ -137,12 +163,16 @@ ngx_event_accept(ngx_event_t *ev) {
 #if (NGX_STAT_STUB)
         (void) ngx_atomic_fetch_add(ngx_stat_accepted, 1);
 #endif
-
+        //设置负载均衡阀值 最开始free_connection_n=connection_n，见ngx_event_process_init
         ngx_accept_disabled = ngx_cycle->connection_n / 8
-                              - ngx_cycle->free_connection_n;
+                              - ngx_cycle->free_connection_n; //判断可用连接的数目和总数目的八分之一大小，如果可用的小于八分之一，为正
+        //在服务器端accept客户端连接成功(ngx_event_accept)后，会通过ngx_get_connection从连接池获取一个ngx_connection_t结构，也就是每个客户端连接对于一个ngx_connection_t结构，
+        //并且为其分配一个ngx_http_connection_t结构，ngx_connection_t->data = ngx_http_connection_t，见ngx_http_init_connection
 
-        c = ngx_get_connection(s, ev->log);
-
+        //从连接池中获取一个空闲ngx_connection_t，用于客户端连接建立成功后向该连接读写数据，函数形参中的ngx_event_t对应的是为accept事件对应的
+        //ngx_connection_t中对应的event
+        c = ngx_get_connection(s, ev->log); //ngx_get_connection中c->fd = s;
+        //注意，这里的ngx_connection_t是从连接池中从新获取的，和ngx_epoll_process_events中的ngx_connection_t是两个不同的。
         if (c == NULL) {
             if (ngx_close_socket(s) == -1) {
                 ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_socket_errno,
@@ -230,7 +260,7 @@ ngx_event_accept(ngx_event_t *ev) {
 #endif
         }
 #endif
-
+        //注意，这里的ngx_connection_t是从连接池中从新获取的，和ngx_epoll_process_events中的ngx_connection_t是两个不同的。
         rev = c->read;
         wev = c->write;
 
@@ -302,7 +332,7 @@ ngx_event_accept(ngx_event_t *ev) {
         }
 #endif
 
-        if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) {
+        if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) { //如果是epoll,不会走到这里面去
             if (ngx_add_conn(c) == NGX_ERROR) {
                 ngx_close_accepted_connection(c);
                 return;
@@ -318,39 +348,43 @@ ngx_event_accept(ngx_event_t *ev) {
             ev->available--;
         }
 
-    } while (ev->available);
+    } while (ev->available);  //一次性读取所有当前的accept，直到accept返回NGX_EAGAIN，然后退出
 
 #if (NGX_HAVE_EPOLLEXCLUSIVE)
     ngx_reorder_accept_events(ls);
 #endif
 }
 
-
+/*
+获得accept锁，多个worker仅有一个可以得到这把锁。获得锁不是阻塞过程，都是立刻返回，获取成功的话ngx_accept_mutex_held被置为1。
+拿到锁，意味着监听句柄被放到本进程的epoll中了，如果没有拿到锁，则监听句柄会被从epoll中取出。
+*/ //尝试获取锁，如果获取了锁，那么还要将当前监听端口全部注册到当前worker进程的epoll当中去
 ngx_int_t
 ngx_trylock_accept_mutex(ngx_cycle_t *cycle) {
     if (ngx_shmtx_trylock(&ngx_accept_mutex)) {
 
         ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                        "accept mutex locked");
-
+        //如果本来已经获得锁，则直接返回Ok,
+        //有了该标记，表示该进程已经把accept事件添加到epoll事件集中了，不用重复执行后面的ngx_enable_accept_events，该函数是有系统调用过程，影响性能
         if (ngx_accept_mutex_held && ngx_accept_events == 0) {
             return NGX_OK;
         }
-
+        //到达这里，说明重新获得锁成功，因此需要打开被关闭的listening句柄，调用ngx_enable_accept_events函数，将监听端口注册到当前worker进程的epoll当中去
         if (ngx_enable_accept_events(cycle) == NGX_ERROR) {
             ngx_shmtx_unlock(&ngx_accept_mutex);
             return NGX_ERROR;
         }
 
         ngx_accept_events = 0;
-        ngx_accept_mutex_held = 1;
+        ngx_accept_mutex_held = 1; //表示当前获取了锁
 
         return NGX_OK;
     }
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "accept mutex lock failed: %ui", ngx_accept_mutex_held);
-
+    //这里表示的是以前曾经获取过，但是这次却获取失败了，那么需要将监听端口从当前的worker进程的epoll当中移除，调用的是ngx_disable_accept_events函数
     if (ngx_accept_mutex_held) {
         if (ngx_disable_accept_events(cycle, 0) == NGX_ERROR) {
             return NGX_ERROR;
@@ -370,11 +404,18 @@ ngx_enable_accept_events(ngx_cycle_t *cycle) {
     ngx_connection_t *c;
 
     ls = cycle->listening.elts;
+    /*
+   注意:这里的循环会把所有的listening加入到了epoll中，那不是每个进程都会把所有的listening加入到epoll中吗，不是有惊群了吗?
+   答案:实际上在本进程ngx_enable_accept_events把所有listen加入本进程epoll中后，本进程获取到ngx_accept_mutex锁后，在执行accept事件的
+   过程中如果如果其他进程也开始ngx_trylock_accept_mutex，如果之前已经获取到锁，并把所有的listen添加到了epoll中，这时会因为没法获取到
+   accept锁，而把之前加入到本进程，但没有accept过的时间全部清除。和ngx_disable_accept_events配合使用
+   最终只有一个进程能accept到同一个客户端连接
+    */
     for (i = 0; i < cycle->listening.nelts; i++) {
 
         c = ls[i].connection;
-
-        if (c == NULL || c->read->active) {
+        //后面的ngx_add_event->ngx_epoll_add_event中把listening中的c->read->active置1， ngx_epoll_del_event中把listening中置read->active置0
+        if (c == NULL || c->read->active) { //之前本进程已经添加过，不用再加入epoll事件中，避免重复
             continue;
         }
 
@@ -398,7 +439,7 @@ ngx_disable_accept_events(ngx_cycle_t *cycle, ngx_uint_t all) {
 
         c = ls[i].connection;
 
-        if (c == NULL || !c->read->active) {
+        if (c == NULL || !c->read->active) { //ngx_epoll_add_event中置1
             continue;
         }
 

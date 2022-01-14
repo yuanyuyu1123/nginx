@@ -151,7 +151,28 @@ static ngx_conf_deprecated_t ngx_conf_deprecated_proxy_upstream_buffer = {
 
 
 static ngx_command_t ngx_stream_proxy_commands[] = {
-
+        /*
+proxy_pass
+语法：proxy_pass URL;
+配置块：location、if
+此配置项将当前请求反向代理到URL参数指定的服务器上，URL可以是主机名或IP地址加端口的形式，例如：
+proxy_pass http://localhost:8000/uri/;
+也可以是UNIX句柄：
+proxy_pass http://unix:/path/to/backend.socket:/uri/;
+还可以如上节负载均衡中所示，直接使用upstream块，例如：
+upstream backend {
+  …
+}
+server {
+  location / {
+    proxy_pass  http://backend;
+  }
+}
+用户可以把HTTP转换成更安全的HTTPS，例如：
+proxy_pass https://192.168.0.1;
+默认情况下反向代理是不会转发请求中的Host头部的。如果需要转发，那么必须加上配置：
+proxy_set_header Host $host;
+*/
         {ngx_string("proxy_pass"),
          NGX_STREAM_SRV_CONF | NGX_CONF_TAKE1,
          ngx_stream_proxy_pass,
