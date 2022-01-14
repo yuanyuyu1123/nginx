@@ -14,7 +14,7 @@
 
 
 typedef int ngx_fd_t;
-typedef struct stat ngx_file_info_t;
+typedef struct stat ngx_file_info_t; //文件大小等资源信息，实际就是Linux系统定义的stat结构
 typedef ino_t ngx_file_uniq_t;
 
 
@@ -61,6 +61,19 @@ typedef struct {
 
 #else
 
+/*
+实际上，ngx_open_file与open方法的区别不大，ngx_open_file返回的是Linux系统的文件句柄。对于打开文件的标志位，Nginx也定义了以下几个宏来加以封装。
+#define NGX_FILE_RDONLY O_RDONLY
+#define NGX_FILE_WRONLY O_WRONLY
+#define NGX_FILE_RDWR O_RDWR
+#define NGX_FILE_CREATE_OR_OPEN O_CREAT
+#define NGX_FILE_OPEN 0
+#define NGX_FILE_TRUNCATE O_CREAT|O_TRUNC
+#define NGX_FILE_APPEND O_WRONLY|O_APPEND
+#define NGX_FILE_NONBLOCK O_NONBLOCK
+#define NGX_FILE_DEFAULT_ACCESS 0644
+#define NGX_FILE_OWNER_ACCESS 0600
+*/
 #define ngx_open_file(name, mode, create, access)                            \
     open((const char *) name, mode|create, access)
 
@@ -100,15 +113,22 @@ typedef struct {
 #endif
 
 #endif /* NGX_HAVE_OPENAT */
-
-#define NGX_FILE_DEFAULT_ACCESS  0644
-#define NGX_FILE_OWNER_ACCESS    0600
+/*
+    -rw-rw-r--
+　　一共有10位数
+　　其中： 最前面那个 - 代表的是类型
+　　中间那三个 rw- 代表的是所有者（user）
+　　然后那三个 rw- 代表的是组群（group）
+　　最后那三个 r-- 代表的是其他人（other）
+*/
+#define NGX_FILE_DEFAULT_ACCESS  0644 //-rw-r--r--  所有者有读写权限 组群有读写权限，其他人只有读权限
+#define NGX_FILE_OWNER_ACCESS    0600  //-rw-------
 
 
 #define ngx_close_file           close
 #define ngx_close_file_n         "close()"
 
-
+//unlink 只能删除文件，不能删除目录
 #define ngx_delete_file(name)    unlink((const char *) name)
 #define ngx_delete_file_n        "unlink()"
 
@@ -157,7 +177,9 @@ ngx_write_fd(ngx_fd_t fd, void *buf, size_t n) {
 #define NGX_LINEFEED_SIZE        1
 #define NGX_LINEFEED             "\x0a"
 
-
+/* rename函数功能是给一个文件重命名，用该函数可以实现文件移动功能，把一个文件的完整路径的盘符改一下就实现了这个文件的移动 */
+//rename和mv命令差不多，只是rename支持批量修改  也就是说，mv也能用于改名，但不能实现批量处理（改名时，不支持*等符号的），而rename可以。
+//rename后文件的fd和stat信息不变  使用 RENAME ，原子性地对临时文件进行改名，覆盖原来的 RDB 文件。
 #define ngx_rename_file(o, n)    rename((const char *) o, (const char *) n)
 #define ngx_rename_file_n        "rename()"
 
@@ -170,16 +192,135 @@ ngx_int_t ngx_set_file_time(u_char *name, ngx_fd_t fd, time_t s);
 
 #define ngx_set_file_time_n      "utimes()"
 
-
+/*
+Linux stat函数讲解：
+表头文件:    #include <sys/stat.h>
+                      #include <unistd.h>
+定义函数:    int stat(const char *file_name, struct stat *buf);
+函数说明:    通过文件名filename获取文件信息，并保存在buf所指的结构体stat中
+ 返回值:     执行成功则返回0，失败返回-1，错误代码存于errno
+错误代码:
+     ENOENT         参数file_name指定的文件不存在
+    ENOTDIR        路径中的目录存在但却非真正的目录
+    ELOOP          欲打开的文件有过多符号连接问题，上限为16符号连接
+    EFAULT         参数buf为无效指针，指向无法存在的内存空间
+    EACCESS        存取文件时被拒绝
+    ENOMEM         核心内存不足
+    ENAMETOOLONG   参数file_name的路径名称太长
+#include <sys/stat.h>
+ #include <unistd.h>
+ #include <stdio.h>
+ int main() {
+     struct stat buf;
+     stat("/etc/hosts", &buf);
+     printf("/etc/hosts file size = %d\n", buf.st_size);
+ }
+ -----------------------------------------------------
+ struct stat {
+     dev_t         st_dev;       //文件的设备编号
+    ino_t         st_ino;       //节点
+    mode_t        st_mode;      //文件的类型和存取的权限
+    nlink_t       st_nlink;     //连到该文件的硬连接数目，刚建立的文件值为1
+     uid_t         st_uid;       //用户ID
+     gid_t         st_gid;       //组ID
+     dev_t         st_rdev;      //(设备类型)若此文件为设备文件，则为其设备编号
+    off_t         st_size;      //文件字节数(文件大小)
+     unsigned long st_blksize;   //块大小(文件系统的I/O 缓冲区大小)
+     unsigned long st_blocks;    //块数
+    time_t        st_atime;     //最后一次访问时间
+    time_t        st_mtime;     //最后一次修改时间
+    time_t        st_ctime;     //最后一次改变时间(指属性)
+ };
+先前所描述的st_mode 则定义了下列数种情况：
+    S_IFMT   0170000    文件类型的位遮罩
+    S_IFSOCK 0140000    scoket
+     S_IFLNK 0120000     符号连接
+    S_IFREG 0100000     一般文件
+    S_IFBLK 0060000     区块装置
+    S_IFDIR 0040000     目录
+    S_IFCHR 0020000     字符装置
+    S_IFIFO 0010000     先进先出
+    S_ISUID 04000     文件的(set user-id on execution)位
+    S_ISGID 02000     文件的(set group-id on execution)位
+    S_ISVTX 01000     文件的sticky位
+    S_IRUSR(S_IREAD) 00400     文件所有者具可读取权限
+    S_IWUSR(S_IWRITE)00200     文件所有者具可写入权限
+    S_IXUSR(S_IEXEC) 00100     文件所有者具可执行权限
+    S_IRGRP 00040             用户组具可读取权限
+    S_IWGRP 00020             用户组具可写入权限
+    S_IXGRP 00010             用户组具可执行权限
+    S_IROTH 00004             其他用户具可读取权限
+    S_IWOTH 00002             其他用户具可写入权限
+    S_IXOTH 00001             其他用户具可执行权限
+    上述的文件类型在POSIX中定义了检查这些类型的宏定义：
+    S_ISLNK (st_mode)    判断是否为符号连接
+    S_ISREG (st_mode)    是否为一般文件
+    S_ISDIR (st_mode)    是否为目录
+    S_ISCHR (st_mode)    是否为字符装置文件
+    S_ISBLK (s3e)        是否为先进先出
+    S_ISSOCK (st_mode)   是否为socket
+     若一目录具有sticky位(S_ISVTX)，则表示在此目录下的文件只能被该文件所有者、此目录所有者或root来删除或改名。
+使用stat函数最多的可能是ls-l命令，用其可以获得有关一个文件的所有信息。
+1 函数都是获取文件（普通文件，目录，管道，socket，字符，块（）的属性。
+函数原型
+#include <sys/stat.h>
+int stat(const char *restrict pathname, struct stat *restrict buf);
+提供文件名字，获取文件对应属性。
+int fstat(int filedes, struct stat *buf);
+通过文件描述符获取文件对应的属性。
+int lstat(const char *restrict pathname, struct stat *restrict buf);
+连接文件描述命，获取文件属性。
+stat系统调用系列包括了fstat、stat和lstat，它们都是用来返回“相关文件状态信息”的，三者的不同之处在于设定源文件的方式不同。
+我们已经学习完了struct stat和各种st_mode相关宏，现在就可以拿它们和stat系统调用相互配合工作了！
+int fstat(int filedes, struct stat *buf);
+int stat(const char *path, struct stat *buf);
+int lstat(const char *path, struct stat *buf);
+聪明人一眼就能看出来fstat的第一个参数是和另外两个不一样的，对！fstat区别于另外两个系统调用的地方在于，fstat系统调用接受的是 一个“文件描述符”，
+而另外两个则直接接受“文件全路径”。文件描述符是需要我们用open系统调用后才能得到的，而文件全路经直接写就可以了。
+stat和lstat的区别：当文件是一个符号链接时，lstat返回的是该符号链接本身的信息；而stat返回的是该链接指向的文件的信息。（似乎有些晕吧，这
+样记，lstat比stat多了一个l，因此它是有本事处理符号链接文件的，因此当遇到符号链接文件时，lstat当然不会放过。而 stat系统调用没有这个本事，
+它只能对符号链接文件睁一只眼闭一只眼，直接去处理链接所指文件喽）
+*/
 #define ngx_file_info(file, sb)  stat((const char *) file, sb)
 #define ngx_file_info_n          "stat()"
-
-#define ngx_fd_info(fd, sb)      fstat(fd, sb)
+//fstat()用来将参数fildes所指的文件状态，复制到参数buf所指的
+#define ngx_fd_info(fd, sb)      fstat(fd, sb) //返回“相关文件状态信息”的
 #define ngx_fd_info_n            "fstat()"
 
 #define ngx_link_info(file, sb)  lstat((const char *) file, sb)
 #define ngx_link_info_n          "lstat()"
-
+/*
+struct stat
+10.{
+11.
+12.    dev_t       st_dev;     / * ID of device containing file -文件所在设备的ID* /
+13.
+14.    ino_t       st_ino;     / * inode number -inode节点号* /
+15.
+16.    mode_t      st_mode;    / * protection -保护模式?* /
+17.
+18.    nlink_t     st_nlink;   / * number of hard links -链向此文件的连接数(硬连接)* /
+19.
+20.    uid_t       st_uid;     / * user ID of owner -user id* /
+21.
+22.    gid_t       st_gid;     / * group ID of owner - group id* /
+23.
+24.    dev_t       st_rdev;    / * device ID (if special file) -设备号，针对设备文件* /
+25.
+26.    off_t       st_size;    / * total size, in bytes -文件大小，字节为单位* /
+27.
+28.    blksize_t   st_blksize; / * blocksize for filesystem I/O -系统块的大小* /
+29.
+30.    blkcnt_t    st_blocks;  / * number of blocks allocated -文件所占块数* /
+31.
+32.    time_t      st_atime;   / * time of last access -最近存取时间* /
+33.
+34.    time_t      st_mtime;   / * time of last modification -最近修改时间* /
+35.
+36.    time_t      st_ctime;   / * time of last status change - * /
+37.
+38.};
+*/
 #define ngx_is_dir(sb)           (S_ISDIR((sb)->st_mode))
 #define ngx_is_file(sb)          (S_ISREG((sb)->st_mode))
 #define ngx_is_link(sb)          (S_ISLNK((sb)->st_mode))
@@ -191,6 +332,8 @@ ngx_int_t ngx_set_file_time(u_char *name, ngx_fd_t fd, time_t s);
      && (sb)->st_blocks * 512 < (sb)->st_size + 8 * (sb)->st_blksize)        \
      ? (sb)->st_blocks * 512 : (sb)->st_size)
 #define ngx_file_mtime(sb)       (sb)->st_mtime
+/* inode number -inode节点号*/
+//同一个设备中的每个文件，这个值都是不同的
 #define ngx_file_uniq(sb)        (sb)->st_ino
 
 
@@ -201,6 +344,7 @@ void ngx_close_file_mapping(ngx_file_mapping_t *fm);
 
 #define ngx_realpath(p, r)       (u_char *) realpath((char *) p, (char *) r)
 #define ngx_realpath_n           "realpath()"
+//getcwd()会将当前工作目录的绝对路径复制到参数buf所指的内存空间中,参数size为buf的空间大小
 #define ngx_getcwd(buf, size)    (getcwd((char *) buf, size) != NULL)
 #define ngx_getcwd_n             "getcwd()"
 #define ngx_path_separator(c)    ((c) == '/')
@@ -383,7 +527,7 @@ off_t ngx_fs_available(u_char *name);
 
 #define ngx_stdout               STDOUT_FILENO
 #define ngx_stderr               STDERR_FILENO
-#define ngx_set_stderr(fd)       dup2(fd, STDERR_FILENO)
+#define ngx_set_stderr(fd)       dup2(fd, STDERR_FILENO) //dup2和dup都可用来复制一个现存的 文件描述符，使两个文件描述符指向同一个file 结构体。
 #define ngx_set_stderr_n         "dup2(STDERR_FILENO)"
 
 

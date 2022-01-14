@@ -91,7 +91,7 @@ void
 
                 mo = getenv("MALLOC_OPTIONS");
 
-                if (mo && ngx_strchr(mo, 'J')) {
+                if (mo && ngx_strchr(mo, 'J')) { //getenv是函数名，从环境中取字符串,获取 环境变量的值
                     ngx_debug_malloc = 1;
                 }
 #endif

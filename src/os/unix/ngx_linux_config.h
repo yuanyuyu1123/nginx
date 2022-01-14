@@ -117,7 +117,7 @@ typedef struct iocb  ngx_aiocb_t;
 
 #endif
 
-
+//TCP实现监听时的backlog队列，它表示允许正在通过三次握手建立TCP连接但还没有任何进程开始处理的连接最大个数
 #define NGX_LISTEN_BACKLOG        511
 
 

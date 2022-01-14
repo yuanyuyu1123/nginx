@@ -68,10 +68,9 @@ ngx_strerror_init(void)
  */
 
 
-static ngx_str_t *ngx_sys_errlist;
+static ngx_str_t *ngx_sys_errlist; //获取error 0-NGX_SYS_NERR对应的描述字符串都存在该链表上
 static ngx_err_t ngx_first_error;
 static ngx_err_t ngx_last_error;
-
 
 u_char *
 ngx_strerror(ngx_err_t err, u_char *errstr, size_t size) {
@@ -89,7 +88,7 @@ ngx_strerror(ngx_err_t err, u_char *errstr, size_t size) {
     return ngx_cpymem(errstr, msg->data, size);
 }
 
-
+//获取error 0-NGX_SYS_NERR对应的描述字符串
 ngx_int_t
 ngx_strerror_init(void) {
     char *msg;
@@ -169,7 +168,7 @@ ngx_strerror_init(void) {
      */
 
     len = (ngx_last_error - ngx_first_error) * sizeof(ngx_str_t);
-
+    //计算长度,注意NGX_SYS_NERR不是在src里面的，而是编译的时候根据操作系统的不同而生成的不内容，这里是在objs/ngx_auto_config.h里面，定义为:135。
     ngx_sys_errlist = malloc(len);
     if (ngx_sys_errlist == NULL) {
         goto failed;
