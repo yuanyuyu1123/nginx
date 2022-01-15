@@ -26,10 +26,49 @@ static void ngx_http_upstream_empty_save_session(ngx_peer_connection_t *pc,
 
 #endif
 
+/*
+Load-blance模块中4个关键回调函数：
+回调指针                  函数功能                          round_robin模块                     IP_hash模块
+
+uscf->peer.init_upstream (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)
+解析配置文件过程中调用，根据upstream里各个server配置项做初始准备工作，另外的核心工作是设置回调指针us->peer.init。配置文件解析完后不再被调用
+ngx_http_upstream_init_round_robin
+设置：us->peer.init = ngx_http_upstream_init_round_robin_peer;
+
+ngx_http_upstream_init_ip_hash
+设置：us->peer.init = ngx_http_upstream_init_ip_hash_peer;
+
+us->peer.init
+在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数。该函数为本次转发选择合适的后端服务器做初始准备工作，另外的核心工
+作是设置回调指针r->upstream->peer.get和r->upstream->peer.free等
+
+ngx_http_upstream_init_round_robin_peer
+设置：r->upstream->peer.get = ngx_http_upstream_get_round_robin_peer;
+r->upstream->peer.free = ngx_http_upstream_free_round_robin_peer;
+
+ngx_http_upstream_init_ip_hash_peer
+设置：r->upstream->peer.get = ngx_http_upstream_get_ip_hash_peer;
+r->upstream->peer.free为空
+
+r->upstream->peer.get
+在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数。该函数实现具体的位本次转发选择合适的后端服务器的算法逻辑，即
+完成选择获取合适后端服务器的功能
+
+ngx_http_upstream_get_round_robin_peer
+加权选择当前权值最高的后端服务器
+
+ngx_http_upstream_get_ip_hash_peer
+根据IP哈希值选择后端服务器
+
+r->upstream->peer.free
+在每一次Nginx完成与后端服务器之间的交互后都会调用该函数。
+ngx_http_upstream_free_round_robin_peer
+更新相关数值，比如rrp->current
+*/
 
 ngx_int_t
 ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
-                                   ngx_http_upstream_srv_conf_t *us) {
+                                   ngx_http_upstream_srv_conf_t *us) { //在ngx_http_upstream_init_main_conf中执行
     ngx_url_t u;
     ngx_uint_t i, j, n, w, t;
     ngx_http_upstream_server_t *server;
@@ -41,12 +80,12 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
     if (us->servers) {
         server = us->servers->elts;
 
-        n = 0;
-        w = 0;
+        n = 0; //所有服务器数量
+        w = 0; //所有服务器的权重之和
         t = 0;
 
         for (i = 0; i < us->servers->nelts; i++) {
-            if (server[i].backup) {
+            if (server[i].backup) { //备份服务器不算在内
                 continue;
             }
 
@@ -70,21 +109,21 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
             return NGX_ERROR;
         }
 
-        peer = ngx_pcalloc(cf->pool, sizeof(ngx_http_upstream_rr_peer_t) * n);
+        peer = ngx_pcalloc(cf->pool, sizeof(ngx_http_upstream_rr_peer_t) * n); //为所有的非backup服务器分配相关存储空间
         if (peer == NULL) {
             return NGX_ERROR;
         }
 
-        peers->single = (n == 1);
+        peers->single = (n == 1);  //n=1，表示只为后端配置了一个服务器
         peers->number = n;
-        peers->weighted = (w != n);
+        peers->weighted = (w != n); //w=n表示权重都相等，都是1
         peers->total_weight = w;
         peers->tries = t;
         peers->name = &us->host;
 
         n = 0;
         peerp = &peers->peer;
-
+        //初始化每个peer节点的信息
         for (i = 0; i < us->servers->nelts; i++) {
             if (server[i].backup) {
                 continue;
@@ -103,7 +142,7 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
                 peer[n].down = server[i].down;
                 peer[n].server = server[i].name;
 
-                *peerp = &peer[n];
+                *peerp = &peer[n]; //所有的peer[]服务器信息通过peers->peer连接在一起
                 peerp = &peer[n].next;
                 n++;
             }
@@ -112,7 +151,7 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
         us->peer.data = peers;
 
         /* backup servers */
-
+        //初始化backup servers
         n = 0;
         w = 0;
         t = 0;
@@ -173,20 +212,20 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
                 peer[n].down = server[i].down;
                 peer[n].server = server[i].name;
 
-                *peerp = &peer[n];
+                *peerp = &peer[n]; //所有的backup服务器通过next连接在一起
                 peerp = &peer[n].next;
                 n++;
             }
         }
 
-        peers->next = backup;
+        peers->next = backup; //所有backup服务器的信息都连接在上面的非backup服务器的next后面，这样所有的服务器(包括backup和非backup)都会连接到us->peer.data
 
         return NGX_OK;
     }
 
 
     /* an upstream implicitly defined by proxy_pass, etc. */
-
+    //us参数中服务器指针为空，例如用户直接在proxy_pass等指令后配置后端服务器地址
     if (us->port == 0) {
         ngx_log_error(NGX_LOG_EMERG, cf->log, 0,
                       "no port in upstream \"%V\" in %s:%ui",
@@ -251,10 +290,57 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
     return NGX_OK;
 }
 
+/*
+Load-blance模块中4个关键回调函数：
+回调指针                  函数功能                          round_robin模块                     IP_hash模块
 
-ngx_int_t
+uscf->peer.init_upstream默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行
+解析配置文件过程中调用，根据upstream里各个server配置项做初始准备工作，另外的核心工作是设置回调指针us->peer.init。配置文件解析完后不再被调用
+ngx_http_upstream_init_round_robin
+设置：us->peer.init = ngx_http_upstream_init_round_robin_peer;
+
+ngx_http_upstream_init_ip_hash
+设置：us->peer.init = ngx_http_upstream_init_ip_hash_peer;
+
+us->peer.init
+在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数。该函数为本次转发选择合适的后端服务器做初始准备工作，另外的核心工
+作是设置回调指针r->upstream->peer.get和r->upstream->peer.free等
+
+ngx_http_upstream_init_round_robin_peer
+设置：r->upstream->peer.get = ngx_http_upstream_get_round_robin_peer;
+r->upstream->peer.free = ngx_http_upstream_free_round_robin_peer;
+
+ngx_http_upstream_init_ip_hash_peer
+设置：r->upstream->peer.get = ngx_http_upstream_get_ip_hash_peer;
+r->upstream->peer.free为空
+
+r->upstream->peer.get
+在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数。该函数实现具体的位本次转发选择合适的后端服务器的算法逻辑，即
+完成选择获取合适后端服务器的功能
+
+ngx_http_upstream_get_round_robin_peer
+加权选择当前权值最高的后端服务器
+
+ngx_http_upstream_get_ip_hash_peer
+根据IP哈希值选择后端服务器
+
+r->upstream->peer.free
+在每一次Nginx完成与后端服务器之间的交互后都会调用该函数。
+ngx_http_upstream_free_round_robin_peer
+更新相关数值，比如rrp->current
+轮询策略和IP哈希策略对比
+加权轮询策略
+优点：适用性更强，不依赖于客户端的任何信息，完全依靠后端服务器的情况来进行选择。能把客户端请求更合理更均匀地分配到各个后端服务器处理。
+缺点：同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理，无法满足做会话保持的应用的需求。
+IP哈希策略
+优点：能较好地把同一个客户端的多次请求分配到同一台服务器处理，避免了加权轮询无法适用会话保持的需求。
+缺点：当某个时刻来自某个IP地址的请求特别多，那么将导致某台后端服务器的压力可能非常大，而其他后端服务器却空闲的不均衡情况、
+*/
+//如果没有手动设置访问后端服务器的算法，则默认用robin方式  //轮询负债均衡算法ngx_http_upstream_init_round_robin_peer  iphash负载均衡算法ngx_http_upstream_init_ip_hash_peer
+ngx_int_t  //ngx_http_upstream_init_request准备好FCGI数据，buffer后，会调用这里进行一个peer的初始化，此处是轮询peer的初始化。
 ngx_http_upstream_init_round_robin_peer(ngx_http_request_t *r,
-                                        ngx_http_upstream_srv_conf_t *us) {
+                                        ngx_http_upstream_srv_conf_t *us) { // (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)
+    //ngx_http_upstream_get_peer和ngx_http_upstream_init_round_robin_peer配合阅读
     ngx_uint_t n;
     ngx_http_upstream_rr_peer_data_t *rrp;
 
@@ -269,8 +355,8 @@ ngx_http_upstream_init_round_robin_peer(ngx_http_request_t *r,
         r->upstream->peer.data = rrp;
     }
 
-    rrp->peers = us->peer.data;
-    rrp->current = NULL;
+    rrp->peers = us->peer.data; //该upstream {}所在的
+    rrp->current = NULL;  //当前是第0个
     rrp->config = 0;
 
     n = rrp->peers->number;
