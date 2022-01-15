@@ -103,7 +103,7 @@ ngx_str_t ngx_http_cache_status[] = {
 
 static u_char ngx_http_file_cache_key[] = {LF, 'K', 'E', 'Y', ':', ' '};
 
-
+//ngx_init_cycle中执行
 static ngx_int_t
 ngx_http_file_cache_init(ngx_shm_zone_t *shm_zone, void *data) {
     ngx_http_file_cache_t *ocache = data;
@@ -115,6 +115,7 @@ ngx_http_file_cache_init(ngx_shm_zone_t *shm_zone, void *data) {
     cache = shm_zone->data;
 
     if (ocache) {
+        //如果ocache不是NULL，即有old cache，就比较缓存路径和level等，如果match的话就继承ocache的sh、shpool、bsize等
         if (ngx_strcmp(cache->path->name.data, ocache->path->name.data) != 0) {
             ngx_log_error(NGX_LOG_EMERG, shm_zone->shm.log, 0,
                           "cache \"%V\" uses the \"%V\" cache path "
@@ -166,9 +167,9 @@ ngx_http_file_cache_init(ngx_shm_zone_t *shm_zone, void *data) {
     cache->shpool->data = cache->sh;
 
     ngx_rbtree_init(&cache->sh->rbtree, &cache->sh->sentinel,
-                    ngx_http_file_cache_rbtree_insert_value);
+                    ngx_http_file_cache_rbtree_insert_value); //红黑树初始化
 
-    ngx_queue_init(&cache->sh->queue);
+    ngx_queue_init(&cache->sh->queue); //队列初始化
 
     cache->sh->cold = 1;
     cache->sh->loading = 0;
@@ -195,7 +196,7 @@ ngx_http_file_cache_init(ngx_shm_zone_t *shm_zone, void *data) {
     return NGX_OK;
 }
 
-
+//这里面的keys数组是为了存储proxy_cache_key $scheme$proxy_host$request_uri各个变量对应的value值
 ngx_int_t
 ngx_http_file_cache_new(ngx_http_request_t *r) {
     ngx_http_cache_t *c;
@@ -216,7 +217,17 @@ ngx_http_file_cache_new(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
+/*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
+中创建临时文件，然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件，最后在
+ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
+的cache目录下面
+*/
+/*后端数据读取完毕，并且全部写入临时文件后才会执行rename过程，为什么需要临时文件的原因是:例如之前的缓存过期了，现在有个请求正在从后端
+获取数据写入临时文件，如果是直接写入缓存文件，则在获取后端数据过程中，如果在来一个客户端请求，如果允许proxy_cache_use_stale updating，则
+后面的请求可以直接获取之前老旧的过期缓存，从而可以避免冲突(前面的请求写文件，后面的请求获取文件内容)
+*/
 
+//为后端应答的数据创建对应的缓存文件
 ngx_int_t
 ngx_http_file_cache_create(ngx_http_request_t *r) {
     ngx_http_cache_t *c;
@@ -245,7 +256,7 @@ ngx_http_file_cache_create(ngx_http_request_t *r) {
     return NGX_OK;
 }
 
-
+/* 生成 md5sum(key) 和 crc32(key)并计算 `c->header_start` 值 */
 void
 ngx_http_file_cache_create_key(ngx_http_request_t *r) {
     size_t len;
@@ -262,28 +273,35 @@ ngx_http_file_cache_create_key(ngx_http_request_t *r) {
     ngx_md5_init(&md5);
 
     key = c->keys.elts;
-    for (i = 0; i < c->keys.nelts; i++) {
+    for (i = 0; i < c->keys.nelts; i++) { //计算 proxy_cache_key $scheme$proxy_host$request_uri对应的变量value值的md5和crc32值
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                        "http cache key: \"%V\"", &key[i]);
 
-        len += key[i].len;
+        len += key[i].len; //xxx_cache_key配置中的字符串长度和
 
-        ngx_crc32_update(&c->crc32, key[i].data, key[i].len);
-        ngx_md5_update(&md5, key[i].data, key[i].len);
+        ngx_crc32_update(&c->crc32, key[i].data, key[i].len); //xxx_cache_key配置中的字符串进行crc32校验值
+        ngx_md5_update(&md5, key[i].data, key[i].len);  //xxx_cache_key配置中的字符串进行MD5运算
     }
-
+    //[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header][body] 封包过程见ngx_http_file_cache_set_header
     c->header_start = sizeof(ngx_http_file_cache_header_t)
-                      + sizeof(ngx_http_file_cache_key) + len + 1;
+                      + sizeof(ngx_http_file_cache_key) + len + 1; //+1是因为key后面有有个'\N'
 
-    ngx_crc32_final(c->crc32);
-    ngx_md5_final(c->key, &md5);
+    ngx_crc32_final(c->crc32); //获取所有key字符串的校验结果
+    ngx_md5_final(c->key, &md5); //获取xxx_cache_key配置字符串进行MD5运算的值
 
     ngx_memcpy(c->main, c->key, NGX_HTTP_CACHE_KEY_LEN);
 }
 
+/*
+ ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+ 文件stat信息，例如文件大小等。
+ 头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+ 缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+ */
 
+//调用 ngx_http_file_cache_open 函数查找是否有对应的有效缓存数据 ngx_http_file_cache_open 函数负责缓存文件定位、缓存文件打开和校验等操作
 ngx_int_t
-ngx_http_file_cache_open(ngx_http_request_t *r) {
+ngx_http_file_cache_open(ngx_http_request_t *r) { //读取缓存文件前面的头部信息数据到r->cache->buf，同时获取文件的相关属性到r->cache的相关字段
     ngx_int_t rc, rv;
     ngx_uint_t test;
     ngx_http_cache_t *c;
@@ -293,18 +311,25 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
     ngx_http_core_loc_conf_t *clcf;
 
     c = r->cache;
-
-    if (c->waiting) {
+    /* ngx_http_file_cache_open如果返回NGX_AGAIN，则会在函数外执行下面的代码，也就是等待前面的请求后端返回后，再次触发后面的请求执行ngx_http_upstream_init_request过程
+       这时候前面从后端获取的数据肯定已经得到缓存
+       r->write_event_handler = ngx_http_upstream_init_request;  //这么触发该write handler呢?因为前面的请求获取到后端数据后，在触发epoll_in的同时
+       也会触发epoll_out，从而会执行该函数
+       return;
+    */
+    if (c->waiting) { //缓存内容己过期，当前请求正等待其它请求更新此缓存节点。
         return NGX_AGAIN;
     }
 
     if (c->reading) {
         return ngx_http_file_cache_read(r, c);
     }
-
+    //通过proxy_cache xxx或者fastcgi_cache xxx来设置的共享内存等信息
     cache = c->file_cache;
-
-    if (c->node == NULL) {
+    /*
+     第一次根据请求信息生成的 key 查找对应缓存节点时，先注册一下请求内存池级别的清理函数
+     */
+    if (c->node == NULL) { //添加缓存对应的cleanup
         cln = ngx_pool_cleanup_add(r->pool, 0);
         if (cln == NULL) {
             return NGX_ERROR;
@@ -325,8 +350,8 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
         return rc;
     }
 
-    if (rc == NGX_AGAIN) {
-        return NGX_HTTP_CACHE_SCARCE;
+    if (rc == NGX_AGAIN) { //例如配置Proxy_cache_min_uses 5，则需要客户端请求5才才能从缓存中取，如果现在只有4次，则都需要从后端获取数据
+        return NGX_HTTP_CACHE_SCARCE; //函数外层ngx_http_upstream_cache会把 u->cacheable = 0;
     }
 
     if (rc == NGX_OK) {
@@ -336,12 +361,13 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
         }
 
         c->temp_file = 1;
-        test = c->exists ? 1 : 0;
-        rv = NGX_DECLINED;
+        test = c->exists ? 1 : 0; //是否有达到Proxy_cache_min_uses 5配置的开始缓存文件的请求次数，达到为1，没达到为0
+        rv = NGX_DECLINED; //如果返回这个，会把cached置0，返回出去后只有从后端从新获取数据
 
     } else { /* rc == NGX_DECLINED */
-
-        test = cache->sh->cold ? 1 : 0;
+        //表示在ngx_http_file_cache_exists中没找到该key对应的node节点，因此按照key重新创建了一个node节点(第一次请求该uri)
+        //ngx_http_file_cache_exists没找到对应的ngx_http_file_cache_node_t节点，或者该节点对应缓存过期，返回NGX_DECLINED (第一次请求该uri)
+        test = cache->sh->cold ? 1 : 0; //test=0,表示进程起来后缓存文件已经加载完毕，为1表示进程刚起来还没有加载缓存文件，默认值1
 
         if (c->min_uses > 1) {
 
@@ -353,7 +379,7 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
 
         } else {
             c->temp_file = 1;
-            rv = NGX_DECLINED;
+            rv = NGX_DECLINED; //如果返回这个，会把cached置0，返回出去后只有从后端从新获取数据
         }
     }
 
@@ -362,6 +388,8 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
     }
 
     if (!test) {
+        //还没达到Proxy_cache_min_uses 5配置的开始缓存文件的请求次数
+        //nginx进程起来后，loader进程已经把缓存文件加载完毕，但是在红黑树中没有找到对应的文件node节点(第一次请求该uri)
         goto done;
     }
 
@@ -374,10 +402,11 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
     of.min_uses = clcf->open_file_cache_min_uses;
     of.events = clcf->open_file_cache_events;
     of.is_directio = NGX_OPEN_FILE_DIRECTIO_OFF;
-    of.read_ahead = clcf->read_ahead;
+    of.read_ahead = clcf->read_ahead;  /* read_ahead配置，默认0 */
 
     if (ngx_open_cached_file(clcf->open_file_cache, &c->file.name, &of, r->pool)
         != NGX_OK) {
+        //一般没有该文件的时候会走到这里面
         switch (of.err) {
 
             case 0:
@@ -402,17 +431,41 @@ ngx_http_file_cache_open(ngx_http_request_t *r) {
     c->uniq = of.uniq;
     c->length = of.size;
     c->fs_size = (of.fs_size + cache->bsize - 1) / cache->bsize;
+    /*
+  root@root:/var/yyz# cat cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f   封包过程见ngx_http_file_cache_set_header
+   3hwhdBw
+   KEY: /test2.php
 
+   X-Powered-By: PHP/5.2.13
+   Content-type: text/html
+  //body_start就是上面这一段内存内容长度
+  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+   <Html>
+   <title>file update</title>
+   <body>
+   <form method="post" action="" enctype="multipart/form-data">
+   <input type="file" name="file" />
+   <input type="submit" value="submit" />
+   </form>
+   </body>
+   </html>
+   */
+    //创建存放缓存文件中前面[ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header]部分的内容长度空间,也就是
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@前面的内容
     c->buf = ngx_create_temp_buf(r->pool, c->body_start);
     if (c->buf == NULL) {
         return NGX_ERROR;
     }
-
+    //注意这里读取缓存文件中的头部部分的时候，只有aio读取或者缓存方式读取，和sendfile没有关系，因为头部读出来需要重新组装发往客户端的头部行信息，必须从文件读到内存中
+    //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     return ngx_http_file_cache_read(r, c);
 
     done:
-
+    //还没达到Proxy_cache_min_uses 5配置的开始缓存文件的请求次数
+    //nginx进程起来后，loader进程已经把缓存文件加载完毕，但是在红黑树中没有找到对应的文件node节点(第一次请求该uri)，同时配置的Proxy_cache_min_uses=1
     if (rv == NGX_DECLINED) {
+        //说明没有uri对应的缓存文件，通过ngx_http_cache_t->key[](实际上就是由uri进行MD5计算出的值放到key[]中的)在红黑树中找不到该节点
         return ngx_http_file_cache_lock(r, c);
     }
 
@@ -425,7 +478,7 @@ ngx_http_file_cache_lock(ngx_http_request_t *r, ngx_http_cache_t *c) {
     ngx_msec_t now, timer;
     ngx_http_file_cache_t *cache;
 
-    if (!c->lock) {
+    if (!c->lock) { //默认就是0
         return NGX_DECLINED;
     }
 
@@ -539,9 +592,38 @@ ngx_http_file_cache_lock_wait(ngx_http_request_t *r, ngx_http_cache_t *c) {
     r->write_event_handler(r);
 }
 
+/*
+    root@root:/var/yyz# cat cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f   封包过程见ngx_http_file_cache_set_header
+     3hwhdBw
+     KEY: /test2.php
 
+     X-Powered-By: PHP/5.2.13
+     Content-type: text/html
+    //body_start就是上面这一段内存内容长度
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+     <Html>
+     <title>file update</title>
+     <body>
+     <form method="post" action="" enctype="multipart/form-data">
+     <input type="file" name="file" />
+     <input type="submit" value="submit" />
+     </form>
+     </body>
+     </html>
+*/
+
+/*
+     ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+     文件stat信息，例如文件大小等。
+     头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+     缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+ */
+
+//读取缓存文件中前面[ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header]部分的内容长度空间,也就是
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@前面的内容
 static ngx_int_t
-ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
+ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) { //注意这里读取缓存文件中的头部部分的时候，只有aio读取或者缓存方式读取，和sendfile没有关系，因为头部读出来需要重新组装发往客户端的头部行信息，必须从文件读到内存中
     u_char *p;
     time_t now;
     ssize_t n;
@@ -550,31 +632,39 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
     ngx_uint_t i;
     ngx_http_file_cache_t *cache;
     ngx_http_file_cache_header_t *h;
-
-    n = ngx_http_file_cache_aio_read(r, c);
+    /*
+    ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+    文件stat信息，例如文件大小等。
+    头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+    缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+    */
+    n = ngx_http_file_cache_aio_read(r, c); //读取缓存文件中的前面头部相关信息部分数据
 
     if (n < 0) {
         return n;
     }
+    //写缓冲区封装过程参考:ngx_http_upstream_process_header
+    //缓存文件中前面部分格式:[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header]
 
+    //头部部分读取错误
     if ((size_t) n < c->header_start) {
         ngx_log_error(NGX_LOG_CRIT, r->connection->log, 0,
                       "cache file \"%s\" is too small", c->file.name.data);
-        return NGX_DECLINED;
+        return NGX_DECLINED; //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     }
-
+    //[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header]
     h = (ngx_http_file_cache_header_t *) c->buf->pos;
 
     if (h->version != NGX_HTTP_CACHE_VERSION) {
         ngx_log_error(NGX_LOG_INFO, r->connection->log, 0,
                       "cache file \"%s\" version mismatch", c->file.name.data);
-        return NGX_DECLINED;
+        return NGX_DECLINED;  //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     }
 
     if (h->crc32 != c->crc32 || (size_t) h->header_start != c->header_start) {
         ngx_log_error(NGX_LOG_CRIT, r->connection->log, 0,
                       "cache file \"%s\" has md5 collision", c->file.name.data);
-        return NGX_DECLINED;
+        return NGX_DECLINED;  //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     }
 
     p = c->buf->pos + sizeof(ngx_http_file_cache_header_t)
@@ -596,14 +686,14 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
         ngx_log_error(NGX_LOG_CRIT, r->connection->log, 0,
                       "cache file \"%s\" has too long header",
                       c->file.name.data);
-        return NGX_DECLINED;
+        return NGX_DECLINED; //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     }
 
     if (h->vary_len > NGX_HTTP_CACHE_VARY_LEN) {
         ngx_log_error(NGX_LOG_CRIT, r->connection->log, 0,
                       "cache file \"%s\" has incorrect vary length",
                       c->file.name.data);
-        return NGX_DECLINED;
+        return NGX_DECLINED; //如果返回这个NGX_DECLINED，会把cached置0，返回出去后只有从后端从新获取数据
     }
 
     if (h->vary_len) {
@@ -616,7 +706,7 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
         }
     }
 
-    c->buf->last += n;
+    c->buf->last += n; //移动last指针
 
     c->valid_sec = h->valid_sec;
     c->updating_sec = h->updating_sec;
@@ -651,7 +741,7 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
 
     now = ngx_time();
 
-    if (c->valid_sec < now) {
+    if (c->valid_sec < now) { //判断该缓存是否过期
         c->stale_updating = c->valid_sec + c->updating_sec >= now;
         c->stale_error = c->valid_sec + c->error_sec >= now;
 
@@ -660,8 +750,8 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
         if (c->node->updating) {
             rc = NGX_HTTP_CACHE_UPDATING;
 
-        } else {
-            c->node->updating = 1;
+        } else { //表示自己是第一个发现该缓存过期的客户端请求，因此自己需要从后端从新获取
+            c->node->updating = 1; //客户端请求到nginx后，发现缓存过期，则会重新从后端获取数据，updating置1，见ngx_http_file_cache_read
             c->updating = 1;
             c->lock_time = c->node->lock_time;
             rc = NGX_HTTP_CACHE_STALE;
@@ -680,8 +770,49 @@ ngx_http_file_cache_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
 }
 
 
+/*
+    root@root:/var/yyz# cat cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f   封包过程见ngx_http_file_cache_set_header
+     3hwhdBw
+     KEY: /test2.php
+
+     X-Powered-By: PHP/5.2.13
+     Content-type: text/html
+    //body_start就是上面这一段内存内容长度
+    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+     <Html>
+     <title>file update</title>
+     <body>
+     <form method="post" action="" enctype="multipart/form-data">
+     <input type="file" name="file" />
+     <input type="submit" value="submit" />
+     </form>
+     </body>
+     </html>
+*/
+//读取缓存文件中前面[ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header]部分的内容长度空间,也就是
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@前面的内容
+
+/*
+发送缓存文件中内容到客户端过程:
+ ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+ 文件stat信息，例如文件大小等。
+ 头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+ 缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+ 接收后端数据并转发到客户端触发数据发送过程:
+ ngx_event_pipe_write_to_downstream中的
+ if (p->upstream_eof || p->upstream_error || p->upstream_done) {
+    遍历p->in 或者遍历p->out，然后执行输出
+    p->output_filter(p->output_ctx, p->out);
+ }
+ */
+
+/* 读取缓存文件中前面的[ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header] */
+//注意置读取前面的头部信息，紧跟后面的后端应答回来的缓存包体是没有读取的
 static ssize_t
-ngx_http_file_cache_aio_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
+ngx_http_file_cache_aio_read(ngx_http_request_t *r, ngx_http_cache_t *c)
+{
+//注意这里读取缓存文件中的头部部分的时候，只有aio读取或者缓存方式读取，和sendfile没有关系，因为头部读出来需要重新组装发往客户端的头部行信息，必须从文件读到内存中
 #if (NGX_HAVE_FILE_AIO || NGX_THREADS)
     ssize_t                    n;
     ngx_http_core_loc_conf_t  *clcf;
@@ -691,7 +822,7 @@ ngx_http_file_cache_aio_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
 
 #if (NGX_HAVE_FILE_AIO)
 
-    if (clcf->aio == NGX_HTTP_AIO_ON && ngx_file_aio) {
+    if (clcf->aio == NGX_HTTP_AIO_ON && ngx_file_aio) { //aio on这这里  aio on | off | threads[=pool];
         n = ngx_file_aio_read(&c->file, c->buf->pos, c->body_start, 0, r->pool);
 
         if (n != NGX_AGAIN) {
@@ -714,12 +845,12 @@ ngx_http_file_cache_aio_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
 
 #if (NGX_THREADS)
 
-    if (clcf->aio == NGX_HTTP_AIO_THREADS) {
+    if (clcf->aio == NGX_HTTP_AIO_THREADS) { //aio thread配置的时候走这里  aio on | off | threads[=pool];
         c->file.thread_task = c->thread_task;
         c->file.thread_handler = ngx_http_cache_thread_handler;
         c->file.thread_ctx = r;
 
-        n = ngx_thread_read(&c->file, c->buf->pos, c->body_start, 0, r->pool);
+        n = ngx_thread_read(&c->file, c->buf->pos, c->body_start, 0, r->pool); //只是读取缓冲区文件中前面的头部信息部分
 
         c->thread_task = c->file.thread_task;
         c->reading = (n == NGX_AGAIN);
@@ -728,8 +859,23 @@ ngx_http_file_cache_aio_read(ngx_http_request_t *r, ngx_http_cache_t *c) {
     }
 
 #endif
+    /*
+     ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+     文件stat信息，例如文件大小等。
+     头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+     缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+     */
 
+
+    /* 读取缓存文件中前面的[ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header] */
     return ngx_read_file(&c->file, c->buf->pos, c->body_start, 0);
+    /*c->buf->last += ret;
+   ngx_log_debugall(r->connection->log, 0, "YANG TEST ......@@@@@@@@@......%d, ret:%uz",
+       (int)(c->buf->last - c->buf->pos), ret);
+   ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
+                  "%*s", (size_t) (c->buf->last - c->buf->pos), c->buf->pos);
+   c->buf->last -= ret;
+   return ret;*/
 }
 
 
@@ -763,10 +909,11 @@ ngx_http_cache_aio_event_handler(ngx_event_t *ev)
 
 
 #if (NGX_THREADS)
-
+//aio thread配置的时候走这里  aio on | off | threads[=pool];
+//这里添加task->event信息到task中，当task->handler指向完后，通过nginx_notify可以继续通过epoll_wait返回执行task->event
 static ngx_int_t
 ngx_http_cache_thread_handler(ngx_thread_task_t *task, ngx_file_t *file)
-{
+{ //由ngx_thread_read触发执行
     ngx_str_t                  name;
     ngx_thread_pool_t         *tp;
     ngx_http_request_t        *r;
@@ -796,7 +943,7 @@ ngx_http_cache_thread_handler(ngx_thread_task_t *task, ngx_file_t *file)
     task->event.data = r;
     task->event.handler = ngx_http_cache_thread_event_handler;
 
-    if (ngx_thread_task_post(tp, task) != NGX_OK) {
+    if (ngx_thread_task_post(tp, task) != NGX_OK) { //该任务的handler函数式task->handler = ngx_thread_read_handler;
         return NGX_ERROR;
     }
 
@@ -808,7 +955,7 @@ ngx_http_cache_thread_handler(ngx_thread_task_t *task, ngx_file_t *file)
 
 
 static void
-ngx_http_cache_thread_event_handler(ngx_event_t *ev)
+ngx_http_cache_thread_event_handler(ngx_event_t *ev) //在ngx_notify(ngx_thread_pool_handler); 中的ngx_thread_pool_handler执行该函数，表示线程读文件完成，通过ngx_notify epoll方式触发
 {
     ngx_connection_t    *c;
     ngx_http_request_t  *r;
@@ -831,7 +978,14 @@ ngx_http_cache_thread_event_handler(ngx_event_t *ev)
 
 #endif
 
+/*
+  同一个客户端请求r只拥有一个r->ngx_http_cache_t和r->ngx_http_cache_t->ngx_http_file_cache_t结构，同一个客户端可能会请求后端的多个uri，
+  则在向后端发起请求前，在ngx_http_file_cache_open->ngx_http_file_cache_exists中会按照proxy_cache_key $scheme$proxy_host$request_uri计算出来的
+  MD5来创建对应的红黑树节点，然后添加到ngx_http_file_cache_t->sh->rbtree红黑树中。所以不同的客户端uri会有不同的node节点存在于红黑树中
+*/
 
+//http://www.tuicool.com/articles/QnMNr23
+//查找红黑树cache->sh->rbtree中的节点ngx_http_file_cache_node_t，没找到则创建响应的ngx_http_file_cache_node_t节点添加到红黑树中
 static ngx_int_t
 ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
     ngx_int_t rc;
@@ -839,16 +993,18 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
 
     ngx_shmtx_lock(&cache->shpool->mutex);
 
-    fcn = c->node;
+    fcn = c->node; //后面没找到则会创建node节点
 
     if (fcn == NULL) {
-        fcn = ngx_http_file_cache_lookup(cache, c->key);
+        fcn = ngx_http_file_cache_lookup(cache, c->key); //以 c->key 为查找条件从缓存中查找缓存节点：
     }
 
-    if (fcn) {
+    if (fcn) { //cache中存在该key
         ngx_queue_remove(&fcn->queue);
 
-        if (c->node == NULL) {
+        //该客户端在新建连接后，如果之前有缓存该文件，则c->node为NULL，表示这个连接请求第一次走到这里，有一个客户端在获取数据，如果在
+        //连接范围内(还没有断开连接)多次获取该缓存文件，则也只会加1，表示当前有多少个客户端连接在获取该缓存
+        if (c->node == NULL) { //如果该请求第一次使用此缓存节点，则增加相关引用和使用次数
             fcn->uses++;
             fcn->count++;
         }
@@ -856,7 +1012,7 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
         if (fcn->error) {
 
             if (fcn->valid_sec < ngx_time()) {
-                goto renew;
+                goto renew; //缓存已过期
             }
 
             rc = NGX_OK;
@@ -865,7 +1021,8 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
         }
 
         if (fcn->exists || fcn->uses >= c->min_uses) {
-
+            //该请求的缓存已经存在，并且对该缓存的请求次数达到了最低要求次数min_uses
+            //表示该缓存文件是否存在，Proxy_cache_min_uses 3，则第3次后开始获取后端数据，获取完毕后在ngx_http_file_cache_update中置1，但是只有在地4次请求的时候才会在ngx_http_file_cache_exists赋值为1
             c->exists = fcn->exists;
             if (fcn->body_start && !c->update_variant) {
                 c->body_start = fcn->body_start;
@@ -875,12 +1032,12 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
 
             goto done;
         }
-
+        //例如配置Proxy_cache_min_uses 5，则需要客户端请求5才才能从缓存中取，如果现在只有4次，则都需要从后端获取数据
         rc = NGX_AGAIN;
 
         goto done;
     }
-
+    //没找到，则在下面创建node节点，添加到ngx_http_file_cache_t->sh->rbtree红黑树中
     fcn = ngx_slab_calloc_locked(cache->shpool,
                                  sizeof(ngx_http_file_cache_node_t));
     if (fcn == NULL) {
@@ -909,14 +1066,14 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
     ngx_memcpy(fcn->key, &c->key[sizeof(ngx_rbtree_key_t)],
                NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t));
 
-    ngx_rbtree_insert(&cache->sh->rbtree, &fcn->node);
+    ngx_rbtree_insert(&cache->sh->rbtree, &fcn->node);  //把该节点添加到红黑树中
 
     fcn->uses = 1;
     fcn->count = 1;
 
     renew:
 
-    rc = NGX_DECLINED;
+    rc = NGX_DECLINED; //uri第一次请求的时候创建node节点，同时返回NGX_DECLINED。或者缓存过期需要把该节点相关信息恢复为默认值
 
     fcn->valid_msec = 0;
     fcn->error = 0;
@@ -930,11 +1087,11 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
 
     fcn->expire = ngx_time() + cache->inactive;
 
-    ngx_queue_insert_head(&cache->sh->queue, &fcn->queue);
+    ngx_queue_insert_head(&cache->sh->queue, &fcn->queue); //新创建的node节点添加到cache->sh->queue头部
 
-    c->uniq = fcn->uniq;
+    c->uniq = fcn->uniq; //文件的uniq  赋值见ngx_http_file_cache_update
     c->error = fcn->error;
-    c->node = fcn;
+    c->node = fcn; //把新创建的fcn赋值给c->node
 
     failed:
 
@@ -943,9 +1100,12 @@ ngx_http_file_cache_exists(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
     return rc;
 }
 
-
+//为后端应答回来的数据创建缓存文件用该函数获取缓存文件名，客户端请求过来后，也是采用该函数获取缓存文件名，只要
+//proxy_cache_key $scheme$proxy_host$request_uri配置中的变量对应的值一样，则获取到的文件名肯定是一样的，即使是不同的客户端r，参考ngx_http_file_cache_name
+//因为不同客户端的proxy_cache_key配置的对应变量value一样，则他们计算出来的ngx_http_cache_s->key[]也会一样，他们的在红黑树和queue队列中的
+//node节点也会是同一个，参考ngx_http_file_cache_lookup
 static ngx_int_t
-ngx_http_file_cache_name(ngx_http_request_t *r, ngx_path_t *path) {
+ngx_http_file_cache_name(ngx_http_request_t *r, ngx_path_t *path) { //获取缓存名
     u_char *p;
     ngx_http_cache_t *c;
 
@@ -963,21 +1123,28 @@ ngx_http_file_cache_name(ngx_http_request_t *r, ngx_path_t *path) {
         return NGX_ERROR;
     }
 
-    ngx_memcpy(c->file.name.data, path->name.data, path->name.len);
-
-    p = c->file.name.data + path->name.len + 1 + path->len;
-    p = ngx_hex_dump(p, c->key, NGX_HTTP_CACHE_KEY_LEN);
+    ngx_memcpy(c->file.name.data, path->name.data, path->name.len); //XXX_cache_path 指定的路径
+    //跳过level，在后面的ngx_create_hashed_filename添加到内存中
+    p = c->file.name.data + path->name.len + 1 + path->len;  //   /cache/0/8d/
+    p = ngx_hex_dump(p, c->key, NGX_HTTP_CACHE_KEY_LEN);  //16进制key转换为字符串拷贝到cache缓存目录file中
     *p = '\0';
-
+    //通过从配置文件中的path，得到完整路径，ngx_create_hashed_filename是填充level路径
     ngx_create_hashed_filename(path, c->file.name.data, c->file.name.len);
-
+    //cache file: "/var/yyz/cache_xxx/c/c1/13cc494353644acaed96a080cac13c1c"
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "cache file: \"%s\"", c->file.name.data);
 
     return NGX_OK;
 }
 
+/*
+为后端应答回来的数据创建缓存文件用该函数获取缓存文件名，客户端请求过来后，也是采用该函数获取缓存文件名，只要
+proxy_cache_key $scheme$proxy_host$request_uri配置中的变量对应的值一样，则获取到的文件名肯定是一样的，即使是不同的客户端r，参考ngx_http_file_cache_name
+因为不同客户端的proxy_cache_key配置的对应变量value一样，则他们计算出来的ngx_http_cache_s->key[]也会一样，他们的在红黑树和queue队列中的
+node节点也会是同一个，参考ngx_http_file_cache_lookup
+*/
 
+//参考nginx proxy cache分析 http://blog.csdn.net/xiaolang85/article/details/38260041 图解
 static ngx_http_file_cache_node_t *
 ngx_http_file_cache_lookup(ngx_http_file_cache_t *cache, u_char *key) {
     ngx_int_t rc;
@@ -985,10 +1152,10 @@ ngx_http_file_cache_lookup(ngx_http_file_cache_t *cache, u_char *key) {
     ngx_rbtree_node_t *node, *sentinel;
     ngx_http_file_cache_node_t *fcn;
 
-    ngx_memcpy((u_char *) &node_key, key, sizeof(ngx_rbtree_key_t));
+    ngx_memcpy((u_char *) &node_key, key, sizeof(ngx_rbtree_key_t)); //拷贝key的前面4个字符
 
-    node = cache->sh->rbtree.root;
-    sentinel = cache->sh->rbtree.sentinel;
+    node = cache->sh->rbtree.root; //红黑树跟节点
+    sentinel = cache->sh->rbtree.sentinel; //哨兵节点
 
     while (node != sentinel) {
 
@@ -1007,7 +1174,7 @@ ngx_http_file_cache_lookup(ngx_http_file_cache_t *cache, u_char *key) {
         fcn = (ngx_http_file_cache_node_t *) node;
 
         rc = ngx_memcmp(&key[sizeof(ngx_rbtree_key_t)], fcn->key,
-                        NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t));
+                        NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t)); //比较内容是从key的NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t)开始比较
 
         if (rc == 0) {
             return fcn;
@@ -1244,8 +1411,31 @@ ngx_http_file_cache_reopen(ngx_http_request_t *r, ngx_http_cache_t *c) {
 }
 
 
-ngx_int_t
-ngx_http_file_cache_set_header(ngx_http_request_t *r, u_char *buf) {
+/*
+root@root:/var/yyz/cache_xxx# cat b/7d/bf6813c2bc0becb369a8d8367b6b77db
+oV尛oVZ"
+KEY: /test.php
+IX-Powered-By: PHP/5.2.13
+Content-type: text/html
+//下面才是真正的文件内容
+<Html>
+<Head>
+<title>Your page Subject and domain name</title>
+<Meta NAME="" CONTENT="">
+"" your others meta tagB
+"" your others meta tag
+"" your others meta tag
+"" your others meta tag
+"" your others meta tag
+"" your others meta tag
+"" your others meta tag
+*/
+
+//初始化缓存文件包头：
+ngx_int_t  //赋值[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header][body]中的[orig_key]["\n"]，注意这时候还没有赋值[header]
+ngx_http_file_cache_set_header(ngx_http_request_t *r, u_char *buf)
+{
+    //实际在接收后端第一个头部行相关信息的时候，会预留u->buffer.pos += r->cache->header_start;字节，见ngx_http_upstream_process_header
     ngx_http_file_cache_header_t *h = (ngx_http_file_cache_header_t *) buf;
 
     u_char *p;
@@ -1294,11 +1484,11 @@ ngx_http_file_cache_set_header(ngx_http_request_t *r, u_char *buf) {
     }
 
     p = buf + sizeof(ngx_http_file_cache_header_t);
-
+    //[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header][body]中的KEY
     p = ngx_cpymem(p, ngx_http_file_cache_key, sizeof(ngx_http_file_cache_key));
-
+    //proxy_cache_key $scheme$proxy_host$request_uri中的各个字符串解析出来放在KEY: 后面
     key = c->keys.elts;
-    for (i = 0; i < c->keys.nelts; i++) {
+    for (i = 0; i < c->keys.nelts; i++) { //[ngx_http_file_cache_header_t]["\nKEY: "][orig_key]["\n"][header][body]中的orig_key
         p = ngx_copy(p, key[i].data, key[i].len);
     }
 
@@ -1356,7 +1546,14 @@ ngx_http_file_cache_update_variant(ngx_http_request_t *r, ngx_http_cache_t *c) {
 }
 
 
-void
+/*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
+中创建临时文件，然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件，最后在
+ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
+的cache目录下面
+*/
+void /*后端数据读取完毕，并且全部写入临时文件后才会执行rename过程，为什么需要临时文件的原因是:例如之前的缓存过期了，现在有个请求正在从后端
+//获取数据写入临时文件，如果是直接写入缓存文件，则在获取后端数据过程中，如果在来一个客户端请求，如果允许proxy_cache_use_stale updating，则
+//后面的请求可以直接获取之前老旧的过期缓存，从而可以避免冲突(前面的请求写文件，后面的请求获取文件内容) */
 ngx_http_file_cache_update(ngx_http_request_t *r, ngx_temp_file_t *tf) {
     off_t fs_size;
     ngx_int_t rc;
@@ -1371,7 +1568,7 @@ ngx_http_file_cache_update(ngx_http_request_t *r, ngx_temp_file_t *tf) {
     if (c->updated) {
         return;
     }
-
+    //http file cache rename: "/var/yyz/cache_xxx/temp/1/00/0000000001" to "/var/yyz/cache_xxx/c/c1/13cc494353644acaed96a080cac13c1c"
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "http file cache update");
 
@@ -1393,35 +1590,35 @@ ngx_http_file_cache_update(ngx_http_request_t *r, ngx_temp_file_t *tf) {
     ext.create_path = 1;
     ext.delete_file = 1;
     ext.log = r->connection->log;
-
+    //临时文件中的内容到指定的cache目录下
     rc = ngx_ext_rename_file(&tf->file.name, &c->file.name, &ext);
 
     if (rc == NGX_OK) {
-
+        //获取to对应的cache文件的文件状态特性
         if (ngx_fd_info(tf->file.fd, &fi) == NGX_FILE_ERROR) {
             ngx_log_error(NGX_LOG_CRIT, r->connection->log, ngx_errno,
                           ngx_fd_info_n " \"%s\" failed", tf->file.name.data);
 
             rc = NGX_ERROR;
 
-        } else {
-            uniq = ngx_file_uniq(&fi);
-            fs_size = (ngx_file_fs_size(&fi) + cache->bsize - 1) / cache->bsize;
+        } else { //获取文件状态信息成功后，获取uniq
+            uniq = ngx_file_uniq(&fi); //文件inode节点号
+            fs_size = (ngx_file_fs_size(&fi) + cache->bsize - 1) / cache->bsize; //缓存文件内容cache->bsize字节对齐
         }
     }
 
     ngx_shmtx_lock(&cache->shpool->mutex);
-
+    //在获取后端数据前，首先会会查找缓存是否有缓存该请求数据，如果没有，则会在ngx_http_file_cache_open中创建node
     c->node->count--;
     c->node->error = 0;
     c->node->uniq = uniq;
     c->node->body_start = c->body_start;
 
-    cache->sh->size += fs_size - c->node->fs_size;
+    cache->sh->size += fs_size - c->node->fs_size; //文件中本次从后端读取的数据大小为文件总大小-之前文件中已经缓存的，例如可能多次epoll获取后端数据
     c->node->fs_size = fs_size;
 
     if (rc == NGX_OK) {
-        c->node->exists = 1;
+        c->node->exists = 1;  //前面rename成功后，该缓存文件肯定就存在了，标识一下
     }
 
     c->node->updating = 0;
@@ -1558,7 +1755,24 @@ ngx_http_file_cache_update_header(ngx_http_request_t *r) {
     }
 }
 
+/*
+发送缓存文件中内容到客户端过程:
+ ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容，并获取整个
+ 文件stat信息，例如文件大小等。
+ 头部部分在ngx_http_cache_send->ngx_http_send_header发送，
+ 缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+ 接收后端数据并转发到客户端触发数据发送过程:
+ ngx_event_pipe_write_to_downstream中的
+ if (p->upstream_eof || p->upstream_error || p->upstream_done) {
+    遍历p->in 或者遍历p->out，然后执行输出
+    p->output_filter(p->output_ctx, p->out);
+ }
+ */
 
+/*
+缓存文件除去文件前面头部部分，剩下的就是实际的包体数据，通过这里发送触发在ngx_http_write_filter->ngx_linux_sendfile_chain(如果文件通过sendfile发送)，
+如果是普通写发送，则在ngx_http_write_filter->ngx_writev(一般chain->buf在内存中的情况下用该方式)，
+或者ngx_http_copy_filter->ngx_output_chain中的if (ctx->aio) { return NGX_AGAIN;}(如果文件通过aio发送)，然后由aio异步事件epoll触发读取文件内容超过，然后在继续发送文件*/
 ngx_int_t
 ngx_http_cache_send(ngx_http_request_t *r) {
     ngx_int_t rc;
@@ -1567,7 +1781,7 @@ ngx_http_cache_send(ngx_http_request_t *r) {
     ngx_http_cache_t *c;
 
     c = r->cache;
-
+    //http file cache send: /var/yyz/cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "http file cache send: %s", c->file.name.data);
 
@@ -1587,14 +1801,14 @@ ngx_http_cache_send(ngx_http_request_t *r) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
 
-    rc = ngx_http_send_header(r);
+    rc = ngx_http_send_header(r); //先把头部行发送出去
 
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
     }
-
-    b->file_pos = c->body_start;
-    b->file_last = c->length;
+    //以下触发包体发送
+    b->file_pos = c->body_start; //指向网页包体部分内容
+    b->file_last = c->length; //包体末尾处，也就是文件尾部
 
     b->in_file = (c->length - c->body_start) ? 1 : 0;
     b->last_buf = (r == r->main) ? 1 : 0;
@@ -1607,7 +1821,7 @@ ngx_http_cache_send(ngx_http_request_t *r) {
     out.buf = b;
     out.next = NULL;
 
-    return ngx_http_output_filter(r, &out);
+    return ngx_http_output_filter(r, &out);  //发送包体部分
 }
 
 
@@ -1695,7 +1909,20 @@ ngx_http_file_cache_cleanup(void *data) {
 }
 
 
-static time_t
+/*
+ngx_http_file_cache_expire，一个是ngx_http_file_cache_forced_expire，他们有什么区别呢，主要区别是这样子，前一个只有过期的cache
+才会去尝试删除它(引用计数为0)，而后一个不管有没有过期，只要引用计数为0，就会去清理。来详细看这两个函数的实现。
+*/
+/*
+然后是ngx_http_file_cache_forced_expire，顾名思义，就是强制删除cache 节点，它的返回值也是wait time，它的遍历也是从后到前的。
+*/
+
+/*
+函数ngx_http_file_cache_forced_expire 从 inactive queue 队尾开始扫描，直到找到
+可以被清理的当前未使用节点 ( fcn->count == 0 且不论它是否过期) 或者查找了20 个节点后仍未找到符合条件的节点。
+*/
+//删除过期的缓存
+static time_t //这个一般是所有缓存文件大小超过最大限制了( xxx_cache_path  path max_size=size中的size),则调用该函数
 ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
     u_char *name, *p;
     size_t len;
@@ -1710,6 +1937,13 @@ ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
                    "http file cache forced expire");
 
     path = cache->path;
+    //len表示缓存文件对应的全路径名称的长度
+    /*
+    全路径的名称形式为:proxy_cache_path+'/'+根据level生成的子路径+16进制表示的MD5码，path->name.len + 1 ：表示proxy_cache_path+'/'的
+    长度，path->len 表示根据 level生成的子路径的长度，2 * NGX_HTTP_CACHE_KEY_LEN 表示16进制表示的MD5码的长度，之所以是
+    2 * NGX_HTTP_CACHE_KEY_LEN 是因此MD5码是16个字节，一个字节是8位，而一个16进制数字只需要4位表示，因此MD5码所占的位数为
+    16*8,转换成16进制的形式，所表示的字节的个数为16*8/2=16*2 = NGX_HTTP_CACHE_KEY_LEN * 2
+    */
     len = path->name.len + 1 + path->len + 2 * NGX_HTTP_CACHE_KEY_LEN;
 
     name = ngx_alloc(len + 1, ngx_cycle->log);
@@ -1720,7 +1954,7 @@ ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
     ngx_memcpy(name, path->name.data, path->name.len);
 
     wait = 10;
-    tries = 20;
+    tries = 20; //删除节点尝试次数
     sentinel = NULL;
 
     ngx_shmtx_lock(&cache->shpool->mutex);
@@ -1744,6 +1978,7 @@ ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
                        fcn->key[0], fcn->key[1], fcn->key[2], fcn->key[3]);
 
         if (fcn->count == 0) {
+            //如果引用计数为0则删除cache
             ngx_http_file_cache_delete(cache, q, name);
             wait = 0;
             break;
@@ -1772,7 +2007,7 @@ ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
             sentinel = q;
         }
 
-        if (--tries) {
+        if (--tries) { //否则尝试20次
             continue;
         }
 
@@ -1788,8 +2023,27 @@ ngx_http_file_cache_forced_expire(ngx_http_file_cache_t *cache) {
 }
 
 
-static time_t
-ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
+//参考nginx proxy cache分析 http://blog.csdn.net/xiaolang85/article/details/38260041 图解
+/*
+ngx_http_file_cache_expire，一个是ngx_http_file_cache_forced_expire，他们有什么区别呢，主要区别是这样子，前一个只有过期的cache
+才会去尝试删除它(引用计数为0)，而后一个不管有没有过期，只要引用计数为0，就会去清理。来详细看这两个函数的实现。
+*/
+
+/*
+首先是ngx_http_file_cache_expire，这里注意nginx使用了LRU，也就是队列最尾端保存的是最长时间没有被使用的，并且这个函数返回的就是
+一个wait值，这个值的计算不知道为什么nginx会设置为10ms，我觉得这个值设置为可调或许更好。
+*/
+
+/*
+缓存文件stat状态信息ngx_cached_open_file_s(ngx_open_file_cache_t->rbtree(expire_queue)的成员   )在ngx_expire_old_cached_files进行失效判断,
+缓存文件内容信息(实实在在的文件信息)ngx_http_file_cache_node_t(ngx_http_file_cache_s->sh中的成员)在ngx_http_file_cache_expire进行失效判断。
+*/
+
+//删除过期缓存 ngx_http_file_cache_expire 函数清除过期缓存条目 (删除其占用的共享内存 和对应的磁盘文件)。
+static time_t //ngx_http_file_cache_expire和ngx_http_file_cache_add对应
+ngx_http_file_cache_expire(ngx_http_file_cache_t *cache)
+{ //最少返回值是10，也就是最短超时进行老化操作的时间是10s,即使限制缓存中有节点还有5s就过期了，但是我们还是在10s的时候进行清除
+//然如果最末尾的缓存文件正在被删除，则返回1
     u_char *name, *p;
     size_t len;
     time_t now, wait;
@@ -1803,6 +2057,14 @@ ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
                    "http file cache expire");
 
     path = cache->path;
+    //len表示缓存文件对应的全路径名称的长度
+
+    /*
+        全路径的名称形式为:proxy_cache_path+'/'+根据level生成的子路径+16进制表示的MD5码，path->name.len + 1 ：表示
+        proxy_cache_path+'/'的长度，path->len 表示根据 level生成的子路径的长度，2 * NGX_HTTP_CACHE_KEY_LEN 表示16进制表示的
+        MD5码的长度，之所以是2 * NGX_HTTP_CACHE_KEY_LEN 是因此MD5码是16个字节，一个字节是8位，而一个16进制数字只需要4位表示，
+        因此MD5码所占的位数为16*8,转换成16进制的形式，所表示的字节的个数为16*8/2=16*2 = NGX_HTTP_CACHE_KEY_LEN * 2
+    */
     len = path->name.len + 1 + path->len + 2 * NGX_HTTP_CACHE_KEY_LEN;
 
     name = ngx_alloc(len + 1, ngx_cycle->log);
@@ -1814,7 +2076,7 @@ ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
 
     now = ngx_time();
 
-    ngx_shmtx_lock(&cache->shpool->mutex);
+    ngx_shmtx_lock(&cache->shpool->mutex); //必须加锁，多进程环境避免同时对共享内存操作
 
     for (;;) {
 
@@ -1824,18 +2086,20 @@ ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
         }
 
         if (ngx_queue_empty(&cache->sh->queue)) {
-            wait = 10;
+            //如果cache队列为空，则直接退出返回
+            wait = 10;//最少返回值是10，也就是最短超时进行老化操作的时间是10s,即使限制缓存中有节点还有5s就过期了，但是我们还是在10s的时候进行清除
             break;
         }
-
+        //取得过期队列的最后一个节点
         q = ngx_queue_last(&cache->sh->queue);
-
+        //获得过期队列节点对应的ngx_http_file_cache_node_t节点的地址
         fcn = ngx_queue_data(q, ngx_http_file_cache_node_t, queue);
 
         wait = fcn->expire - now;
-
+        //表示当前的cache文件没有过期，则直接跳出循环，因为过期队列越是最新的就越靠前存放，最新的缓存存在队列头部
         if (wait > 0) {
-            wait = wait > 10 ? 10 : wait;
+            //如果没有超时，则退出循环
+            wait = wait > 10 ? 10 : wait; //最少返回值是10，也就是最短超时进行老化操作的时间是10s,即使限制缓存中有节点还有5s就过期了，但是我们还是在10s的时候进行清除
             break;
         }
 
@@ -1845,26 +2109,31 @@ ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
                        fcn->key[0], fcn->key[1], fcn->key[2], fcn->key[3]);
 
         if (fcn->count == 0) {
+            //如果引用计数为0，则删除这个cache节点
+            //删除磁盘中缓存的文件
             ngx_http_file_cache_delete(cache, q, name);
             goto next;
         }
 
-        if (fcn->deleting) {
-            wait = 1;
+        if (fcn->deleting) {//配合ngx_http_file_cache_delete阅读
+            //如果当前节点正在删除，则退出循环
+            wait = 1; //如果最末尾节点正在被删除，则返回1,1s后继续执行该函数
             break;
         }
-
+        //将node中字符表示的MD5码，key转换为16进制表示的MD5码并将转换后的16进制表示形式存储在key中，方法执行完后
+        //返回转换后的字符串的最后一个字符
         p = ngx_hex_dump(key, (u_char *) &fcn->node.key,
-                         sizeof(ngx_rbtree_key_t));
+                         sizeof(ngx_rbtree_key_t)); //ngx_http_file_cache_expire和ngx_http_file_cache_add对应
         len = NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t);
+        //将fcn->key转换成16进制表示的形式fcn->key中存储的是url的MD5码的后12个字符
         (void) ngx_hex_dump(p, fcn->key, len);
-
+        //通过上面的两部转换，就将URL的MD5吗转换成了16进制表示的形式并且存储在了key中
         /*
          * abnormally exited workers may leave locked cache entries,
          * and although it may be safe to remove them completely,
          * we prefer to just move them to the top of the inactive queue
          */
-
+        //将当前节点放入队列最前端,如果超时时间到，但是当前还有其他客户端在使用该缓存，则在把缓存时间延迟inactive，
         ngx_queue_remove(q);
         fcn->expire = ngx_time() + cache->inactive;
         ngx_queue_insert_head(&cache->sh->queue, &fcn->queue);
@@ -1897,7 +2166,11 @@ ngx_http_file_cache_expire(ngx_http_file_cache_t *cache) {
     return wait;
 }
 
-
+/*
+缓存文件清理过程均调用了ngx_http_file_cache_delete 函数，并且调用它的前提条
+件是当前函数已经获得了cache->shpool->mutex 锁，同时，当前缓存节点的引用计数为0。
+*/
+//它主要有2个功能，一个是删除cache文件，一个是删除cache管理节点。
 static void
 ngx_http_file_cache_delete(ngx_http_file_cache_t *cache, ngx_queue_t *q,
                            u_char *name) {
@@ -1909,7 +2182,7 @@ ngx_http_file_cache_delete(ngx_http_file_cache_t *cache, ngx_queue_t *q,
     fcn = ngx_queue_data(q, ngx_http_file_cache_node_t, queue);
 
     if (fcn->exists) {
-        cache->sh->size -= fcn->fs_size;
+        cache->sh->size -= fcn->fs_size; //这块共享内存释放了，总共占用的共享内存也就少了这么多
 
         path = cache->path;
         p = name + path->name.len + 1 + path->len;
@@ -1919,8 +2192,11 @@ ngx_http_file_cache_delete(ngx_http_file_cache_t *cache, ngx_queue_t *q,
         p = ngx_hex_dump(p, fcn->key, len);
         *p = '\0';
 
-        fcn->count++;
-        fcn->deleting = 1;
+        fcn->count++; //count 加 1 以避免其它进程再次尝试清理此节点 (当前代码中还不会有这种情况发生)。
+        fcn->deleting = 1; //deleting 标识此缓存节点正在被删除，其它函数或进程因视其为无效节点。
+        /*
+          由于文件删除操作 ( ngx_delete_file ) 可能发生阻塞，所以进行这个操作期间，函数将缓存锁先释放掉，以免其它进程因为等待这个锁而阻塞。
+          */
         ngx_shmtx_unlock(&cache->shpool->mutex);
 
         len = path->name.len + 1 + path->len + 2 * NGX_HTTP_CACHE_KEY_LEN;
@@ -1948,8 +2224,19 @@ ngx_http_file_cache_delete(ngx_http_file_cache_t *cache, ngx_queue_t *q,
 }
 
 
-static ngx_msec_t
-ngx_http_file_cache_manager(void *data) {
+/*
+在Nginx中，如果启用了proxy(fastcgi) cache功能，master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
+存和磁盘的缓存个体。第一个进程的功能是定期检查缓存，并将过期的缓存删除；第二个进程的作用是在启动的时候将磁盘中已经缓存的个
+体映射到内存中(目前Nginx设定为启动以后60秒)，然后退出。
+具体的，在这两个进程的ngx_process_events_and_timers()函数中，会调用ngx_event_expire_timers()。Nginx的ngx_event_timer_rbtree(红黑树)里
+面按照执行的时间的先后存放着一系列的事件。每次取执行时间最早的事件，如果当前时间已经到了应该执行该事件，就会调用事件的handler。两个
+进程的handler分别是ngx_cache_manager_process_handler和ngx_cache_loader_process_handler
+*/
+
+//ngx_cache_manager_process_handler中执行
+static time_t //定时执行ngx_cache_manager_process_handler->ngx_http_file_cache_manager从而进行超时(通过定时器实现)清理操作
+ngx_http_file_cache_manager(void *data) //每次nginx退出的时候，例如kill nginx都会坚持缓存文件，如果过期，则会删除
+{
     ngx_http_file_cache_t *cache = data;
 
     off_t size, free;
@@ -1957,10 +2244,10 @@ ngx_http_file_cache_manager(void *data) {
     ngx_msec_t elapsed, next;
     ngx_uint_t count, watermark;
 
-    cache->last = ngx_current_msec;
+    cache->last = ngx_current_msec; //最后访问时间
     cache->files = 0;
 
-    next = (ngx_msec_t) ngx_http_file_cache_expire(cache) * 1000;
+    next = (ngx_msec_t) ngx_http_file_cache_expire(cache) * 1000; //先删过期的缓存
 
     if (next == 0) {
         next = cache->manager_sleep;
@@ -1969,17 +2256,17 @@ ngx_http_file_cache_manager(void *data) {
 
     for (;;) {
         ngx_shmtx_lock(&cache->shpool->mutex);
-
-        size = cache->sh->size;
+        //获取更新的缓存空间的大小
+        size = cache->sh->size; //获取删除过期缓存后的缓存队列的大小
         count = cache->sh->count;
         watermark = cache->sh->watermark;
 
         ngx_shmtx_unlock(&cache->shpool->mutex);
-
+        //killall -9 nginx的时候打印是:http file cache size: 16, max_size:0 所以后面会把所有缓存清楚
         ngx_log_debug3(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
                        "http file cache size: %O c:%ui w:%i",
                        size, count, (ngx_int_t) watermark);
-
+        //检查缓存磁盘目录是否超过设定大小限制  超过了proxy_cache_path xxx_cache_path  path max_size=size
         if (size < cache->max_size && count < watermark) {
 
             if (!cache->min_free) {
@@ -1995,10 +2282,15 @@ ngx_http_file_cache_manager(void *data) {
                 break;
             }
         }
+        /*
+       如果超限，调用函数ngx_http_file_cache_forced_expire 从 inactive queue 队尾开始扫描，直到找到
+       可以被清理的当前未使用节点 ( fcn->count == 0 且不论它是否过期) 或者查找了20 个节点后仍未找到符合条件的节点。
+       */
 
+        //如果size超过磁盘的使用空间，即size >= cache->max_size 强制把部分缓存删除，以保证缓存使用的空间在指定范围内
         wait = ngx_http_file_cache_forced_expire(cache);
 
-        if (wait > 0) {
+        if (wait > 0) {  //休息一下以后继续删
             next = (ngx_msec_t) wait * 1000;
             break;
         }
@@ -2033,14 +2325,20 @@ ngx_http_file_cache_manager(void *data) {
     return next;
 }
 
-
+/*
+在nginx启动1分钟之后，会启动一个名为cache loader process的进程，该进程运行了一段时间之后，该进程就会结束消失。
+在该进程运行期间主要做了以下事情：遍历配置文件中proxy_cache_path命令指定的路径中的所有的缓存文件，并且针对遍历到的各个缓存文件
+的MD5编码先遍历红黑树和相应的ngx_http_file_cache_node_t节点，如果不存在就创建新的ngx_http_file_cache_node_t，并将该对象中的rbnode
+和queue分别插入到红黑树和过期队列；如果存在，则更新相应的属性。
+*/
+//ngx_cache_loader_process_handler->ngx_http_file_cache_loader
 static void
 ngx_http_file_cache_loader(void *data) {
     ngx_http_file_cache_t *cache = data;
 
     ngx_tree_ctx_t tree;
 
-    if (!cache->sh->cold || cache->sh->loading) {
+    if (!cache->sh->cold || cache->sh->loading) { //表示已经被加载完毕
         return;
     }
 
@@ -2056,14 +2354,15 @@ ngx_http_file_cache_loader(void *data) {
     tree.pre_tree_handler = ngx_http_file_cache_manage_directory;
     tree.post_tree_handler = ngx_http_file_cache_noop;
     tree.spec_handler = ngx_http_file_cache_delete_file;
-    tree.data = cache;
+    //上述的注册方法都会在ngx_walk_tree方法中进行调用
+    tree.data = cache; //回调数据就是cache
     tree.alloc = 0;
     tree.log = ngx_cycle->log;
 
-    cache->last = ngx_current_msec;
+    cache->last = ngx_current_msec;  //last为最后load时间
     cache->files = 0;
 
-    if (ngx_walk_tree(&tree, &cache->path->name) == NGX_ABORT) {
+    if (ngx_walk_tree(&tree, &cache->path->name) == NGX_ABORT) { //开始遍历
         cache->sh->loading = 0;
         return;
     }
@@ -2084,7 +2383,7 @@ ngx_http_file_cache_noop(ngx_tree_ctx_t *ctx, ngx_str_t *path) {
     return NGX_OK;
 }
 
-
+//ngx_http_file_cache_manage_file 将缓存文件信息存入缓存中。
 static ngx_int_t
 ngx_http_file_cache_manage_file(ngx_tree_ctx_t *ctx, ngx_str_t *path) {
     ngx_msec_t elapsed;
@@ -2093,20 +2392,26 @@ ngx_http_file_cache_manage_file(ngx_tree_ctx_t *ctx, ngx_str_t *path) {
     cache = ctx->data;
 
     if (ngx_http_file_cache_add_file(ctx, path) != NGX_OK) {
+        //将文件添加进cache
         (void) ngx_http_file_cache_delete_file(ctx, path);
     }
-
+    /*
+       根据配置控制缓存的读取速度 ( loader_files 和 loader_threshold )，以便在缓存文件很多的情况下降低初次启动时对系统资源的消耗。
+   */
     if (++cache->files >= cache->loader_files) {
+        //如果文件个数太大，则休眠并清理files计数
         ngx_http_file_cache_loader_sleep(cache);
 
     } else {
         ngx_time_update();
-
+        //否则看loader时间是不是过长，如果过长则又进入休眠
         elapsed = ngx_abs((ngx_msec_int_t) (ngx_current_msec - cache->last));
 
         ngx_log_debug1(NGX_LOG_DEBUG_HTTP, ngx_cycle->log, 0,
                        "http file cache loader time elapsed: %M", elapsed);
-
+        /*
+       根据配置控制缓存的读取速度 ( loader_files 和 loader_threshold )，以便在缓存文件很多的情况下降低初次启动时对系统资源的消耗。
+       */
         if (elapsed >= cache->loader_threshold) {
             ngx_http_file_cache_loader_sleep(cache);
         }
@@ -2137,7 +2442,9 @@ ngx_http_file_cache_loader_sleep(ngx_http_file_cache_t *cache) {
     cache->files = 0;
 }
 
-
+/*
+ngx_http_file_cache_add_file，它主要是通过文件名计算hash，然后调用ngx_http_file_cache_add将这个文件加入到cache管理中(也就是添加红黑树以及队列),
+*/
 static ngx_int_t
 ngx_http_file_cache_add_file(ngx_tree_ctx_t *ctx, ngx_str_t *name) {
     u_char *p;
@@ -2189,17 +2496,19 @@ ngx_http_file_cache_add_file(ngx_tree_ctx_t *ctx, ngx_str_t *name) {
     return ngx_http_file_cache_add(cache, &c);
 }
 
+//ngx_http_file_cache_add 函数将此节点加入 ngx_http_file_cache_sh_t 类型的缓存管理机制中。
 
-static ngx_int_t
+//按照c->key在红黑树中查找，没有就创建node节点，然后把节点添加到红黑树cache->sh->rbtree和cache->sh->queue队列头
+static ngx_int_t //ngx_http_file_cache_expire和ngx_http_file_cache_add对应
 ngx_http_file_cache_add(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
     ngx_http_file_cache_node_t *fcn;
 
     ngx_shmtx_lock(&cache->shpool->mutex);
 
-    fcn = ngx_http_file_cache_lookup(cache, c->key);
+    fcn = ngx_http_file_cache_lookup(cache, c->key); //首先查找
 
     if (fcn == NULL) {
-
+        //如果不存在，则新建结构
         fcn = ngx_slab_calloc_locked(cache->shpool,
                                      sizeof(ngx_http_file_cache_node_t));
         if (fcn == NULL) {
@@ -2222,7 +2531,7 @@ ngx_http_file_cache_add(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
         ngx_memcpy(fcn->key, &c->key[sizeof(ngx_rbtree_key_t)],
                    NGX_HTTP_CACHE_KEY_LEN - sizeof(ngx_rbtree_key_t));
 
-        ngx_rbtree_insert(&cache->sh->rbtree, &fcn->node);
+        ngx_rbtree_insert(&cache->sh->rbtree, &fcn->node); //插入红黑树
 
         fcn->uses = 1;
         fcn->exists = 1;
@@ -2231,12 +2540,13 @@ ngx_http_file_cache_add(ngx_http_file_cache_t *cache, ngx_http_cache_t *c) {
         cache->sh->size += c->fs_size;
 
     } else {
+        //否则删除queue，后续会重新插入
         ngx_queue_remove(&fcn->queue);
     }
 
     fcn->expire = ngx_time() + cache->inactive;
 
-    ngx_queue_insert_head(&cache->sh->queue, &fcn->queue);
+    ngx_queue_insert_head(&cache->sh->queue, &fcn->queue);  //重新插入
 
     ngx_shmtx_unlock(&cache->shpool->mutex);
 
@@ -2266,7 +2576,7 @@ ngx_http_file_cache_set_watermark(ngx_http_file_cache_t *cache) {
                    "http file cache watermark: %ui", cache->sh->watermark);
 }
 
-
+//获取//proxy_cache_valid xxx 4m;中的4m，根据status查找对应的时间
 time_t
 ngx_http_file_cache_valid(ngx_array_t *cache_valid, ngx_uint_t status) {
     ngx_uint_t i;
@@ -2292,8 +2602,24 @@ ngx_http_file_cache_valid(ngx_array_t *cache_valid, ngx_uint_t status) {
 }
 
 
-char *
-ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
+/*
+Proxy_cache_path：缓存的存储路径和索引信息；
+  path 缓存文件的根目录；
+  level=N:N在目录的第几级hash目录缓存数据；
+  keys_zone=name:size 缓存索引重建进程建立索引时用于存放索引的内存区域名和大小；
+  interval=time强制更新缓存时间，规定时间内没有访问则从内存中删除，默认10s；
+  max_size=size硬盘中缓存数据的上限，由cache manager管理，超出则根据LRU策略删除；
+  loader_sleep=time索引重建进程在两次遍历间的暂停时长，默认50ms；
+  loader_files=number重建索引时每次加载数据元素的上限，进程递归遍历读取硬盘上的缓存目录和文件，对每个文件在内存中建立索引，每
+  建立一个索引称为加载一个数据元素，每次遍历时可同时加载多个数据元素，默认100；
+   //loader_files这个值也就是一个阈值，当load的文件个数大于这个值之后，load进程会短暂的休眠(时间位loader_sleep)
+    //loader_sleep和上面的loader_files配合使用，当文件个数大于loader_files，就会休眠
+    //loader_threshold配合上面的last，也就是loader遍历的休眠间隔。
+*/
+//XXX_cache_path(proxy_cache_path fastcgi_cache_path)等配置走到这里
+//XXX_cache缓存是先写在xxx_temp_path再移到xxx_cache_path，所以这两个目录最好在同一个分区
+char * //后端应答数据在ngx_http_upstream_process_request->ngx_http_file_cache_update中进行缓存
+ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) { //目录不存在会自动创建
     char *confp = conf;
 
     off_t max_size, min_free;
@@ -2304,7 +2630,7 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_int_t loader_files, manager_files;
     ngx_msec_t loader_sleep, manager_sleep, loader_threshold,
             manager_threshold;
-    ngx_uint_t i, n, use_temp_path;
+    ngx_uint_t i, n, use_temp_path; //"use_temp_path= on|off"
     ngx_array_t *caches;
     ngx_http_file_cache_t *cache, **ce;
 
@@ -2337,29 +2663,34 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     value = cf->args->elts;
 
-    cache->path->name = value[1];
+    cache->path->name = value[1]; //获取path保存到path->name
 
     if (cache->path->name.data[cache->path->name.len - 1] == '/') {
-        cache->path->name.len--;
+        cache->path->name.len--; //去掉path后面的/字符
     }
 
     if (ngx_conf_full_name(cf->cycle, &cache->path->name, 0) != NGX_OK) {
         return NGX_CONF_ERROR;
     }
-
+    //loader_files这个值也就是一个阈值，当load的文件个数大于这个值之后，load进程会短暂的休眠(时间位loader_sleep)
+    //loader_sleep和上面的loader_files配合使用，当文件个数大于loader_files，就会休眠
+    //loader_threshold配合上面的last，也就是loader遍历的休眠间隔。
     for (i = 2; i < cf->args->nelts; i++) {
-
-        if (ngx_strncmp(value[i].data, "levels=", 7) == 0) {
+        /*
+levels=1:2，意思是说使用两级目录，第一级目录名是一个字符，第二级用两个字符。但是nginx最大支持3级目录，即levels=xxx:xxx:xxx。
+那么构成目录名字的字符哪来的呢？假设我们的存储目录为/cache，levels=1:2，那么对于上面的文件 就是这样存储的：
+/cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致*/
+        if (ngx_strncmp(value[i].data, "levels=", 7) == 0) { //level=N:N在目录的第几级hash目录缓存数据；
 
             p = value[i].data + 7;
             last = value[i].data + value[i].len;
 
-            for (n = 0; n < NGX_MAX_PATH_LEVEL && p < last; n++) {
-
-                if (*p > '0' && *p < '3') {
+            for (n = 0; n < NGX_MAX_PATH_LEVEL && p < last; n++) { //levels=x:y;后面的x和y的取值范围是1-2
+                //把levels=x:y;中的x和y分别存储在level[0]和level[1]
+                if (*p > '0' && *p < '3') { //level[]只能为1和2
 
                     cache->path->level[n] = *p++ - '0';
-                    cache->path->len += cache->path->level[n] + 1;
+                    cache->path->len += cache->path->level[n] + 1; //levels=x:y最终的结果是path->len = (x+1) + (y+1)
 
                     if (p == last) {
                         break;
@@ -2375,7 +2706,7 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
                 goto invalid_levels;
             }
 
-            if (cache->path->len < 10 + NGX_MAX_PATH_LEVEL) {
+            if (cache->path->len < 10 + NGX_MAX_PATH_LEVEL) {  // ??????为什么这里要小于10 + 3  最大不应该是2+1 + 2+1吗
                 continue;
             }
 
@@ -2385,7 +2716,12 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
                                "invalid \"levels\" \"%V\"", &value[i]);
             return NGX_CONF_ERROR;
         }
-
+        /*
+非缓存方式(p->cacheable=0)p->temp_file->path = u->conf->temp_path; 由ngx_http_fastcgi_temp_path指定路径
+缓存方式(p->cacheable=1) p->temp_file->path = r->cache->file_cache->temp_path;见proxy_cache_path或者fastcgi_cache_path use_temp_path=指定路径
+见ngx_http_upstream_send_response
+当前fastcgi_buffers 和fastcgi_buffer_size配置的空间都已经用完了，则需要把数据写道临时文件中去，参考ngx_event_pipe_read_upstream
+*/   //use_temp_path= on则,则不会用
         if (ngx_strncmp(value[i].data, "use_temp_path=", 14) == 0) {
 
             if (ngx_strcmp(&value[i].data[14], "on") == 0) {
@@ -2405,7 +2741,7 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
             continue;
         }
 
-        if (ngx_strncmp(value[i].data, "keys_zone=", 10) == 0) {
+        if (ngx_strncmp(value[i].data, "keys_zone=", 10) == 0) { //keys_zone=fcgi:10m
 
             name.data = value[i].data + 10;
 
@@ -2417,12 +2753,14 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
                 return NGX_CONF_ERROR;
             }
 
-            name.len = p - name.data;
+            name.len = p - name.data; //keys_zone=fcgi:10m中的fcgi
 
+            //跳过':'指向fcgi
+            //fcgi:10m中的10m字符串保存到s中
             s.data = p + 1;
             s.len = value[i].data + value[i].len - s.data;
 
-            size = ngx_parse_size(&s);
+            size = ngx_parse_size(&s); //keys_zone=fcgi:xx  xx最小要4K
 
             if (size == NGX_ERROR) {
                 ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
@@ -2637,7 +2975,34 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
+/*
+Syntax:  proxy_cache_valid [code ...] time;
 
+Default:  —
+Context:  http, server, location
+
+Sets caching time for different response codes. For example, the following directives
+proxy_cache_valid 200 302 10m;
+proxy_cache_valid 404      1m;
+set 10 minutes of caching for responses with codes 200 and 302 and 1 minute for responses with code 404.
+If only caching time is specified
+proxy_cache_valid 5m;
+then only 200, 301, and 302 responses are cached.
+In addition, the any parameter can be specified to cache any responses:
+proxy_cache_valid 200 302 10m;
+proxy_cache_valid 301      1h;
+proxy_cache_valid any      1m;
+Parameters of caching can also be set directly in the response header. This has higher priority than setting of caching time using the directive.
+?The “X-Accel-Expires” header field sets caching time of a response in seconds. The zero value disables caching for a response.
+If the value starts with the @ prefix, it sets an absolute time in seconds since Epoch, up to which the response may be cached.
+?If the header does not include the “X-Accel-Expires” field, parameters of caching may be set in the header fields “Expires”
+or “Cache-Control”.
+?If the header includes the “Set-Cookie” field, such a response will not be cached.
+?If the header includes the “Vary” field with the special value “*”, such a response will not be cached (1.7.7). If the header
+includes the “Vary” field with another value, such a response will be cached taking into account the corresponding request header fields (1.7.7).
+Processing of one or more of these response header fields can be disabled using the proxy_ignore_headers directive.
+*/
+//proxy_cache_valid  fastcgo_cache_valid
 char *
 ngx_http_file_cache_valid_set_slot(ngx_conf_t *cf, ngx_command_t *cmd,
                                    void *conf) {
@@ -2649,6 +3014,7 @@ ngx_http_file_cache_valid_set_slot(ngx_conf_t *cf, ngx_command_t *cmd,
     ngx_uint_t i, n;
     ngx_array_t **a;
     ngx_http_cache_valid_t *v;
+    //如果不带2XX 3XX 4XX 5XX等，直接是proxy_cache_valid 5m，则默认开启200 301 302
     static ngx_uint_t statuses[] = {200, 301, 302};
 
     a = (ngx_array_t **) (p + cmd->offset);
@@ -2670,7 +3036,7 @@ ngx_http_file_cache_valid_set_slot(ngx_conf_t *cf, ngx_command_t *cmd,
         return NGX_CONF_ERROR;
     }
 
-    if (n == 1) {
+    if (n == 1) { //如果不带2XX 3XX 4XX 5XX等，直接是proxy_cache_valid 5m，则默认开启200 301 302
 
         for (i = 0; i < 3; i++) {
             v = ngx_array_push(*a);

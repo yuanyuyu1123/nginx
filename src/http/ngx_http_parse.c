@@ -99,7 +99,22 @@ static uint32_t usual[] = {
 
 
 /* gcc, icc, msvc and others compile these switches as an jump table */
+/*
+GET /sample.jsp HTTP/1.1
 
+Accept:image/gif.image/jpeg,**
+Accept-Language:zh-cn
+Connection:Keep-Alive
+Host:localhost
+User-Agent:Mozila/4.0(compatible:MSIE5.01:Windows NT5.0)
+Accept-Encoding:gzip,deflate.
+*/ //解析上面的GET /sample.jsp HTTP/1.1
+//ngx_http_parse_request_line解析请求行， ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body
+
+/*
+返回值主要有3类：返回NGX—OK表示成功地解析到完整的HTTP请求行；返回NGX AGAIN表示目前接收到的字符流不足以构成完成的请求行，还需要
+接收更多的字符流；返回NGX_HTTP_PARSE_INVALID_REQUEST或者NGX_HTTP_PARSE_INVALID_09_METHOD等其他值时表示接收到非法的请求行。
+*/
 ngx_int_t
 ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b) {
     u_char c, ch, *p, *m;
@@ -788,7 +803,7 @@ ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b) {
     b->pos = p;
     r->state = state;
 
-    return NGX_AGAIN;
+    return NGX_AGAIN; //表示该行内容不够，例如recv读取的时候，没有把整行数据读取出来，返回后继续recv，然后接着上次解析的位置继续解析直到请求行解析完毕
 
     done:
 
@@ -808,10 +823,26 @@ ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b) {
     return NGX_OK;
 }
 
+/*
+GET /sample.jsp HTTP/1.1
 
+Accept:image/gif.image/jpeg,**
+Accept-Language:zh-cn
+Connection:Keep-Alive
+Host:localhost
+User-Agent:Mozila/4.0(compatible:MSIE5.01:Windows NT5.0)
+Accept-Encoding:gzip,deflate.
+*/ //解析上面的GET /sample.jsp HTTP/1.1以外的配置
+
+/*
+返回NGX_HTTP_PARSE_HEADER_DONE表示响应中所有的http头部都解析完毕，接下来再接收到的都将是http包体
+返回NGX_OK表示解析出一行http头部
+如果返回NGX_AGAIN则表示状态机还没有解析到完整的http头部，要求upstream模块继续接收新的字符流再交由process_header回调方法解析
+*/ //ngx_http_parse_request_line解析请求行， ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部)
+//头部行最后面两个\r\n确定头部行全部解析完毕，也就是中间出现一个空行来区分头部行和body数据
 ngx_int_t
 ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
-                           ngx_uint_t allow_underscores) {
+                           ngx_uint_t allow_underscores) { //每解析完一行name:value就会返回NGX_OK
     u_char c, ch, *p;
     ngx_uint_t hash, i;
     enum {
@@ -827,7 +858,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
 
     /* the last '\0' is not needed because string is zero terminated */
 
-    static u_char lowcase[] =
+    static u_char lowcase[] = //每个字符对应的ascii码在数组中的位置
             "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
             "\0\0\0\0\0\0\0\0\0\0\0\0\0-\0\0" "0123456789\0\0\0\0\0\0"
             "\0abcdefghijklmnopqrstuvwxyz\0\0\0\0\0"
@@ -837,9 +868,9 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
             "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
             "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
 
-    state = r->state;
+    state = r->state; //在解析完请求行后，r->state = sw_start;见ngx_http_parse_header_line
     hash = r->header_hash;
-    i = r->lowcase_index;
+    i = r->lowcase_index; //有可能解析的时候这次只读到了Accept-Language中的Accept-Lan，下次recv后会继续解析后面的guage
 
     for (p = b->pos; p < b->last; p++) {
         ch = *p;
@@ -848,10 +879,10 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
 
             /* first char */
             case sw_start:
-                r->header_name_start = p;
+                r->header_name_start = p; //这行头部行的开始处  //header_name_start指向Accept-Language:zh-cn中的A处
                 r->invalid_header = 0;
 
-                switch (ch) {
+                switch (ch) {  //如果出现一行空行，那么说明后面的数据就是报文体数据了
                     case CR:
                         r->header_end = p;
                         state = sw_header_almost_done;
@@ -872,10 +903,10 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                         }
 
                         if (ch == '_') {
-                            if (allow_underscores) {
+                            if (allow_underscores) { //只有配置了cscf->underscores_in_headers才允许下划线字符
                                 hash = ngx_hash(0, ch);
                                 r->lowcase_header[0] = ch;
-                                i = 1;
+                                i = 1; //如果读到下划线字符，则lowcase_header从下划线开始从新存储下划线后的字符串到数组中
 
                             } else {
                                 hash = 0;
@@ -914,7 +945,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                 if (ch == '_') {
                     if (allow_underscores) {
                         hash = ngx_hash(hash, ch);
-                        r->lowcase_header[i++] = ch;
+                        r->lowcase_header[i++] = ch; //存储Accept-Language:zh-cn中的Accept-Language字符串到lowcase_header
                         i &= (NGX_HTTP_LC_HEADER_LEN - 1);
 
                     } else {
@@ -964,7 +995,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                 break;
 
                 /* space* before header value */
-            case sw_space_before_value:
+            case sw_space_before_value: //Accept-Language:zh-cn中的:后面可以允许空格，可能没参数  aaa: \r\n也可能。
                 switch (ch) {
                     case ' ':
                         break;
@@ -981,7 +1012,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                         r->header_end = p;
                         return NGX_HTTP_PARSE_INVALID_HEADER;
                     default:
-                        r->header_start = p;
+                        r->header_start = p;  //header_start指向Accept-Language:zh-cn中的z字符处
                         state = sw_value;
                         break;
                 }
@@ -999,7 +1030,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                         state = sw_almost_done;
                         break;
                     case LF:
-                        r->header_end = p;
+                        r->header_end = p; //header_end指向Accept-Language:zh-cn中的末尾换行处
                         goto done;
                     case '\0':
                         r->header_end = p;
@@ -1059,7 +1090,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                 }
         }
     }
-
+    //说明该行还没解析完，单已经没数据了，说明需要继续recv然后继续接着上次位置解析
     b->pos = p;
     r->state = state;
     r->header_hash = hash;
@@ -1069,18 +1100,19 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
 
     done:
 
+    b->pos = p + 1; //指向下一行开始的位置
+    r->state = sw_start; //一行头部行解析完毕后，state为sw_value
+    r->header_hash = hash; //name:value中的name字符串做hash后的结果
+    r->lowcase_index = i; //lowcase_index为Accept-Language:zh-cn中Accept-Language字符数，也就是15个字节
+
+    return NGX_OK; //返回NGX_OK表示解析出一行http头部
+
+header_done:
+
     b->pos = p + 1;
     r->state = sw_start;
-    r->header_hash = hash;
-    r->lowcase_index = i;
-
-    return NGX_OK;
-
-    header_done:
-
-    b->pos = p + 1;
-    r->state = sw_start;
-
+    //返回NGX_HTTP_PARSE_HEADER_DONE表示响应中所有的http头部都解析
+    //完毕，接下来再接收到的都将是http包体
     return NGX_HTTP_PARSE_HEADER_DONE;
 }
 
@@ -1609,7 +1641,8 @@ ngx_http_parse_complex_uri(ngx_http_request_t *r, ngx_uint_t merge_slashes) {
     return NGX_OK;
 }
 
-
+//判断buf b中是否包含完整的http应答行    HTTP/1.1 200 OK \r\n
+//ngx_http_parse_status_line解析应答行，mytest_upstream_process_header解析头部行中的其中一行
 ngx_int_t
 ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
                            ngx_http_status_t *status) {
@@ -1695,7 +1728,7 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
                     return NGX_ERROR;
                 }
 
-                r->http_major = ch - '0';
+                r->http_major = ch - '0'; // HTTP/1.1前面的1代表major，后面的1代表minor
                 state = sw_major_digit;
                 break;
 
@@ -1723,7 +1756,7 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
                     return NGX_ERROR;
                 }
 
-                r->http_minor = ch - '0';
+                r->http_minor = ch - '0'; // HTTP/1.1前面的1代表major，后面的1代表minor
                 state = sw_minor_digit;
                 break;
 
@@ -1759,7 +1792,7 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
 
                 if (++status->count == 3) {
                     state = sw_space_after_status;
-                    status->start = p - 2;
+                    status->start = p - 2; //执行http 1/1 200 ok中的2的地址
                 }
 
                 break;
@@ -1774,7 +1807,7 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
                         state = sw_status_text;
                         break;
                     case CR:
-                        state = sw_almost_done;
+                        state = sw_almost_done;  //下一个字符应该是\n
                         break;
                     case LF:
                         goto done;
@@ -1797,7 +1830,7 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
 
                 /* end of status line */
             case sw_almost_done:
-                status->end = p - 1;
+                status->end = p - 1; //end实际上指向的是\r的地址
                 switch (ch) {
                     case LF:
                         goto done;
@@ -1814,12 +1847,12 @@ ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
 
     done:
 
-    b->pos = p + 1;
+    b->pos = p + 1; //就是指向最后的\n
 
     if (status->end == NULL) {
         status->end = p;
     }
-
+    // HTTP/1.1 对应的为1001
     status->http_version = r->http_major * 1000 + r->http_minor;
     r->state = sw_start;
 
@@ -2065,7 +2098,8 @@ ngx_http_parse_set_cookie_lines(ngx_array_t *headers, ngx_str_t *name,
     return NGX_DECLINED;
 }
 
-
+/*把请求中GET /download/nginx-1.9.2.rar?st=xhWL03HbtjrojpEAfiD6Mw&e=1452139931 HTTP/1.1的st和e形成变量$arg_st #arg_e，value分别
+为xhWL03HbtjrojpEAfiD6Mw 1452139931即$arg_st=xhWL03HbtjrojpEAfiD6Mw，#arg_e=1452139931 */
 ngx_int_t
 ngx_http_arg(ngx_http_request_t *r, u_char *name, size_t len, ngx_str_t *value) {
     u_char *p, *last;
@@ -2126,7 +2160,14 @@ ngx_http_split_args(ngx_http_request_t *r, ngx_str_t *uri, ngx_str_t *args) {
     }
 }
 
-
+/*
+格式:
+十六进制ea5表明这个暑假块有3749字节
+          这个块为3749字节，块数结束后\r\n表明这个块已经结束               这个块为3752字节，块数结束后\r\n表明这个块已经结束
+                                                                                                                                 0表示最后一个块，最后跟两个\r\n
+ea5\r\n........................................................\r\n ea8\r\n..................................................\r\n 0\r\n\r\n
+参考:http://blog.csdn.net/zhangboyj/article/details/6236780
+*/
 ngx_int_t
 ngx_http_parse_chunked(ngx_http_request_t *r, ngx_buf_t *b,
                        ngx_http_chunked_t *ctx) {
