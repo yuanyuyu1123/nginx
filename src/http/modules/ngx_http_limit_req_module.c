@@ -16,7 +16,12 @@
 #define NGX_HTTP_LIMIT_REQ_DELAYED_DRY_RUN   4
 #define NGX_HTTP_LIMIT_REQ_REJECTED_DRY_RUN  5
 
-
+/*
+size = offsetof(ngx_rbtree_node_t, color)
+           + offsetof(ngx_http_limit_req_node_t, data)
+           + key->len;
+红黑树分配空间大小，见ngx_http_limit_req_lookup
+*/
 typedef struct {
     u_char color;
     u_char dummy;
@@ -27,21 +32,22 @@ typedef struct {
     ngx_uint_t excess;
     ngx_uint_t count;
     u_char data[1];
-} ngx_http_limit_req_node_t;
+} ngx_http_limit_req_node_t; //用于限速的该客户端一些状态存入这里面，例如该客户端当前的excess等，通过红黑树管理
 
 
-typedef struct {
+typedef struct { //所有客户端请求的限速处理，可以参考ngx_http_limit_req_lookup，每个客户端对应一个红黑树节点，用与存储每次请求后用于限速的各种临时信息
     ngx_rbtree_t rbtree;
     ngx_rbtree_node_t sentinel;
     ngx_queue_t queue;
 } ngx_http_limit_req_shctx_t;
 
 
-typedef struct {
-    ngx_http_limit_req_shctx_t *sh;
-    ngx_slab_pool_t *shpool;
+typedef struct { //创建空间和赋值见ngx_http_limit_req_init_zone
+    ngx_http_limit_req_shctx_t  *sh;
+    ngx_slab_pool_t             *shpool; //用来管理limit req zone的共享内存块
     /* integer value, 1 corresponds to 0.001 r/s */
-    ngx_uint_t rate;
+    ngx_uint_t                   rate; //rate实际上扩大了1000倍，例如1r/s，则这里为1000
+    //limit_req_zone  $binary_remote_addr  zone=req_one:10m rate=3000r/s;中的$binary_remote_addr对应的客户端地址
     ngx_http_complex_value_t key;
     ngx_http_limit_req_node_t *node;
 } ngx_http_limit_req_ctx_t;
@@ -50,13 +56,13 @@ typedef struct {
 typedef struct {
     ngx_shm_zone_t *shm_zone;
     /* integer value, 1 corresponds to 0.001 r/s */
-    ngx_uint_t burst;
+    ngx_uint_t burst; //实际扩大1000倍，如果配置捅大小为1，这里为1000
     ngx_uint_t delay;
 } ngx_http_limit_req_limit_t;
 
 
 typedef struct {
-    ngx_array_t limits;
+    ngx_array_t limits; //成员类型ngx_http_limit_req_limit_t
     ngx_uint_t limit_log_level;
     ngx_uint_t delay_log_level;
     ngx_uint_t status_code;
@@ -110,9 +116,23 @@ static ngx_conf_num_bounds_t ngx_http_limit_req_status_bounds = {
         ngx_conf_check_num_bounds, 400, 599
 };
 
-
+/* ngx_http_limit_conn_module限定同一时刻客户端的连接数， ngx_http_limit_req_commands限制请求处理的频率，也就是单位时间最多有多少个连接 */
+/*
+ngx_http_limit_req_module模块可以通过定义的 键值来限制请求处理的频率。特别的，它可以限制来自单个IP地址的请求处理频率。 限制的
+方法是通过一种“漏桶”的方法——固定每秒处理的请求数，推迟过多的请求处理
+*/
 static ngx_command_t ngx_http_limit_req_commands[] = {
-
+        /*
+语法:  limit_req_zone $variable zone=name:size rate=rate;
+默认值:  —
+上下文:  http
+设置一块共享内存限制域的参数，它可以用来保存键值的状态。 它特别保存了当前超出请求的数量。 键的值就是指定的变量（空值不会被计算）。 示例用法：
+limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+这里，状态被存在名为“one”，最大10M字节的共享内存里面。对于这个限制域来说 平均处理的请求频率不能超过每秒一次。
+键值是客户端的IP地址。 如果不使用$remote_addr变量，而用$binary_remote_addr变量， 可以将每条状态记录的大小减少到64个字节，这样1M
+的内存可以保存大约1万6千个64字节的记录。 如果限制域的存储空间耗尽了，对于后续所有请求，服务器都会返回 503 (Service Temporarily Unavailable)错误。
+请求频率可以设置为每秒几次（r/s）。如果请求的频率不到每秒一次， 你可以设置每分钟几次(r/m)。比如每秒半次就是30r/m。
+*/
         {ngx_string("limit_req_zone"),
          NGX_HTTP_MAIN_CONF | NGX_CONF_TAKE3,
          ngx_http_limit_req_zone,
@@ -120,13 +140,33 @@ static ngx_command_t ngx_http_limit_req_commands[] = {
          0,
          NULL},
 
-        {ngx_string("limit_req"),
+        /*
+语法:  limit_req zone=name [burst=number] [nodelay];
+默认值:  —
+上下文:  http, server, location
+
+设置对应的共享内存限制域和允许被处理的最大请求数阈值。 如果请求的频率超过了限制域配置的值，请求处理会被延迟，所以 所有的请求都
+是以定义的频率被处理的。 超过频率限制的请求会被延迟，直到被延迟的请求数超过了定义的阈值 这时，这个请求会被终止，并返回
+503 (Service Temporarily Unavailable) 错误。这个阈值的默认值等于0。 比如这些指令：
+limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
+server {
+    location /search/ {
+        limit_req zone=one burst=5;
+    }
+限制平均每秒不超过一个请求，同时允许超过频率限制的请求数不多于5个。
+如果不希望超过的请求被延迟，可以用nodelay参数：
+limit_req zone=one burst=5 nodelay;
+*/
+        { ngx_string("limit_req"), //limit_rate限制包体的发送速度，limit_req限制连接请求连理速度
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE123,
          ngx_http_limit_req,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-
+        /*
+设置你所希望的日志级别，当服务器因为频率过高拒绝或者延迟处理请求时可以记下相应级别的日志。 延迟记录的日志级别比拒绝的低一个级别；
+比如， 如果设置“limit_req_log_level notice”， 延迟的日志就是info级别。
+*/
         {ngx_string("limit_req_log_level"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
@@ -166,7 +206,7 @@ static ngx_http_module_t ngx_http_limit_req_module_ctx = {
         ngx_http_limit_req_merge_conf          /* merge location configuration */
 };
 
-
+//参考https://my.oschina.net/kone/blog/88713
 ngx_module_t ngx_http_limit_req_module = {
         NGX_MODULE_V1,
         &ngx_http_limit_req_module_ctx,        /* module context */
@@ -456,7 +496,39 @@ ngx_http_limit_req_lookup(ngx_http_limit_req_limit_t *limit, ngx_uint_t hash,
             } else if (ms < 0) {
                 ms = 0;
             }
-
+            /*  https://my.oschina.net/kone/blog/88713
+            假设设置rate为500，则rate=500000  配置burst为10，则burst值为10000
+            假设1ms一个请求，则excess取值为
+            第几个请求        excess值           lr->excess值  是否更新lr->last   是否超过burst阈值
+              1                 0-500+1000=500         500             是           否
+              2                 500-500+1000=1000      1000            是           否
+              3                 1000-500+1000=1500     1500            是           否
+              ...............
+              10                9500-500+1000=10000    10000           是           否
+              11                10000-500+1000=10500   10000           否           是   最后excess没有保存，还是保存上次的，所以还是10000
+              12                10000-2*500+1000=10000 10000           是           否
+              13                10000-2*500+1000=10500 10000           否           是
+              14                10000-2*500+1000=10000 10000           是           否
+              ..............
+              后面循环每隔2ms满足条件
+            该算法的核心是:有一个桶，他最多容纳MAX令牌，我们往该桶中扔令牌，如果桶中令牌达到了max，则不能往里面扔了，就会拒绝接收该令牌，
+            同时每隔1ms会从令牌桶中淘汰掉部分令牌。然后就可以继续扔令牌进去了
+            这个算法应该属于漏桶算法:
+            假设配置限速rate大小为10000每秒，burst业务10000每秒，配置worker工作进程就为1，则令牌桶允许最大容量令牌数为10000 * 1000，同时每毫秒自动从令牌桶中删除的
+            令牌数为10000。如果在1秒钟时间段的第500ms的时候，已经接受了10000个连接，则令牌桶中令牌数为：10000 * 1000-500 * 1000，也就是令牌
+            桶还可以扔500 * 1000个令牌才能达到最大容量，这样下一个1ms(也就是500ms到501ms这1ms内)可以接受500个请求。501ms到后，又会删除10000个
+            令牌，又可以接收10个请求，依次继续循环下去。
+            实际运行的请求数为rate+burst
+            之前的理解有误，可以参考这里:https://github.com/alibaba/tengine/issues/855
+            */
+            /*
+            lr->excess:桶中的令牌总数
+            ctx->rate * ngx_abs(ms) / 1000:每隔1ms从令牌桶中自动清除的令牌数
+            +1000 : 表示每来一个请求，就向令牌桶中添加1000个令牌，因为1个请求对应1000个令牌
+            ???????
+            如果rate=10000,burst=1,如果高流量过来，则1ms只允许过一个请求，1分钟才1000个，如果rate大于1000，
+            则if ((ngx_uint_t) excess > limit->burst) 是不是应该改为if ((ngx_uint_t) excess > ctx->rate / 1000) {
+            */
             excess = lr->excess - ctx->rate * ms / 1000 + 1000;
 
             if (excess < 0) {

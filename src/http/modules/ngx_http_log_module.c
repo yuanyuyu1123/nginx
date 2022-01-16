@@ -25,7 +25,8 @@ typedef size_t (*ngx_http_log_op_getlen_pt)(ngx_http_request_t *r,
                                             uintptr_t data);
 
 
-struct ngx_http_log_op_s {
+//赋值见ngx_http_log_compile_format，取值生效见ngx_http_log_handler
+struct ngx_http_log_op_s { //非ngx_http_log_vars变量赋值见ngx_http_log_variable_compile或者ngx_http_log_vars变量赋值直接在ngx_http_log_compile_format
     size_t len;
     ngx_http_log_op_getlen_pt getlen;
     ngx_http_log_op_run_pt run;
@@ -33,30 +34,41 @@ struct ngx_http_log_op_s {
 };
 
 
+//创建空间和赋值见ngx_http_log_set_format  ngx_http_log_set_format->ngx_http_log_compile_format
 typedef struct {
-    ngx_str_t name;
-    ngx_array_t *flushes;
-    ngx_array_t *ops;        /* array of ngx_http_log_op_t */
+    ngx_str_t                   name;//log_format combined ‘$remote_addr $remote_user [$time_local]’中的combined，标识接入日志的格式名
+    ngx_array_t                *flushes;//成员类型ngx_int_t，保存的是非ngx_http_log_vars变量在变量数组中的存储序号index,见ngx_http_log_variable_compile
+    //log_format combined ‘$remote_addr $remote_user [$time_local]’中的$remote_addr $remote_user [$time_local]，标识接入日志的格式
+    ngx_array_t                *ops;        /* array of ngx_http_log_op_t */ //用于解析变量对应的value ngx_http_log_set_format->ngx_http_log_compile_format
 } ngx_http_log_fmt_t;
 
 
 typedef struct {
-    ngx_array_t formats;    /* array of ngx_http_log_fmt_t */
-    ngx_uint_t combined_used; /* unsigned  combined_used:1 */
+    //ngx_http_log_set_format中进行参数设置创建空间并赋值，见ngx_http_log_set_format，或者默认为ngx_http_combined_fmt，见ngx_http_log_init
+    ngx_array_t                 formats;    /* array of ngx_http_log_fmt_t */
+    //access_log /path/xxx combined则置1，见ngx_http_log_set_log，则formats默认为ngx_http_combined_fmt
+    ngx_uint_t                  combined_used; /* unsigned  combined_used:1 */
 } ngx_http_log_main_conf_t;
 
 
+//access_log /path buffer=xx的时候创建空间和赋值，见ngx_http_log_set_log
 typedef struct {
-    u_char *start;
-    u_char *pos;
-    u_char *last;
+    u_char                     *start;
+    u_char                     *pos;
+    u_char                     *last;
 
-    ngx_event_t *event;
-    ngx_msec_t flush;
-    ngx_int_t gzip;
+    ngx_event_t                *event; //如果配置带有fluash，则启动定时器 见ngx_http_log_set_log
+    ngx_msec_t                  flush; //flush接入日志到磁盘的时间  在ngx_http_log_handler中通过定时器生效
+    ngx_int_t                   gzip; //access_log /path buffer=xxx gzip=xx
 } ngx_http_log_buf_t;
 
-
+/*
+基本每个包含有变量参数的配置指令项的处理模式都大同小异：
+1.对于能够接收变量参数的指令，先定义和配置指令相关的用于存储处理后的变量处理脚本的结构体 (ngx_http_log_script_t)。每个变量参数对应一个此类型对象。
+2.解析时判断参数是否含有变量 (ngx_http_script_variables_count)
+3.如果参数含有变量，将此参数和变量处理脚本存储结构体通过脚本编译器的输入结构 ngx_http_script_compile_t 交由 ngx_http_script_compile 进行处理。
+ngx_http_script_compile 函数对参数项进行整理，存入 ngx_http_log_script_t 变量中：
+*/
 typedef struct {
     ngx_array_t *lengths;
     ngx_array_t *values;
@@ -64,24 +76,31 @@ typedef struct {
 
 
 typedef struct {
-    ngx_open_file_t *file;
-    ngx_http_log_script_t *script;
-    time_t disk_full_time;
-    time_t error_log_time;
-    ngx_syslog_peer_t *syslog_peer;
-    ngx_http_log_fmt_t *format;
-    ngx_http_complex_value_t *filter;
+    //当access_log指定路径是常量的时候使用file记录，这个文件记录会放入到cycle->open_files
+    ngx_open_file_t            *file;
+    //当access_log指定路径是变量的时候使用script记录
+    ngx_http_log_script_t      *script;
+    time_t                      disk_full_time;
+    time_t                      error_log_time;
+    ngx_syslog_peer_t          *syslog_peer;
+    ngx_http_log_fmt_t         *format;
+    ngx_http_complex_value_t   *filter; //access_log xxx if=yyy配置中的yyy存储在filter中
 } ngx_http_log_t;
 
 
+/*
+都将信息放入了 ngx_http_log_loc_conf_t的logs这个数组里进行管理，logs数组的元素是ngx_http_log_t。
+*/
 typedef struct {
-    ngx_array_t *logs;       /* array of ngx_http_log_t */
+    //access_log配置信息都将存入logs这个数组里进行管理   创建空间及初始化见ngx_http_log_set_log
+    ngx_array_t                *logs;       /* array of ngx_http_log_t */
 
-    ngx_open_file_cache_t *open_file_cache;
-    time_t open_file_cache_valid;
-    ngx_uint_t open_file_cache_min_uses;
+    ngx_open_file_cache_t      *open_file_cache;
+    time_t                      open_file_cache_valid;
+    ngx_uint_t                  open_file_cache_min_uses;
 
-    ngx_uint_t off;        /* unsigned  off:1 */
+    //ngx_http_log_handler如果配置为off,则不写入接入日志
+    ngx_uint_t                  off;        /* unsigned  off:1 */  //配置access_log off置1
 } ngx_http_log_loc_conf_t;
 
 
@@ -190,16 +209,76 @@ static char *ngx_http_log_open_file_cache(ngx_conf_t *cf, ngx_command_t *cmd,
 
 static ngx_int_t ngx_http_log_init(ngx_conf_t *cf);
 
-
+/*
+配置实例
+log_format gzip '$remote_addr - $remote_user [$time_local] '
+                '"$request" $status $bytes_sent '
+                '"$http_referer" "$http_user_agent" "$gzip_ratio"';
+access_log /spool/logs/nginx-access.log gzip buffer=32k;
+*/
 static ngx_command_t ngx_http_log_commands[] = {
 
+/*
+语法:  log_format name string ...;
+默认值:  log_format combined "...";
+上下文:  http
+
+指定日志的格式。
+日志格式允许包含普通变量和只在日志写入时存在的变量：  一下变量参考ngx_http_core_variables
+$body_bytes_sent发送给客户端的字节数，不包括响应头的大小； 该变量与Apache模块mod_log_config里的“%B”参数兼容。
+$bytes_sent发送给客户端的总字节数。
+$connection连接的序列号。
+$connection_requests当前通过一个连接获得的请求数量。
+$msec日志写入时间。单位为秒，精度是毫秒。
+$pipe如果请求是通过HTTP流水线(pipelined)发送，pipe值为“p”，否则为“.”。
+$request_length请求的长度（包括请求行，请求头和请求正文）。
+$request_time请求处理时间，单位为秒，精度毫秒； 从读入客户端的第一个字节开始，直到把最后一个字符发送给客户端后进行日志写入为止。
+$status响应状态。
+$time_iso8601ISO8601标准格式下的本地时间。
+$time_local通用日志格式下的本地时间。
+发送给客户端的响应头拥有“sent_http_”前缀。 比如$sent_http_content_range。
+配置始终包含预先定义的“combined”日志格式：
+log_format combined '$remote_addr - $remote_user [$time_local] '
+                    '"$request" $status $body_bytes_sent '
+                    '"$http_referer" "$http_user_agent"';
+*/
         {ngx_string("log_format"),
          NGX_HTTP_MAIN_CONF | NGX_CONF_2MORE,
          ngx_http_log_set_format,
          NGX_HTTP_MAIN_CONF_OFFSET,
          0,
          NULL},
+        /*
+Syntax:
+access_log path [format [buffer=size [flush=time]] [if=condition]];
+access_log path format gzip[=level] [buffer=size] [flush=time] [if=condition];
+access_log syslog:server=address[,parameter=value] [format [if=condition]];
+access_log off;
 
+Default:
+access_log logs/access.log combined;
+
+Context:
+http, server, location, if in location, limit_except
+语法:  access_log path [format [buffer=size]];
+access_log off;
+
+默认值:  access_log logs/access.log combined;
+上下文:  http, server, location, if in location, limit_except
+为访问日志设置路径，格式和缓冲区大小（nginx访问日志支持缓存）。 在同一个配置层级里可以指定多个日志。 特定值off会取消当前配置层
+级里的所有access_log指令。 如果没有指定日志格式则会使用预定义的“combined”格式。
+缓冲区的大小不能超过磁盘文件原子性写入的大小。 对于FreeBSD来说缓冲区大小是无限制的。
+日志文件的路径可以包含变量（0.7.6+）， 但此类日志存在一些限制：
+? 工作进程使用的user 应拥有在目录里创建文件的权限；
+? 写缓冲无效；
+? 每条日志写入都会打开和关闭文件。然而，频繁使用的文件描述符可以存储在缓存中， 在open_log_file_cache指令的valid参数指定的时间里， 写操作能持续写到旧文件。
+? 每次日志写入的操作都会检查请求的 根目录是否存在， 如果不存在则日志不会被创建。 因此在一个层级里同时指定root 和access_log是一个不错的想法：
+server {
+    root       /spool/vhost/data/$host;
+    access_log /spool/vhost/logs/$host;
+    ...
+*/
+//如果在同一{}配置多个access_log xxx,则会在ngx_http_log_handler中为每一个配置access_log记录，例如配置了access_log path1;同时配置access_log_path2,则接入日志会在里同时记录到path1和path2
         {ngx_string("access_log"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_HTTP_LMT_CONF | NGX_CONF_1MORE,
@@ -207,7 +286,26 @@ static ngx_command_t ngx_http_log_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
+        /*
+语法:  open_log_file_cache max=N [inactive=time] [min_uses=N] [valid=time];
+open_log_file_cache off;
 
+默认值:  open_log_file_cache off;
+上下文:  http, server, location
+
+定义一个缓存，用来存储频繁使用的文件名中包含变量的日志文件描述符。 该指令包含以下参数：
+max设置缓存中描述符的最大数量；如果缓存被占满，最近最少使用（LRU）的描述符将被关闭。 inactive设置缓存文件描述符在多长时间内
+没有被访问就关闭； 默认为10秒。 min_uses设置在inactive参数指定的时间里， 最少访问多少次才能使文件描述符保留在缓存中；默认为1。
+valid设置一段用于检查超时后文件是否仍以同样名字存在的时间； 默认为60秒。 off禁用缓存。
+使用实例： open_log_file_cache max=1000 inactive=20s valid=1m min_uses=2;
+*/
+
+/*
+nginx有两个指令是管理缓存文件描述符的:一个就是本文中说到的ngx_http_log_module模块的open_file_log_cache配置;存储在ngx_http_log_loc_conf_t->open_file_cache
+另一个是ngx_http_core_module模块的 open_file_cache配置，存储在ngx_http_core_loc_conf_t->open_file_cache;前者是只用来管理access变量日志文件。
+后者用来管理的就多了，包括：static，index，tryfiles，gzip，mp4，flv，都是静态文件哦!
+这两个指令的handler都调用了函数 ngx_open_file_cache_init ，这就是用来管理缓存文件描述符的第一步：初始化
+*/
         {ngx_string("open_log_file_cache"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1234,
          ngx_http_log_open_file_cache,
@@ -233,7 +331,12 @@ static ngx_http_module_t ngx_http_log_module_ctx = {
         ngx_http_log_merge_loc_conf            /* merge location configuration */
 };
 
-
+/*
+Nginx的日志模块（这里所说的日志模块是ngx_errlog_module模块，而ngx_http_log_module模块是用于记录HTTP请求的访问日志的，
+两者功能不同，在实现上也没有任何关系）为其他模块提供了基本的记录日志功能
+ngx_http_log_module模块按指定的格式写访问日志。 请求在处理结束时，会按请求路径的配置上下文记访问日志
+ngx_http_log_module是属于nginx状态机最后一个阶段NGX_HTTP_LOG_PHASE的处理模块，即一个http请求结束时执行的，它的任务就是打印这次request的访问情况。
+*/
 ngx_module_t ngx_http_log_module = {
         NGX_MODULE_V1,
         &ngx_http_log_module_ctx,              /* module context */
@@ -279,8 +382,14 @@ static ngx_http_log_var_t ngx_http_log_vars[] = {
 };
 
 
+/*
+在11个ngx_http_phases阶段中，最盾一个阶段叫做NGX_HTTP_LOG_PHASE，它是用来记录客户端的访问日志的。在这一步骤中，将会依次调用
+NGX_HTTP_LOG_PHASE阶段的所有回调方法记录日志。官方的ngx_http_log_module模块就是在这里记录access_log的。 存储在access_log所指定的文件
+*/
+
+//按照access_log配置，把接入日志按照指定格式写入文件
 static ngx_int_t
-ngx_http_log_handler(ngx_http_request_t *r) {
+ngx_http_log_handler(ngx_http_request_t *r){ //ngx_http_log_request中执行
     u_char *line, *p;
     size_t len, size;
     ssize_t n;
@@ -296,10 +405,10 @@ ngx_http_log_handler(ngx_http_request_t *r) {
 
     lcf = ngx_http_get_module_loc_conf(r, ngx_http_log_module);
 
-    if (lcf->off) {
+    if (lcf->off) { //ngx_http_log_handler如果配置为off,则不写入接入日志
         return NGX_OK;
     }
-
+    //如果在同一{}配置多个access_log xxx,则会在ngx_http_log_handler中为每一个配置access_log记录，例如配置了access_log path1;同时配置access_log_path2,则接入日志会在里同时记录到path1和path2
     log = lcf->logs->elts;
     for (l = 0; l < lcf->logs->nelts; l++) {
 

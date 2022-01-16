@@ -29,7 +29,16 @@ static ngx_http_module_t ngx_http_static_module_ctx = {
         NULL                                   /* merge location configuration */
 };
 
-
+/*
+location / {
+    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html，autoindex对应的ngx_http_autoindex_handler才会生效
+    autoindex on;
+}
+只有在index11.html文件不存在的时候才会执行autoindex，如果没有设置index则默认打开index.html，必须保证index.html的uri目录存在，如果不存在，是一个不存在的目录也不会执行autoindex
+Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块， ngx_autoindex 模块、ngx_static 模块
+ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求，例如请求 GET /cats/，而对于不以 / 结尾的请求则会直接忽略，
+同时把处理权移交给 content 阶段的下一个模块。而 ngx_static 模块则刚好相反，直接忽略那些 URI 以 / 结尾的请求。
+*/
 ngx_module_t ngx_http_static_module = {
         NGX_MODULE_V1,
         &ngx_http_static_module_ctx,           /* module context */
@@ -45,9 +54,20 @@ ngx_module_t ngx_http_static_module = {
         NGX_MODULE_V1_PADDING
 };
 
-
+/*
+location / {
+    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html，autoindex对应的ngx_http_autoindex_handler才会生效
+    autoindex on;
+}
+只有在index11.html文件不存在的时候才会执行autoindex，如果没有设置index则默认打开index.html，必须保证index.html的uri目录存在，如果不存在，是一个不存在的目录也不会执行autoindex
+Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块， ngx_autoindex 模块、ngx_static 模块
+ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求，例如请求 GET /cats/，而对于不以 / 结尾的请求则会直接忽略，
+同时把处理权移交给 content 阶段的下一个模块。而 ngx_static 模块则刚好相反，直接忽略那些 URI 以 / 结尾的请求。
+*/
+//ngx_http_static_module模块主要是在nginx系统中查找uri指定文件是否存在，存在则直接返回给客户端
 static ngx_int_t
-ngx_http_static_handler(ngx_http_request_t *r) {
+ngx_http_static_handler(ngx_http_request_t *r) { //注意:ngx_http_static_handler如果uri不是以/结尾返回，ngx_http_index_handler不以/结尾返回
+//ngx_http_static_handler ngx_http_index_handler每次都要获取缓存信息stat信息，因此每次获取很可能是上一次stat执行的时候获取的信息，除非缓存过期
     u_char *last, *location;
     size_t root, len;
     uintptr_t escape;
@@ -65,6 +85,7 @@ ngx_http_static_handler(ngx_http_request_t *r) {
     }
 
     if (r->uri.data[r->uri.len - 1] == '/') {
+        //注意:ngx_http_static_handler如果uri不是以/结尾返回，ngx_http_index_handler不以/结尾返回
         return NGX_DECLINED;
     }
 
@@ -75,7 +96,7 @@ ngx_http_static_handler(ngx_http_request_t *r) {
      * so we do not need to reserve memory for '/' for possible redirect
      */
 
-    last = ngx_http_map_uri_to_path(r, &path, &root, 0);
+    last = ngx_http_map_uri_to_path(r, &path, &root, 0); //通过r->uri获取整个路径或者文件绝对路径
     if (last == NULL) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
@@ -131,7 +152,11 @@ ngx_http_static_handler(ngx_http_request_t *r) {
                 rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
                 break;
         }
-
+        /*
+         如果文件不存在，则返回出去后会结束请求
+         2016/02/16 10:27:36[            ngx_http_static_handler,   139]  [error] 19131#19131: *1 open() "/var/yyz/www/ttt/xx.html" failed (2: No such file or directory), client: 10.2.13.167, server: localhost, request: "GET / HTTP/1.1", host: "10.2.13.167"
+         2016/02/16 10:27:36[          ngx_http_finalize_request,  2598]  [debug] 19131#19131: *1 http finalize request rc: 404, "/ttt/xx.html?" a:1, c:2
+        */
         if (rc != NGX_HTTP_NOT_FOUND || clcf->log_not_found) {
             ngx_log_error(level, log, of.err,
                           "%s \"%s\" failed", of.failed, path.data);
@@ -226,7 +251,7 @@ ngx_http_static_handler(ngx_http_request_t *r) {
 
     r->headers_out.status = NGX_HTTP_OK;
     r->headers_out.content_length_n = of.size;
-    r->headers_out.last_modified_time = of.mtime;
+    r->headers_out.last_modified_time = of.mtime; //文件最后被修改的时间
 
     if (ngx_http_set_etag(r) != NGX_OK) {
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -270,7 +295,7 @@ ngx_http_static_handler(ngx_http_request_t *r) {
     b->file->fd = of.fd;
     b->file->name = path;
     b->file->log = log;
-    b->file->directio = of.is_directio;
+    b->file->directio = of.is_directio; //注意这里如果文件大小大于direction设置，则置1，后面会使能direct I/O方式,见ngx_directio_on
 
     out.buf = b;
     out.next = NULL;
