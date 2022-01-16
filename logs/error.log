@@ -66,3 +66,4 @@
 2022/01/16 21:14:31 [emerg] 11431#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
 2022/01/16 21:40:55 [emerg] 11590#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
 2022/01/16 21:40:59 [emerg] 11622#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
+2022/01/16 23:28:38 [emerg] 12340#0: unknown directive "mytest" in /usr/local/nginx/conf/nginx.conf:47
