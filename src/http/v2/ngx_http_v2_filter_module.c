@@ -17,7 +17,8 @@
  * This returns precise number of octets for values in range 0..253
  * and estimate number for the rest, but not smaller than required.
  */
-
+//这里的ngx_http_v2_integer_octets ngx_http_v2_integer_octets index索引编码过程和ngx_http_v2_state_header_block中的解码过程对应
+//ngx_http_v2_integer_octets ngx_http_v2_indexed进行整数编码，ngx_http_v2_literal_size进行字符串编码
 #define ngx_http_v2_integer_octets(v)  (1 + (v) / 127)
 
 #define ngx_http_v2_literal_size(h)                                           \
@@ -138,7 +139,29 @@ ngx_module_t ngx_http_v2_filter_module = {
 
 static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 
+/*
+2017/03/18 17:01:45[      ngx_http_proxy_process_status_line,  2466]  [debug] 30470#30470: *3 http proxy status 404 "404 Not Found"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Date: Sat, 18 Mar 2017 09:03:34 GMT"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Content-Type: text/plain; charset=utf-8"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Content-Length: 9"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "X-Backend-Header-Rtt: 0.002134"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Connection: close"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Server: nghttpx"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "Via: 2 nghttpx"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "x-frame-options: SAMEORIGIN"
+2017/03/18 17:01:45[                            ngx_memalign,    72]  [debug] 30470#30470: *3 posix_memalign: 0000000000C40B90:4096 @16
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "x-xss-protection: 1; mode=block"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2544]  [debug] 30470#30470: *3 http proxy header: "x-content-type-options: nosniff"
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2554]  [debug] 30470#30470: *3 http proxy header done
+2017/03/18 17:01:45[      ngx_http_proxy_process_header,  2622][yangya  [debug] 30470#30470: *3 upstream header recv ok, u->keepalive:0
+2017/03/18 17:01:45[           ngx_http_proxy_process_header,  2625]  [debug] 30470#30470: *3 yang test .... body:not found
+2017/03/18 17:01:45[               ngx_http_send_header,  3358][yangya  [debug] 30470#30470: *3 ngx http send header
+2017/03/18 17:01:45[               ngx_http_v2_header_filter,   143]  [debug] 30470#30470: *3 http2 header filter
+*/
 
+/* NGINX在ngx_http_v2_state_header_block对接收到的头部帧进行解码解包，在ngx_http_v2_header_filter中对头部帧进行编码组包 */
+/* NGINX接收客户端的header帧在函数ngx_http_v2_header_filter，发送响应的header帧在函数ngx_http_v2_header_filter */
+/* 接收完后端响应的头部信息后，解析成功后发送这些头部信息到客户端，需要走该header filter模块 */
 static ngx_int_t
 ngx_http_v2_header_filter(ngx_http_request_t *r) {
     u_char status, *pos, *start, *p, *tmp;
@@ -171,7 +194,7 @@ ngx_http_v2_header_filter(ngx_http_request_t *r) {
 
     stream = r->stream;
 
-    if (!stream) {
+    if (!stream) { /* 如果没有创建对应的stream，则直接跳到下一个filter */
         return ngx_http_next_header_filter(r);
     }
 
@@ -261,11 +284,15 @@ ngx_http_v2_header_filter(ngx_http_request_t *r) {
     }
 
     len = h2c->table_update ? 1 : 0;
+    /* NGINX在ngx_http_v2_state_header_block对接收到的头部帧进行解码解包，在ngx_http_v2_header_filter中对头部帧进行编码组包
+       静态映射表在ngx_http_v2_static_table
+    */
 
+    /* 头部9字节 + status响应长度(1字节为什么可以表示status响应码，因为一个字节就可以表示静态表的那个成员,见ngx_http_v2_static_table) */
     len += status ? 1 : 1 + ngx_http_v2_literal_size("418");
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
-
+    //对server:进行编码
     if (r->headers_out.server == NULL) {
 
         if (clcf->server_tokens == NGX_HTTP_SERVER_TOKENS_ON) {
@@ -396,7 +423,7 @@ ngx_http_v2_header_filter(ngx_http_request_t *r) {
 
     part = &r->headers_out.headers.part;
     header = part->elts;
-
+    /* header_out数组列表中的所有NAME:VALUE长度加进来 */
     for (i = 0; /* void */; i++) {
 
         if (i >= part->nelts) {
@@ -664,7 +691,8 @@ ngx_http_v2_header_filter(ngx_http_request_t *r) {
 
     cln->handler = ngx_http_v2_filter_cleanup;
     cln->data = stream;
-
+    //把ngx_http_v2_send_chain.send_chain=ngx_http_v2_header_filter,后面的数据帧就通过该函数发送，
+    //在读取到后端数据后开始走out filter流程，然后调用ngx_http_output_filter，最终执行该ngx_http_v2_send_chain
     fc->send_chain = ngx_http_v2_send_chain;
     fc->need_last_buf = 1;
 
@@ -1403,7 +1431,20 @@ ngx_http_v2_create_trailers_frame(ngx_http_request_t *r) {
     return ngx_http_v2_create_headers_frame(r, start, pos, 1);
 }
 
+/*
+客户端一次uri请求发送过来header帧后，nginx应答给客户端的header帧和数据帧的stream id就是客户端请求header帧的id信息
+HEADER帧发送流程:ngx_http_v2_filter_send->ngx_http_v2_send_output_queue
+DATA帧发送流程:ngx_http_v2_send_chain->ngx_http_v2_send_output_queue
+一次发送不完(例如协议栈写满返回AGAIN)则下次通过ngx_http_v2_write_handler->ngx_http_v2_send_output_queue再次发送
+例如通过同一个connect来下载两个文件，则2个文件的相关信息会被组成一个一个交替的帧挂载到该链表上，通过该函数进行交替发送
+发送队列last_out中的数据
+*/
 
+/*
+当http2头部帧发送的时候，会在ngx_http_v2_header_filter把ngx_http_v2_send_chain.send_chain=ngx_http_v2_send_chain
+该函数发送数据帧
+在读取到后端数据后开始走out filter流程，然后调用ngx_http_output_filter，最终执行该ngx_http_v2_send_chain
+*/
 static ngx_chain_t *
 ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
     off_t size, offset;
@@ -1435,7 +1476,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
         in = in->next;
     }
 
-    if (in == NULL || stream->out_closed) {
+    if (in == NULL || stream->out_closed) { /* chain链上没有要发送的数据 */
 
         if (size) {
             ngx_log_error(NGX_LOG_ERR, fc->log, 0,
@@ -1451,7 +1492,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
     }
 
     h2c = stream->connection;
-
+    /* 窗口 */
     if (size && ngx_http_v2_flow_control(h2c, stream) == NGX_DECLINED) {
 
         if (ngx_http_v2_filter_send(fc, stream) == NGX_ERROR) {
@@ -1484,7 +1525,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
     } else {
         offset = 0;
     }
-
+    /* 发送limit不能超过h2c->send_window和stream->send_window的最小值 */
     if (limit == 0 || limit > (off_t) h2c->send_window) {
         limit = h2c->send_window;
     }
@@ -1494,7 +1535,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
     }
 
     h2lcf = ngx_http_get_module_loc_conf(r, ngx_http_v2_module);
-
+    /* frame_size为本地配置chunk_size和对端通知的frame_size的最小值 */
     frame_size = (h2lcf->chunk_size < h2c->frame_size)
                  ? h2lcf->chunk_size : h2c->frame_size;
 
@@ -1511,7 +1552,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
 
         ln = &out;
         rest = frame_size;
-
+        /* 把chain链中的buf组包到新的cl chain(即out链)链中,但是数据总大小不能超过rest限制 */
         while ((off_t) rest >= size) {
 
             if (offset) {
@@ -1539,8 +1580,8 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
             in = in->next;
 
             if (in == NULL) {
-                frame_size -= rest;
-                rest = 0;
+                frame_size -= rest; //in链中的数据已经全部移到out链，这时候的frame_size就是out中的数据大小
+                rest = 0; //清0，说明所有的in链中的数据都可以全部发送出去
                 break;
             }
 
@@ -1581,7 +1622,7 @@ ngx_http_v2_send_chain(ngx_connection_t *fc, ngx_chain_t *in, off_t limit) {
             }
 
             ngx_http_v2_queue_frame(h2c, frame);
-
+            /* 发送了这么多数据，则窗口减少 */
             h2c->send_window -= frame_size;
 
             stream->send_window -= frame_size;
@@ -1659,7 +1700,7 @@ ngx_http_v2_filter_get_shadow(ngx_http_v2_stream_t *stream, ngx_buf_t *buf,
     return cl;
 }
 
-
+//获取data帧frame结构
 static ngx_http_v2_out_frame_t *
 ngx_http_v2_filter_get_data_frame(ngx_http_v2_stream_t *stream,
                                   size_t len, ngx_chain_t *first, ngx_chain_t *last) {
@@ -1668,7 +1709,7 @@ ngx_http_v2_filter_get_data_frame(ngx_http_v2_stream_t *stream,
     ngx_chain_t *cl;
     ngx_http_v2_out_frame_t *frame;
     ngx_http_v2_connection_t *h2c;
-
+    //帧结构stream->free_frames会进行重复利用
     frame = stream->free_frames;
     h2c = stream->connection;
 
@@ -1746,7 +1787,7 @@ ngx_http_v2_filter_get_data_frame(ngx_http_v2_stream_t *stream,
     return frame;
 }
 
-
+/* 查看发送窗口是不是大于0，大于0则发送 */
 static ngx_inline ngx_int_t
 ngx_http_v2_flow_control(ngx_http_v2_connection_t *h2c,
                          ngx_http_v2_stream_t *stream) {
@@ -1795,7 +1836,14 @@ ngx_http_v2_waiting_queue(ngx_http_v2_connection_t *h2c,
     ngx_queue_insert_after(q, &stream->queue);
 }
 
-
+/*
+客户端一次uri请求发送过来header帧后，nginx应答给客户端的header帧和数据帧的stream id就是客户端请求header帧的id信息
+HEADER帧发送流程:ngx_http_v2_filter_send->ngx_http_v2_send_output_queue
+DATA帧发送流程:ngx_http_v2_send_chain->ngx_http_v2_send_output_queue
+一次发送不完(例如协议栈写满返回AGAIN)则下次通过ngx_http_v2_write_handler->ngx_http_v2_send_output_queue再次发送
+例如通过同一个connect来下载两个文件，则2个文件的相关信息会被组成一个一个交替的帧挂载到该链表上，通过该函数进行交替发送
+发送队列last_out中的数据
+*/
 static ngx_inline ngx_int_t
 ngx_http_v2_filter_send(ngx_connection_t *fc, ngx_http_v2_stream_t *stream) {
     if (stream->queued == 0) {
@@ -1824,7 +1872,7 @@ ngx_http_v2_filter_send(ngx_connection_t *fc, ngx_http_v2_stream_t *stream) {
     return NGX_OK;
 }
 
-
+//每一个h2c->last_out链表中的frame发送完成都会调用对应的handler,这里是header帧发送完成的handler
 static ngx_int_t
 ngx_http_v2_headers_frame_handler(ngx_http_v2_connection_t *h2c,
                                   ngx_http_v2_out_frame_t *frame) {
@@ -1835,7 +1883,7 @@ ngx_http_v2_headers_frame_handler(ngx_http_v2_connection_t *h2c,
     cl = frame->first;
 
     for (;;) {
-        if (cl->buf->pos != cl->buf->last) {
+        if (cl->buf->pos != cl->buf->last) {  /* 说明还没有发送完成 */
             frame->first = cl;
 
             ngx_log_debug2(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
@@ -1934,7 +1982,7 @@ ngx_http_v2_push_frame_handler(ngx_http_v2_connection_t *h2c,
     return NGX_OK;
 }
 
-
+//每一个h2c->last_out链表中的frame发送完成都会调用对应的handler,这里是data帧发送完成的handler
 static ngx_int_t
 ngx_http_v2_data_frame_handler(ngx_http_v2_connection_t *h2c,
                                ngx_http_v2_out_frame_t *frame) {
@@ -1947,7 +1995,7 @@ ngx_http_v2_data_frame_handler(ngx_http_v2_connection_t *h2c,
 
     if (cl->buf->tag == (ngx_buf_tag_t) &ngx_http_v2_module) {
 
-        if (cl->buf->pos != cl->buf->last) {
+        if (cl->buf->pos != cl->buf->last) { /* 说明该frame只有部分数据发送了 */
             ngx_log_debug2(NGX_LOG_DEBUG_HTTP, h2c->connection->log, 0,
                            "http2:%ui DATA frame %p was sent partially",
                            stream->node->id, frame);
