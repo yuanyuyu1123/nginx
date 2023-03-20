@@ -1,6 +1,6 @@
 
 CC =	cc
-CFLAGS =  -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -Werror -g 
+CFLAGS =  -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -Werror -Wno-error=overflow -Wno-error=incompatible-pointer-types -g 
 CPP =	cc -E
 LINK =	$(CC)
 
