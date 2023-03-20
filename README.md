@@ -4,9 +4,9 @@
 
 环境搭建：
 
-1.进入nginx/auto目录，分别执行
+1.进入nginx目录，分别执行
 
-./configure
+./auto/configure
 
 make && make install
 
