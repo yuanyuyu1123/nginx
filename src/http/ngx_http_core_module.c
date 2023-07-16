@@ -3636,7 +3636,7 @@ ngx_http_subrequest(ngx_http_request_t *r,
         而不是第三次父请求，parent指向第三层父请求 */
     sr->main = r->main;
     sr->parent = r;
-    sr->post_subrequest = ps; /* 保存回调handler及数据，在子请求执行完，将会调用 *
+    sr->post_subrequest = ps; /* 保存回调handler及数据，在子请求执行完，将会调用 */
  /* 读事件handler赋值为不做任何事的函数，因为子请求不用再读数据或者检查连接状态；
        写事件handler为ngx_http_handler，它会重走phase */
     sr->read_event_handler = ngx_http_request_empty_handler;

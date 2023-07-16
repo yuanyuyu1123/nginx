@@ -1,7 +1,7 @@
 #define NGX_CONFIGURE ""
 
 #ifndef NGX_COMPILER
-#define NGX_COMPILER  "gcc 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04) "
+#define NGX_COMPILER  "gcc 13.1.1 20230429 (GCC) "
 #endif
 
 
@@ -268,8 +268,8 @@
 #endif
 
 
-#ifndef NGX_SYS_NERR
-#define NGX_SYS_NERR  135
+#ifndef NGX_HAVE_STRERRORDESC_NP
+#define NGX_HAVE_STRERRORDESC_NP  1
 #endif
 
 
@@ -393,13 +393,13 @@
 #endif
 
 
-#ifndef NGX_PCRE
-#define NGX_PCRE  1
+#ifndef NGX_PCRE2
+#define NGX_PCRE2  1
 #endif
 
 
-#ifndef NGX_HAVE_PCRE_JIT
-#define NGX_HAVE_PCRE_JIT  1
+#ifndef NGX_PCRE
+#define NGX_PCRE  1
 #endif
 
 
@@ -489,6 +489,6 @@
 
 
 #ifndef NGX_GROUP
-#define NGX_GROUP  "nogroup"
+#define NGX_GROUP  "nobody"
 #endif
 

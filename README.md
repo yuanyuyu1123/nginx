@@ -8,6 +8,8 @@
 
 ./auto/configure
 
+找到当前目录下的 objs文件夹 下的 Makefile文件，将"-Werror"去掉
+
 make && make install
 
 2.在ubuntu上用clion打开该项目

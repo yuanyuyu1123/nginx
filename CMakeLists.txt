@@ -131,4 +131,4 @@ set(SOURCE_FILES
 	src/http/modules/ngx_http_upstream_keepalive_module.c 
 	src/http/modules/ngx_http_upstream_zone_module.c)
 add_executable(nginx ${SOURCE_FILES})
-target_link_libraries(nginx dl pthread crypt pcre z)
+target_link_libraries(nginx crypt pcre2-8 z)

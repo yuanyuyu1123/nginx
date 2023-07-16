@@ -1,6 +1,6 @@
 
 CC =	cc
-CFLAGS =  -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -Werror -Wno-error=overflow -Wno-error=incompatible-pointer-types -g 
+CFLAGS =  -pipe  -O -W -Wall -Wpointer-arith -Wno-unused-parameter -g 
 CPP =	cc -E
 LINK =	$(CC)
 
@@ -346,7 +346,7 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/src/http/modules/ngx_http_upstream_keepalive_module.o \
 	objs/src/http/modules/ngx_http_upstream_zone_module.o \
 	objs/ngx_modules.o \
-	-ldl -lpthread -lcrypt -lpcre -lz \
+	-lcrypt -lpcre2-8 -lz \
 	-Wl,-E
 	
 
@@ -1253,7 +1253,7 @@ install:	build
 		|| mkdir -p '$(DESTDIR)/usr/local/nginx/logs'
 
 	test -d '$(DESTDIR)/usr/local/nginx/html' \
-		|| cp -R docs/html '$(DESTDIR)/usr/local/nginx'
+		|| cp -R html '$(DESTDIR)/usr/local/nginx'
 
 	test -d '$(DESTDIR)/usr/local/nginx/logs' \
 		|| mkdir -p '$(DESTDIR)/usr/local/nginx/logs'
