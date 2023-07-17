@@ -19,5 +19,3 @@ make
 -c  /usr/local/cdir/nginx/conf/nginx.conf
 
 4.运行
-
-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
