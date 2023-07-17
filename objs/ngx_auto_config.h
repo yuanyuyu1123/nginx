@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE ""
+#define NGX_CONFIGURE " --add-module=src/ext/http_mytest_module"
 
 #ifndef NGX_COMPILER
 #define NGX_COMPILER  "gcc 13.1.1 20230429 (GCC) "

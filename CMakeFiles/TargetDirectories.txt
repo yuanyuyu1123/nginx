@@ -1,0 +1,3 @@
+/usr/local/cdir/nginx/CMakeFiles/nginx.dir
+/usr/local/cdir/nginx/CMakeFiles/edit_cache.dir
+/usr/local/cdir/nginx/CMakeFiles/rebuild_cache.dir

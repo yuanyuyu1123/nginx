@@ -4,11 +4,12 @@ NGX_CMAKE_FILE=CMakeLists.txt
 NGX_CMAKE_TMP=$NGX_OBJS/tmp
 
 #output includes
-cmake_ngx_incs=`echo $CORE_INCS $NGX_OBJS $HTTP_INCS $MAIL_INCS\
+cmake_ngx_incs=`echo $CORE_INCS $NGX_OBJS $HTTP_INCS $MAIL_INCS \
              | sed -e "s/  *\([^ ][^ ]*\)/$ngx_regex_cont\1/g" \
                    -e "s/\//$ngx_regex_dirsep/g"`
 cat << END                                  > $NGX_CMAKE_TMP
 cmake_minimum_required(VERSION 3.6)
+project(nginx)
 include_directories(
     .
     $cmake_ngx_incs)
@@ -22,7 +23,6 @@ cmake_ngx_src=`echo $cmake_ngx_src | sed -e "s/  *\([^ ][^ ]*\)/$ngx_regex_cont\
 
 cat << END                                    >> $NGX_CMAKE_TMP
 set(SOURCE_FILES
-    #ngx_modules.c
     $NGX_OBJS/ngx_modules.c
     $cmake_ngx_src)
 END

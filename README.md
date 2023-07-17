@@ -6,17 +6,17 @@
 
 1.进入nginx目录，分别执行
 
-./auto/configure
+./auto/configure --add-module=src/ext/http_mytest_module
 
-找到当前目录下的 objs文件夹 下的 Makefile文件，将"-Werror"去掉
+cmake .
 
-make && make install
+make
 
-2.在ubuntu上用clion打开该项目
+2.在linux上用clion打开该项目
 
 3.编辑运行环境设置，将程序参数设置为
 
--c  /usr/local/nginx/conf/nginx.conf
+-c  /usr/local/cdir/nginx/conf/nginx.conf
 
 4.运行
 

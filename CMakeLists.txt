@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
+project(nginx)
 include_directories(
     .
     src/core 
@@ -9,7 +10,6 @@ include_directories(
 	src/http 
 	src/http/modules)
 set(SOURCE_FILES
-    #ngx_modules.c
     objs/ngx_modules.c
     src/core/nginx.c 
 	src/core/ngx_log.c 
@@ -129,6 +129,7 @@ set(SOURCE_FILES
 	src/http/modules/ngx_http_upstream_least_conn_module.c 
 	src/http/modules/ngx_http_upstream_random_module.c 
 	src/http/modules/ngx_http_upstream_keepalive_module.c 
-	src/http/modules/ngx_http_upstream_zone_module.c)
+	src/http/modules/ngx_http_upstream_zone_module.c 
+	src/ext/http_mytest_module/ngx_http_mytest_module.c)
 add_executable(nginx ${SOURCE_FILES})
 target_link_libraries(nginx crypt pcre2-8 z)
