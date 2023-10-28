@@ -205,6 +205,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/nginx.dir/src/os/unix/ngx_errno.c.o.d"
   "CMakeFiles/nginx.dir/src/os/unix/ngx_files.c.o"
   "CMakeFiles/nginx.dir/src/os/unix/ngx_files.c.o.d"
+  "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_aio_read.c.o"
+  "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_aio_read.c.o.d"
   "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_init.c.o"
   "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_init.c.o.d"
   "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_sendfile_chain.c.o"

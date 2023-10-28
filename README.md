@@ -6,7 +6,12 @@
 
 1.进入nginx目录，分别执行
 
-./auto/configure --add-module=src/ext/http_mytest_module
+./auto/configure --add-module=src/ext/http_mytest_module 或
+
+./auto/configure --prefix=/usr/local/cdir/nginx  \
+            --conf-path=/usr/local/cdir/nginx/conf/nginx.conf \
+            --with-file-aio --with-pcre --with-debug \
+            --add-module=src/ext/http_mytest_module
 
 cmake .
 

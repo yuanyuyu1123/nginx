@@ -1,7 +1,12 @@
-#define NGX_CONFIGURE " --add-module=src/ext/http_mytest_module"
+#define NGX_CONFIGURE " --prefix=/usr/local/cdir/nginx --conf-path=/usr/local/cdir/nginx/conf/nginx.conf --with-file-aio --with-pcre --with-debug --add-module=src/ext/http_mytest_module"
+
+#ifndef NGX_DEBUG
+#define NGX_DEBUG  1
+#endif
+
 
 #ifndef NGX_COMPILER
-#define NGX_COMPILER  "gcc 13.1.1 20230429 (GCC) "
+#define NGX_COMPILER  "gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) "
 #endif
 
 
@@ -190,6 +195,21 @@
 
 #ifndef NGX_HAVE_ACCEPT4
 #define NGX_HAVE_ACCEPT4  1
+#endif
+
+
+#ifndef NGX_HAVE_FILE_AIO
+#define NGX_HAVE_FILE_AIO  1
+#endif
+
+
+#ifndef NGX_HAVE_EVENTFD
+#define NGX_HAVE_EVENTFD  1
+#endif
+
+
+#ifndef NGX_HAVE_SYS_EVENTFD_H
+#define NGX_HAVE_SYS_EVENTFD_H  1
 #endif
 
 
@@ -409,12 +429,12 @@
 
 
 #ifndef NGX_PREFIX
-#define NGX_PREFIX  "/usr/local/nginx/"
+#define NGX_PREFIX  "/usr/local/cdir/nginx/"
 #endif
 
 
 #ifndef NGX_CONF_PREFIX
-#define NGX_CONF_PREFIX  "conf/"
+#define NGX_CONF_PREFIX  "/usr/local/cdir/nginx/conf/"
 #endif
 
 
@@ -424,7 +444,7 @@
 
 
 #ifndef NGX_CONF_PATH
-#define NGX_CONF_PATH  "conf/nginx.conf"
+#define NGX_CONF_PATH  "/usr/local/cdir/nginx/conf/nginx.conf"
 #endif
 
 
@@ -489,6 +509,6 @@
 
 
 #ifndef NGX_GROUP
-#define NGX_GROUP  "nobody"
+#define NGX_GROUP  "nogroup"
 #endif
 

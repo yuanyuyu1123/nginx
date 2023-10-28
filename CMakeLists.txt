@@ -78,6 +78,7 @@ set(SOURCE_FILES
 	src/os/unix/ngx_linux_init.c 
 	src/event/modules/ngx_epoll_module.c 
 	src/os/unix/ngx_linux_sendfile_chain.c 
+	src/os/unix/ngx_linux_aio_read.c 
 	src/core/ngx_regex.c 
 	src/http/ngx_http.c 
 	src/http/ngx_http_core_module.c 

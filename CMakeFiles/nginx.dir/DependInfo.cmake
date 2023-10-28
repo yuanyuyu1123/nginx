@@ -111,6 +111,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/usr/local/cdir/nginx/src/os/unix/ngx_dlopen.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_dlopen.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_dlopen.c.o.d"
   "/usr/local/cdir/nginx/src/os/unix/ngx_errno.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_errno.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_errno.c.o.d"
   "/usr/local/cdir/nginx/src/os/unix/ngx_files.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_files.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_files.c.o.d"
+  "/usr/local/cdir/nginx/src/os/unix/ngx_linux_aio_read.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_aio_read.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_aio_read.c.o.d"
   "/usr/local/cdir/nginx/src/os/unix/ngx_linux_init.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_init.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_init.c.o.d"
   "/usr/local/cdir/nginx/src/os/unix/ngx_linux_sendfile_chain.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_sendfile_chain.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_linux_sendfile_chain.c.o.d"
   "/usr/local/cdir/nginx/src/os/unix/ngx_posix_init.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_posix_init.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_posix_init.c.o.d"
@@ -131,8 +132,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/usr/local/cdir/nginx/src/os/unix/ngx_writev_chain.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_writev_chain.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_writev_chain.c.o.d"
   )
 
-# Targets to which this target links which contain Fortran sources.
-set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
+# Targets to which this target links.
+set(CMAKE_TARGET_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.

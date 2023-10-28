@@ -18,7 +18,7 @@ Nginx在调用例子中的ngx_http_mytest_handler方法时是阻塞了整个Ngin
 */
 static ngx_int_t ngx_http_mytest_handler(ngx_http_request_t *r)
 {
-    printf("yang test:xxxxxxxxx <%s, %u>\n",  __FUNCTION__, __LINE__);
+    ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log,0,"yang test:xxxxxxxxx <%s, %u>\n",  __FUNCTION__, __LINE__);
     // Only handle GET/HEAD method  ////必须是GET或者HEAD方法，否则返回405 Not Allowed
     if (!(r->method & (NGX_HTTP_GET | NGX_HTTP_HEAD))) {
         return NGX_HTTP_NOT_ALLOWED;

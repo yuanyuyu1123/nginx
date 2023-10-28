@@ -174,6 +174,7 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/src/os/unix/ngx_linux_init.o \
 	objs/src/event/modules/ngx_epoll_module.o \
 	objs/src/os/unix/ngx_linux_sendfile_chain.o \
+	objs/src/os/unix/ngx_linux_aio_read.o \
 	objs/src/core/ngx_regex.o \
 	objs/src/http/ngx_http.o \
 	objs/src/http/ngx_http_core_module.o \
@@ -297,6 +298,7 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/src/os/unix/ngx_linux_init.o \
 	objs/src/event/modules/ngx_epoll_module.o \
 	objs/src/os/unix/ngx_linux_sendfile_chain.o \
+	objs/src/os/unix/ngx_linux_aio_read.o \
 	objs/src/core/ngx_regex.o \
 	objs/src/http/ngx_http.o \
 	objs/src/http/ngx_http_core_module.o \
@@ -834,6 +836,13 @@ objs/src/os/unix/ngx_linux_sendfile_chain.o:	$(CORE_DEPS) \
 		src/os/unix/ngx_linux_sendfile_chain.c
 
 
+objs/src/os/unix/ngx_linux_aio_read.o:	$(CORE_DEPS) \
+	src/os/unix/ngx_linux_aio_read.c
+	$(CC) -c $(CFLAGS) $(CORE_INCS) \
+		-o objs/src/os/unix/ngx_linux_aio_read.o \
+		src/os/unix/ngx_linux_aio_read.c
+
+
 objs/src/core/ngx_regex.o:	$(CORE_DEPS) \
 	src/core/ngx_regex.c
 	$(CC) -c $(CFLAGS) $(CORE_INCS) \
@@ -1208,64 +1217,64 @@ objs/addon/http_mytest_module/ngx_http_mytest_module.o:	$(ADDON_DEPS) \
 manpage:	objs/nginx.8
 
 objs/nginx.8:	docs/man/nginx.8 objs/ngx_auto_config.h
-	sed -e "s|%%PREFIX%%|/usr/local/nginx|" \
-		-e "s|%%PID_PATH%%|/usr/local/nginx/logs/nginx.pid|" \
-		-e "s|%%CONF_PATH%%|/usr/local/nginx/conf/nginx.conf|" \
-		-e "s|%%ERROR_LOG_PATH%%|/usr/local/nginx/logs/error.log|" \
+	sed -e "s|%%PREFIX%%|/usr/local/cdir/nginx|" \
+		-e "s|%%PID_PATH%%|/usr/local/cdir/nginx/logs/nginx.pid|" \
+		-e "s|%%CONF_PATH%%|/usr/local/cdir/nginx/conf/nginx.conf|" \
+		-e "s|%%ERROR_LOG_PATH%%|/usr/local/cdir/nginx/logs/error.log|" \
 		< docs/man/nginx.8 > $@
 
 install:	build 
-	test -d '$(DESTDIR)/usr/local/nginx' || mkdir -p '$(DESTDIR)/usr/local/nginx'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx' || mkdir -p '$(DESTDIR)/usr/local/cdir/nginx'
 
-	test -d '$(DESTDIR)/usr/local/nginx/sbin' \
-		|| mkdir -p '$(DESTDIR)/usr/local/nginx/sbin'
-	test ! -f '$(DESTDIR)/usr/local/nginx/sbin/nginx' \
-		|| mv '$(DESTDIR)/usr/local/nginx/sbin/nginx' \
-			'$(DESTDIR)/usr/local/nginx/sbin/nginx.old'
-	cp objs/nginx '$(DESTDIR)/usr/local/nginx/sbin/nginx'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/sbin' \
+		|| mkdir -p '$(DESTDIR)/usr/local/cdir/nginx/sbin'
+	test ! -f '$(DESTDIR)/usr/local/cdir/nginx/sbin/nginx' \
+		|| mv '$(DESTDIR)/usr/local/cdir/nginx/sbin/nginx' \
+			'$(DESTDIR)/usr/local/cdir/nginx/sbin/nginx.old'
+	cp objs/nginx '$(DESTDIR)/usr/local/cdir/nginx/sbin/nginx'
 
-	test -d '$(DESTDIR)/usr/local/nginx/conf' \
-		|| mkdir -p '$(DESTDIR)/usr/local/nginx/conf'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/conf' \
+		|| mkdir -p '$(DESTDIR)/usr/local/cdir/nginx/conf'
 
-	cp conf/koi-win '$(DESTDIR)/usr/local/nginx/conf'
-	cp conf/koi-utf '$(DESTDIR)/usr/local/nginx/conf'
-	cp conf/win-utf '$(DESTDIR)/usr/local/nginx/conf'
+	cp conf/koi-win '$(DESTDIR)/usr/local/cdir/nginx/conf'
+	cp conf/koi-utf '$(DESTDIR)/usr/local/cdir/nginx/conf'
+	cp conf/win-utf '$(DESTDIR)/usr/local/cdir/nginx/conf'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/mime.types' \
-		|| cp conf/mime.types '$(DESTDIR)/usr/local/nginx/conf'
-	cp conf/mime.types '$(DESTDIR)/usr/local/nginx/conf/mime.types.default'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/mime.types' \
+		|| cp conf/mime.types '$(DESTDIR)/usr/local/cdir/nginx/conf'
+	cp conf/mime.types '$(DESTDIR)/usr/local/cdir/nginx/conf/mime.types.default'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/fastcgi_params' \
-		|| cp conf/fastcgi_params '$(DESTDIR)/usr/local/nginx/conf'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/fastcgi_params' \
+		|| cp conf/fastcgi_params '$(DESTDIR)/usr/local/cdir/nginx/conf'
 	cp conf/fastcgi_params \
-		'$(DESTDIR)/usr/local/nginx/conf/fastcgi_params.default'
+		'$(DESTDIR)/usr/local/cdir/nginx/conf/fastcgi_params.default'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/fastcgi.conf' \
-		|| cp conf/fastcgi.conf '$(DESTDIR)/usr/local/nginx/conf'
-	cp conf/fastcgi.conf '$(DESTDIR)/usr/local/nginx/conf/fastcgi.conf.default'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/fastcgi.conf' \
+		|| cp conf/fastcgi.conf '$(DESTDIR)/usr/local/cdir/nginx/conf'
+	cp conf/fastcgi.conf '$(DESTDIR)/usr/local/cdir/nginx/conf/fastcgi.conf.default'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/uwsgi_params' \
-		|| cp conf/uwsgi_params '$(DESTDIR)/usr/local/nginx/conf'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/uwsgi_params' \
+		|| cp conf/uwsgi_params '$(DESTDIR)/usr/local/cdir/nginx/conf'
 	cp conf/uwsgi_params \
-		'$(DESTDIR)/usr/local/nginx/conf/uwsgi_params.default'
+		'$(DESTDIR)/usr/local/cdir/nginx/conf/uwsgi_params.default'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/scgi_params' \
-		|| cp conf/scgi_params '$(DESTDIR)/usr/local/nginx/conf'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/scgi_params' \
+		|| cp conf/scgi_params '$(DESTDIR)/usr/local/cdir/nginx/conf'
 	cp conf/scgi_params \
-		'$(DESTDIR)/usr/local/nginx/conf/scgi_params.default'
+		'$(DESTDIR)/usr/local/cdir/nginx/conf/scgi_params.default'
 
-	test -f '$(DESTDIR)/usr/local/nginx/conf/nginx.conf' \
-		|| cp conf/nginx.conf '$(DESTDIR)/usr/local/nginx/conf/nginx.conf'
-	cp conf/nginx.conf '$(DESTDIR)/usr/local/nginx/conf/nginx.conf.default'
+	test -f '$(DESTDIR)/usr/local/cdir/nginx/conf/nginx.conf' \
+		|| cp conf/nginx.conf '$(DESTDIR)/usr/local/cdir/nginx/conf/nginx.conf'
+	cp conf/nginx.conf '$(DESTDIR)/usr/local/cdir/nginx/conf/nginx.conf.default'
 
-	test -d '$(DESTDIR)/usr/local/nginx/logs' \
-		|| mkdir -p '$(DESTDIR)/usr/local/nginx/logs'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/logs' \
+		|| mkdir -p '$(DESTDIR)/usr/local/cdir/nginx/logs'
 
-	test -d '$(DESTDIR)/usr/local/nginx/logs' \
-		|| mkdir -p '$(DESTDIR)/usr/local/nginx/logs'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/logs' \
+		|| mkdir -p '$(DESTDIR)/usr/local/cdir/nginx/logs'
 
-	test -d '$(DESTDIR)/usr/local/nginx/html' \
-		|| cp -R html '$(DESTDIR)/usr/local/nginx'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/html' \
+		|| cp -R html '$(DESTDIR)/usr/local/cdir/nginx'
 
-	test -d '$(DESTDIR)/usr/local/nginx/logs' \
-		|| mkdir -p '$(DESTDIR)/usr/local/nginx/logs'
+	test -d '$(DESTDIR)/usr/local/cdir/nginx/logs' \
+		|| mkdir -p '$(DESTDIR)/usr/local/cdir/nginx/logs'

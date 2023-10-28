@@ -1,0 +1,4 @@
+C:\WINDOWS\system32\wsl.exe --distribution Ubuntu-22.04 --exec /bin/zsh -c "export CMAKE_COLOR_DIAGNOSTICS=ON && export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd /usr/local/cdir/nginx && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /usr/local/cdir/nginx -B /usr/local/cdir/nginx"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /usr/local/cdir/nginx
