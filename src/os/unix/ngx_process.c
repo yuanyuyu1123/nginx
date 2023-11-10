@@ -37,10 +37,8 @@ ngx_int_t ngx_process_slot;
 ngx_socket_t ngx_channel; //存储所有子进程的数组  ngx_spawn_process中赋值  ngx_channel = ngx_processes[s].channel[1]
 //ngx_processes数组中有意义的ngx_process_t元素中最大的下标
 ngx_int_t ngx_last_process;
-/*
-在解释master工作流程前，还需要对master进程管理子进程的数据结构有个初步了解。下面定义了pgx_processes全局数组，虽然子进程中也会
-有ngx_processes数组，但这个数组仅仅是给master进程使用的
-*/
+/*在解释master工作流程前，还需要对master进程管理子进程的数据结构有个初步了解。下面定义了pgx_processes全局数组，虽然子进程中也会
+有ngx_processes数组，但这个数组仅仅是给master进程使用的*/
 ngx_process_t ngx_processes[NGX_MAX_PROCESSES];  //存储所有子进程的数组  ngx_spawn_process中赋值
 
 //信号发送见ngx_os_signal_process 信号处理在ngx_signal_handler
@@ -92,11 +90,10 @@ ngx_signal_t signals[] = {
         {0, NULL,                     "", NULL}
 };
 
-/*
-master进程怎样启动一个子进程呢？其实很简单，fork系统调用即可以完成。ngx_spawn_process方法封装了fork系统调用，
+/*master进程怎样启动一个子进程呢？其实很简单，fork系统调用即可以完成。ngx_spawn_process方法封装了fork系统调用，
 并且会从ngx_processes数组中选择一个还未使用的ngx_process_t元素存储这个子进程的相关信息。如果所有1024个数纽元素中已经没有空
-余的元素，也就是说，子进程个数超过了最大值1024，那么将会返回NGX_INVALID_PID。因此，ngx_processes数组中元素的初始化将在ngx_spawn_process方法中进行。
-*/
+余的元素，也就是说，子进程个数超过了最大值1024，那么将会返回NGX_INVALID_PID。
+ 因此，ngx_processes数组中元素的初始化将在ngx_spawn_process方法中进行。*/
 //第一个参数是全局的配置，第二个参数是子进程需要执行的函数，第三个参数是proc的参数。第四个类型。  name是子进程的名称
 ngx_pid_t
 ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
@@ -168,15 +165,11 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             ngx_close_channel(ngx_processes[s].channel, cycle->log);
             return NGX_INVALID_PID;
         }
-        /*
-            设置异步模式： 这里可以看下《网络编程卷一》的ioctl函数和fcntl函数 or 网上查询
-          */
+        /*设置异步模式： 这里可以看下《网络编程卷一》的ioctl函数和fcntl函数 or 网上查询*/
         on = 1; // 标记位，ioctl用于清除（0）或设置（非0）操作
-        /*
-         设置channel[0]的信号驱动异步I/O标志
+        /*设置channel[0]的信号驱动异步I/O标志
          FIOASYNC：该状态标志决定是否收取针对socket的异步I/O信号（SIGIO）
-         其与O_ASYNC文件状态标志等效，可通过fcntl的F_SETFL命令设置or清除
-        */
+         其与O_ASYNC文件状态标志等效，可通过fcntl的F_SETFL命令设置or清除*/
         if (ioctl(ngx_processes[s].channel[0], FIOASYNC, &on) == -1) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                           "ioctl(FIOASYNC) failed while spawning \"%s\"", name);
@@ -214,10 +207,8 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             ngx_close_channel(ngx_processes[s].channel, cycle->log);
             return NGX_INVALID_PID;
         }
-        /*
-         设置即将创建子进程的channel ，这个在后面会用到，在后面创建的子进程的cycle循环执行函数中会用到，例如ngx_worker_process_init -> ngx_add_channel_event
-         从而把子进程的channel[1]读端添加到epool中，用于读取父进程发送的ngx_channel_t信息
-        */
+        /*设置即将创建子进程的channel ，这个在后面会用到，在后面创建的子进程的cycle循环执行函数中会用到，例如ngx_worker_process_init -> ngx_add_channel_event
+         从而把子进程的channel[1]读端添加到epool中，用于读取父进程发送的ngx_channel_t信息*/
         ngx_channel = ngx_processes[s].channel[1];
 
     } else {

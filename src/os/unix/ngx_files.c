@@ -22,48 +22,8 @@ static ssize_t ngx_writev_file(ngx_file_t *file, ngx_iovec_t *vec,
 
 
 #if (NGX_HAVE_FILE_AIO)
-/*
-文件异步IO
-    事件驱动模块都是在处理网络事件，而没有涉及磁盘上文件的操作。本
-节将讨论Linux内核2.6.2x之后版本中支持的文件异步I/O，以及ngx_epoll_module模块是
-如何与文件异步I/O配合提供服务的。这里提到的文件异步I/O并不是glibc库提供的文件异
-步I/O。glibc库提供的异步I/O是基于多线程实现的，它不是真正意义上的异步I/O。而本节
-说明的异步I/O是由Linux内核实现，只有在内核中成功地完成了磁盘操作，内核才会通知
-进程，进而使得磁盘文件的处理与网络事件的处理同样高效。
-    使用这种方式的前提是Linux内核版本中必须支持文件异步I/O。当然，它带来的好处
-也非常明显，Nginx把读取文件的操作异步地提交给内核后，内核会通知I/O设备独立地执
-行操作，这样，Nginx进程可以继续充分地占用CPU。而且，当大量读事件堆积到I/O设备
-的队列中时，将会发挥出内核中“电梯算法”的优势，从而降低随机读取磁盘扇区的成本。
-    注意Linux内核级别的文件异步I/O是不支持缓存操作的，也就是说，即使需要操作
-的文件块在Linux文件缓存中存在，也不会通过读取、更改缓存中的文件块来代替实际对磁
-盘的操作，虽然从阻塞worker进程的角度上来说有了很大好转，但是对单个请求来说，还是
-有可能降低实际处理的速度，因为原先可以从内存中快速获取的文件块在使用了异步I/O后
-则一定会从磁盘上读取。异步文件I/O是把“双刃剑”，关键要看使用场景，如果大部分用户
-请求对文件的操作都会落到文件缓存中，那么不要使用异步I/O，反之则可以试着使用文件
-异步I/O，看一下是否会为服务带来并发能力上的提升。
-    目前，Nginx仅支持在读取文件时使用异步I/O，因为正常写入文件时往往是写入内存
-中就立刻返回，效率很高，而使用异步I/O写入时速度会明显下降。
-文件异步AIO优点:
-        异步I/O是由Linux内核实现，只有在内核中成功地完成了磁盘操作，内核才会通知
-    进程，进而使得磁盘文件的处理与网络事件的处理同样高效。这样就不会阻塞worker进程。
-缺点:
-        不支持缓存操作的，也就是说，即使需要操作的文件块在Linux文件缓存中存在，也不会通过读取、
-    更改缓存中的文件块来代替实际对磁盘的操作。有可能降低实际处理的速度，因为原先可以从内存中快速
-    获取的文件块在使用了异步I/O后则一定会从磁盘上读取
-究竟是选择异步I/O还是普通I/O操作呢?
-        异步文件I/O是把“双刃剑”，关键要看使用场景，如果大部分用户
-    请求对文件的操作都会落到文件缓存中，那么不要使用异步I/O，反之则可以试着使用文件
-    异步I/O，看一下是否会为服务带来并发能力上的提升。
-        目前，Nginx仅支持在读取文件时使用异步I/O，因为正常写入文件时往往是写入内存
-    中就立刻返回，效率很高，而使用异步I/O写入时速度会明显下降。异步I/O不支持写操作，因为
-    异步I/O无法利用缓存，而写操作通常是落到缓存上，linux会自动将文件中缓存中的数据写到磁盘
 
-    普通文件读写过程:
-    正常的系统调用read/write的流程是怎样的呢？
-    - 读取：内核缓存有需要的文件数据:内核缓冲区->用户缓冲区;没有:硬盘->内核缓冲区->用户缓冲区;
-    - 写回：数据会从用户地址空间拷贝到操作系统内核地址空间的页缓存中去，这是write就会直接返回，操作系统会在恰当的时机写入磁盘，这就是传说中的
-*/
-//direct AIO可以参考http://blog.csdn.net/bengda/article/details/21871413
+//可以参考http://blog.csdn.net/bengda/article/details/21871413
 ngx_uint_t  ngx_file_aio = 1; //如果创建ngx_eventfd失败，置0，表示不支持AIO
 
 #endif
@@ -344,17 +304,14 @@ ngx_open_tempfile(u_char *name, ngx_uint_t persistent, ngx_uint_t access) {
     return fd;
 }
 
-/*
-如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了，则会把缓存中的数据写入临时文件，然后继续读，读到ngx_event_pipe_write_chain_to_temp_file
+/*如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了，则会把缓存中的数据写入临时文件，然后继续读，读到ngx_event_pipe_write_chain_to_temp_file
 后写入临时文件，直到read返回NGX_AGAIN,然后在ngx_event_pipe_write_to_downstream->ngx_output_chain->ngx_output_chain_copy_buf中读取临时文件内容
-发送到后端，当数据继续到来，通过epoll read继续循环该流程
-*/
+发送到后端，当数据继续到来，通过epoll read继续循环该流程*/
 
 /*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
 中创建临时文件，然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件，最后在
 ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
-的cache目录下面
-*/
+的cache目录下面*/
 ssize_t
 ngx_write_chain_to_file(ngx_file_t *file, ngx_chain_t *cl, off_t offset,
                         ngx_pool_t *pool) {
@@ -1368,8 +1325,7 @@ ngx_read_ahead(ngx_fd_t fd, size_t n) {
 普通文件读写过程:
 正常的系统调用read/write的流程是怎样的呢？
 - 读取：内核缓存有需要的文件数据:内核缓冲区->用户缓冲区;没有:硬盘->内核缓冲区->用户缓冲区;
-- 写回：数据会从用户地址空间拷贝到操作系统内核地址空间的页缓存中去，这是write就会直接返回，操作系统会在恰当的时机写入磁盘，这就是传说中的
-*/
+- 写回：数据会从用户地址空间拷贝到操作系统内核地址空间的页缓存中去，这是write就会直接返回，操作系统会在恰当的时机写入磁盘，这就是传说中的direct AIO*/
 
 //direct AIO可以参考http://blog.csdn.net/bengda/article/details/21871413
 ngx_int_t
@@ -1381,8 +1337,7 @@ ngx_directio_on(ngx_fd_t fd) {
     if (flags == -1) {
         return NGX_FILE_ERROR;
     }
-    /*
-   普通缓存I/O优点: 缓存 I/O 使用了操作系统内核缓冲区，在一定程度上分离了应用程序空间和实际的物理设备。缓存 I/O 可以减少读盘的次数，从而提高性能。
+    /*普通缓存I/O优点: 缓存 I/O 使用了操作系统内核缓冲区，在一定程度上分离了应用程序空间和实际的物理设备。缓存 I/O 可以减少读盘的次数，从而提高性能。
    缺点：在缓存 I/O 机制中，DMA 方式可以将数据直接从磁盘读到页缓存中，或者将数据从页缓存直接写回到磁盘上，而不能直接在应用程序地址空间和磁盘之间
        进行数据传输，这样的话，数据在传输过程中需要在应用程序地址空间和页缓存之间进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的。
    direct I/O优点:直接 I/O 最主要的优点就是通过减少操作系统内核缓冲区和应用程序地址空间的数据拷贝次数，降低了对文件读取和写入时所带来的 CPU
@@ -1398,8 +1353,7 @@ ngx_directio_on(ngx_fd_t fd) {
    普通缓存I/O: 硬盘->内核缓冲区->用户缓冲区 写数据写道缓冲区中就返回，一般由内核定期写道磁盘(或者直接调用API指定要写入磁盘)，
    读操作首先检查缓冲区是否有所需的文件内容，没有就冲磁盘读到内核缓冲区，在从内核缓冲区到用户缓冲区
    O_DIRECT为直接I/O方式，硬盘->用户缓冲区，少了内核缓冲区操作，但是直接磁盘操作很费时,所以直接I/O一般借助AIO和EPOLL实现
-   参考:http://blog.csdn.net/bengda/article/details/21871413  http://www.ibm.com/developerworks/cn/linux/l-cn-directio/index.html
-   */
+   参考:http://blog.csdn.net/bengda/article/details/21871413  http://www.ibm.com/developerworks/cn/linux/l-cn-directio/index.html*/
     return fcntl(fd, F_SETFL, flags | O_DIRECT);
 }
 

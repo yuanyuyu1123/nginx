@@ -39,6 +39,7 @@ ngx_preinit_modules(void) {
 }
 
 
+/*将模块数组拷贝到cycle->modules中*/
 ngx_int_t
 ngx_cycle_modules(ngx_cycle_t *cycle) {
     /*

@@ -29,13 +29,12 @@ typedef struct {
 //cycle->read_events和cycle->write_events这两个数组存放的是ngx_event_s,他们是对应的，见ngx_event_process_init  ngx_event_t事件和ngx_connection_t连接是一一对应的
 //ngx_event_t事件和ngx_connection_t连接是处理TCP连接的基础数据结构, 在Nginx中，每一个事件都由ngx_event_t结构体来表示
 
-/*
-1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event)，通过读写事件触发
+/*1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event)，通过读写事件触发
 2.也可以是普通定时器事件(参考ngx_cache_manager_process_handler->ngx_add_timer(ngx_event_add_timer))，通过ngx_process_events_and_timers中的
 epoll_wait返回，可以是读写事件触发返回，也可能是因为没获取到共享锁，从而等待0.5s返回重新获取锁来跟新事件并执行超时事件来跟新事件并且判断定
 时器链表中的超时事件，超时则执行从而指向event的handler，然后进一步指向对应r或者u的->write_event_handler  read_event_handler
-3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2，只是在handler中不会执行write_event_handler  read_event_handler
-*/
+3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2，
+ 只是在handler中不会执行write_event_handler  read_event_handler*/
 
 /*一个ngx_connection_s对应一个ngx_event_s read和一个ngx_event_s write,其中事件的fd是从ngx_connection_s->fd获取，他们
 在ngx_worker_process_init->ngx_event_process_init中关联起来 */
@@ -52,8 +51,7 @@ struct ngx_event_s {
     //应的读事件中的accept标志位才会是l  ngx_event_process_init中置1
     unsigned         accept:1;
 
-    /*
-    这个标志位用于区分当前事件是否是过期的，它仅仅是给事件驱动模块使用的，而事件消费模块可不用关心。为什么需要这个标志位呢？
+    /*这个标志位用于区分当前事件是否是过期的，它仅仅是给事件驱动模块使用的，而事件消费模块可不用关心。为什么需要这个标志位呢？
     当开始处理一批事件时，处理前面的事件可能会关闭一些连接，而这些连接有可能影响这批事件中还未处理到的后面的事件。这时，
     可通过instance标志位来避免处理后面的已经过期的事件。将详细描述ngx_epoll_module是如何使用instance标志位区分
     过期事件的，这是一个巧妙的设计方法
@@ -69,8 +67,7 @@ struct ngx_event_s {
     理第2个事件，恰好第2个事件是建立新连接事件，调用ngx_get_connection从连接池中取出的连接非常可能就是刚刚释放的第3个事件对应的连接。由于套
     接字50刚刚被释放，Linux内核非常有可能把刚刚释放的套接字50又分配给新建立的连接。因此，在循环中处理第3个事件时，这个事件就是过期的了！它对应
     的事件是关闭的连接，而不是新建立的连接。
-        如何解决这个问题？依靠instance标志位。当调用ngx_get_connection从连接池中获取一个新连接时，instance标志位就会置反
-     */
+        如何解决这个问题？依靠instance标志位。当调用ngx_get_connection从连接池中获取一个新连接时，instance标志位就会置反*/
     /* used to detect the stale events in kqueue and epoll */
     unsigned         instance:1; //ngx_get_connection从连接池中获取一个新连接时，instance标志位就会置反  //见ngx_get_connection
 
@@ -86,23 +83,18 @@ struct ngx_event_s {
     //或者在client端connect的时候把active置1，见ngx_epoll_add_connection。第一次添加epoll_ctl为EPOLL_CTL_ADD,如果再次添加发
     //现active为1,则epoll_ctl为EPOLL_CTL_MOD
 
-    /*
-    标志位，为1时表示禁用事件，仅在kqueue或者rtsig事件驱动模块中有效，而对于epoll事件驱动模块则无意义，这里不再详述
-     */
+    /*标志位，为1时表示禁用事件，仅在kqueue或者rtsig事件驱动模块中有效，而对于epoll事件驱动模块则无意义，这里不再详述*/
     unsigned         disabled:1;
 
     /* the ready event; in aio mode 0 means that no operation can be posted */
-    /*
-    标志位，为1时表示当前事件已经淮备就绪，也就是说，允许这个事件的消费模块处理这个事件。在
+    /*标志位，为1时表示当前事件已经淮备就绪，也就是说，允许这个事件的消费模块处理这个事件。在
     HTTP框架中，经常会检查事件的ready标志位以确定是否可以接收请求或者发送响应
-    ready标志位，如果为1，则表示在与客户端的TCP连接上可以发送数据；如果为0，则表示暂不可发送数据。
-     */ //如果来自对端的数据内核缓冲区没有数据(返回NGX_EAGAIN)，或者连接断开置0，见ngx_unix_recv
+    ready标志位，如果为1，则表示在与客户端的TCP连接上可以发送数据；如果为0，则表示暂不可发送数据。*/
+    //如果来自对端的数据内核缓冲区没有数据(返回NGX_EAGAIN)，或者连接断开置0，见ngx_unix_recv
     //在发送数据的时候，ngx_unix_send中的时候，如果希望发送1000字节，但是实际上send只返回了500字节(说明内核协议栈缓冲区满，需要通过epoll再次促发write的时候才能写)，或者链接异常，则把ready置0
     unsigned         ready:1; //在ngx_epoll_process_events中置1,读事件触发并读取数据后ngx_unix_recv中置0
 
-    /*
-    该标志位仅对kqueue，eventport等模块有意义，而对于Linux上的epoll事件驱动模块则是无意叉的，限于篇幅，不再详细说明
-     */
+    /*该标志位仅对kqueue，eventport等模块有意义，而对于Linux上的epoll事件驱动模块则是无意叉的，限于篇幅，不再详细说明*/
     unsigned         oneshot:1;
 
     /* aio operation is complete */
@@ -119,10 +111,8 @@ struct ngx_event_s {
       每次ngx_unix_recv把内核数据读取完毕后，在重新启动add epoll，等待新的数据到来，同时会启动定时器ngx_add_timer(rev, c->listening->post_accept_timeout);
       如果在post_accept_timeout这么长事件内没有数据到来则超时，开始处理关闭TCP流程*/
 
-    /*
-    读超时是指的读取对端数据的超时时间，写超时指的是当数据包很大的时候，write返回NGX_AGAIN，则会添加write定时器，从而判断是否超时，如果发往
-    对端数据长度小，则一般write直接返回成功，则不会添加write超时定时器，也就不会有write超时，写定时器参考函数ngx_http_upstream_send_request
-     */
+    /*读超时是指的读取对端数据的超时时间，写超时指的是当数据包很大的时候，write返回NGX_AGAIN，则会添加write定时器，从而判断是否超时，如果发往
+    对端数据长度小，则一般write直接返回成功，则不会添加write超时定时器，也就不会有write超时，写定时器参考函数ngx_http_upstream_send_request*/
     unsigned         timedout:1; //定时器超时标记，见ngx_event_expire_timers
     //标志位，为1时表示这个事件存在于定时器中
     unsigned         timer_set:1; //ngx_event_add_timer ngx_add_timer 中置1   ngx_event_expire_timers置0
@@ -130,9 +120,7 @@ struct ngx_event_s {
     //标志位，delayed为1时表示需要延迟处理这个事件，它仅用于限速功能
     unsigned         delayed:1; //限速见ngx_http_write_filter
 
-    /*
-     标志位，为1时表示延迟建立TCP连接，也就是说，经过TCP三次握手后并不建立连接，而是要等到真正收到数据包后才会建立TCP连接
-     */
+    /*标志位，为1时表示延迟建立TCP连接，也就是说，经过TCP三次握手后并不建立连接，而是要等到真正收到数据包后才会建立TCP连接*/
     unsigned         deferred_accept:1; //通过listen的时候添加 deferred 参数来确定
 
     /* the pending eof reported by kqueue, epoll or in aio chain operation */
@@ -179,27 +167,23 @@ struct ngx_event_s {
      */
 
     int available; //ngx_event_accept中  ev->available = ecf->multi_accept;
-    /*
-    每一个事件最核心的部分是handler回调方法，它将由每一个事件消费模块实现，以此决定这个事件究竟如何“消费”
-     */
+    /*每一个事件最核心的部分是handler回调方法，它将由每一个事件消费模块实现，以此决定这个事件究竟如何“消费”*/
 
-    /*
-    1.event可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event)，通过读写事件触发
+    /*1.event可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event)，通过读写事件触发
 
     2.也可以是普通定时器事件(参考ngx_cache_manager_process_handler->ngx_add_timer(ngx_event_add_timer))，通过ngx_process_events_and_timers中的
     epoll_wait返回，可以是读写事件触发返回，也可能是因为没获取到共享锁，从而等待0.5s返回重新获取锁来跟新事件并执行超时事件来跟新事件并且判断定
     时器链表中的超时事件，超时则执行从而指向event的handler，然后进一步指向对应r或者u的->write_event_handler  read_event_handler
 
-    3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2，只是在handler中不会执行write_event_handler  read_event_handler
-    */
+    3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2，
+     只是在handler中不会执行write_event_handler  read_event_handler*/
 
     //这个事件发生时的处理方法，每个事件消费模块都会重新实现它
     //ngx_epoll_process_events中执行accept
-    /*
-     赋值为ngx_http_process_request_line     ngx_event_process_init中初始化为ngx_event_accept  如果是文件异步i/o，赋值为ngx_epoll_eventfd_handler
+    /*赋值为ngx_http_process_request_line     ngx_event_process_init中初始化为ngx_event_accept  如果是文件异步i/o，赋值为ngx_epoll_eventfd_handler
      //当accept客户端连接后ngx_http_init_connection中赋值为ngx_http_wait_request_handler来读取客户端数据
-     在解析完客户端发送来的请求的请求行和头部行后，设置handler为ngx_http_request_handler
-     */ //一般与客户端的数据读写是 ngx_http_request_handler;  与后端服务器读写为ngx_http_upstream_handler(如fastcgi proxy memcache gwgi等)
+     在解析完客户端发送来的请求的请求行和头部行后，设置handler为ngx_http_request_handler*/
+    //一般与客户端的数据读写是 ngx_http_request_handler;  与后端服务器读写为ngx_http_upstream_handler(如fastcgi proxy memcache gwgi等)
 
     /* ngx_event_accept，ngx_http_ssl_handshake ngx_ssl_handshake_handler ngx_http_v2_write_handler ngx_http_v2_read_handler
     ngx_http_wait_request_handler  ngx_http_request_handler,ngx_http_upstream_handler ngx_file_aio_event_handler */
@@ -218,10 +202,8 @@ struct ngx_event_s {
     ngx_rbtree_node_t   timer; //见ngx_event_timer_rbtree
 
     /* the posted queue */
-    /*
-    post事件将会构成一个队列再统一处理，这个队列以next和prev作为链表指针，以此构成一个简易的双向链表，其中next指向后一个事件的地址，
-    prev指向前一个事件的地址
-     */
+    /*post事件将会构成一个队列再统一处理，这个队列以next和prev作为链表指针，以此构成一个简易的双向链表，其中next指向后一个事件的地址，
+    prev指向前一个事件的地址*/
     ngx_queue_t      queue;
 
 #if 0
@@ -275,19 +257,13 @@ struct ngx_event_aio_s { //ngx_file_aio_init中初始化,创建空间和赋值
 
 //ngx_event_module_t中的actions成员是定义事件驱动模块的核心方法，下面重点看一下actions中的这10个抽象方法
 typedef struct {
-    /*
-  添加事件方法，它将负责把1个感兴趣的事件添加到操作系统提供的事件驱动机制（如epoll、
-  kqueue等）中，这样，在事件发生后，将可以在调用下面的process_events时获取这个事件
-  */
+    /*添加事件方法，它将负责把1个感兴趣的事件添加到操作系统提供的事件驱动机制（如epoll、
+  kqueue等）中，这样，在事件发生后，将可以在调用下面的process_events时获取这个事件*/
     ngx_int_t (*add)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
-    /*
-   删除事件方法，它将把1个已经存在于事件驱动机制中的事件移除，这样以后即使这个事件发生，调用
-  process_events方法时也无法再获取这个事件
-   */
+    /*删除事件方法，它将把1个已经存在于事件驱动机制中的事件移除，这样以后即使这个事件发生，调用
+  process_events方法时也无法再获取这个事件*/
     ngx_int_t (*del)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags); //ngx_del_event中执行
-    /*
-     启用1个事件，目前事件框架不会调用这个方法，大部分事件驱动模块对于该方法的实现都是与上面的add方法完全一致的
-     */
+    /*启用1个事件，目前事件框架不会调用这个方法，大部分事件驱动模块对于该方法的实现都是与上面的add方法完全一致的*/
     ngx_int_t (*enable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
     //禁用1个事件，目前事件框架不会调用这个方法，大部分事件驱动模块对于该方法的实现都是与上面的del方法完全一致的
     ngx_int_t (*disable)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);

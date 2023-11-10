@@ -27,7 +27,7 @@ ngx_int_t ngx_shm_ alloc (ngx_shm_t  ~shm)
     ／／开辟一块shm- >size大小且可以读／写的共享内存，内存首地址存放在addr中
     shm->addr=  (uchar *)mmap (NULL,  shm->size,
     PROT_READ l PROT_WRITE,
-    MAP_ANONIMAP_SHARED,  -1,o);
+    MAP_ANONIMAP_SHARED,  -1,0);
 if (shm->addr == MAP_FAILED)
      return NGX ERROR;
 }
@@ -41,7 +41,7 @@ mmap配对的munmap为例来说明。
     void  ngx_shm—free (ngx_shm_t★shm)
     {
     ／／使用ngx_shm_t中的addr和size参数调用munmap释放共享内存即可
-    if  (munmap( (void★)  shm->addr,  shm- >size)  ==~1)  (
+    if  (munmap( (void*)  shm->addr,  shm- >size)  ==~1)  (
     ngx_log_error (NGX—LOG__  ALERT,  shm- >log,    ngx_errno,  ”munmap(%p,  %uz)
 failed",  shm- >addr,   shm- >size)j
     )
@@ -52,16 +52,12 @@ failed",  shm- >addr,   shm- >size)j
 shm—alloc方法和ngx_shm_free方法，它们有3种实现（不映射文件使用mmap分配共享
 内存、以/dev/zero文件使用mmap映射共享内存、用shmget调用来分配共享内存），对于
 Nginx的跨平台特性考虑得很周到。下面以一个统计HTTP框架连接状况的例子来说明共享
-内存的用法。
-*/
+内存的用法。*/
 
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-在开发Nginx模块时如果需要使用它，不妨用Nginx已经封装好的ngx_shm_alloc方法和ngx_shm_free方法，它们有3种实现（不映射文件使用mmap分配共享
-内存、以/dev/zero文件使用mmap映射共享内存、用shmget(system-v标准)调用来分配共享内存）
-*/
+
 //#if这里的三个都define为1，所以首先满足第一个条件，选择第一个if中的
 #if (NGX_HAVE_MAP_ANON)
 /*

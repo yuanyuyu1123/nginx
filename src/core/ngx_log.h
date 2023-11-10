@@ -135,11 +135,9 @@ struct ngx_log_s {
      * the static strings and in the "u_char *" case we have to override
      * their types all the time
      */
-    /*
-   表示当前的动作。实际上，action与data是一样的，只有在实现了handler回调方法后才会使
-   用。例如，HTTP框架就在handler方法中检查action是否为NULL，如果不为NULL，就会在日志后加入“while
-   ”+action，以此表示当前日志是在进行什么操作，帮助定位问题
-   */
+    /* 表示当前的动作。实际上，action与data是一样的，只有在实现了handler回调方法后才会使用。
+     * 例如，HTTP框架就在handler方法中检查action是否为NULL，如果不为NULL，就会在日志后加入“while”+action，
+     * 以此表示当前日志是在进行什么操作，帮助定位问题*/
     char *action;
     //ngx_log_insert插入，在ngx_log_error_core找到对应级别的日志配置进行输出，因为可以配置error_log不同级别的日志存储在不同的日志文件中
     ngx_log_t *next;
@@ -154,67 +152,13 @@ struct ngx_log_s {
 #if (NGX_HAVE_C99_VARIADIC_MACROS)
 
 #define NGX_HAVE_VARIADIC_MACROS  1
-/*
-表4-6 ngx_log_error日志接口level参数的取值范围
-┏━━━━━━━━┳━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    级别名称    ┃  值  ┃    意义                                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                ┃      ┃    最高级别日志，日志的内容不会再写入log参数指定的文件，而是会直接 ┃
-┃NGX_LOG_STDERR  ┃    O ┃                                                                    ┃
-┃                ┃      ┃将日志输出到标准错误设备，如控制台屏幕                              ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                ┃      ┃  大于NGX—LOG ALERT级别，而小于或等于NGX LOG EMERG级别的           ┃
-┃NGX_LOG:EMERG   ┃  1   ┃                                                                    ┃
-┃                ┃      ┃日志都会输出到log参数指定的文件中                                   ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG ALERT   ┃    2 ┃    大干NGX LOG CRIT级别                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG CRIT  ┃    3 ┃    大干NGX LOG ERR级别                                             ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG ERR   ┃    4 ┃    大干NGX—LOG WARN级别                                           ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG WARN  ┃    5 ┃    大于NGX LOG NOTICE级别                                          ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG NOTICE  ┃  6   ┃  大于NGX__ LOG INFO级别                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG INFO  ┃    7 ┃    大于NGX—LOG DEBUG级别                                          ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG   ┃    8 ┃    调试级别，最低级别日志                                          ┃
-┗━━━━━━━━┻━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-    使用ngx_log_error宏记录日志时，如果传人的level级别小于或等于log参数中的日志
-级别（通常是由nginx.conf配置文件中指定），就会输出日志内容，否则这条日志会被忽略。
-*/
+
 #define ngx_log_error(level, log, ...)                                        \
     if ((log)->log_level >= level) ngx_log_error_core(level, log, __VA_ARGS__)
 
 void ngx_log_error_core(ngx_uint_t level, ngx_log_t *log, ngx_err_t err,
                         const char *fmt, ...);
-/*
-    在使用ngx_log_debug宏时，level的崽义完全不同，它表达的意义不再是级别（已经
-是DEBUG级别），而是日志类型，因为ngx_log_debug宏记录的日志必须是NGX-LOG—
-DEBUG调试级别的，这里的level由各子模块定义。level的取值范围参见表4-7。
-表4-7 ngx_log_debug日志接口level参数的取值范围
-┏━━━━━━━━━━┳━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    级别名称        ┃  值    ┃    意义                                        ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_CORE  ┃ Ox010  ┃    Nginx核心模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_ALLOC ┃ Ox020  ┃    Nginx在分配内存时使用的调试日志             ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_MUTEX ┃ Ox040  ┃    Nginx在使用进程锁时使用的调试日志           ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_EVENT ┃ Ox080  ┃    Nginx事件模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_HTTP  ┃ Oxl00  ┃    Nginx http模块的调试日志                    ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_MAIL  ┃ Ox200  ┃    Nginx邮件模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG_MYSQL ┃ Ox400  ┃    表示与MySQL相关的Nginx模块所使用的调试日志  ┃
-┗━━━━━━━━━━┻━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━┛
-    当HTTP模块调用ngx_log_debug宏记录日志时，传人的level参数是NGX_LOG_DEBUG HTTP，
-这时如果1og参数不属于HTTP模块，如使周了event事件模块的log，则
-不会输出任何日志。它正是ngx_log_debug拥有level参数的意义所在。
-*/
+
 #define ngx_log_debug(level, log, ...)                                        \
     if ((log)->log_level & level)                                             \
         ngx_log_error_core(NGX_LOG_DEBUG, log, __VA_ARGS__)

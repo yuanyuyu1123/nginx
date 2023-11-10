@@ -144,12 +144,10 @@ static ngx_connection_t dumb;
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
 */
 
-/*
-为什么这里需要有old_cycle???
+/*为什么这里需要有old_cycle???
     旧的ngx_cycle_t对象用于引用上一个ngx_cycle_t对象中的成员。例如ngx_init_cycle方法，在启动初期，需要建
 立一个临时的ngx_cycle_t对象保存一些变量(如ngx_process_options中的安装路径，新cycle建立起来前提前写日志的log),
-再调用ngx_init_cycle 方法时就可以把旧的ngx_cycle_t对象传进去
-*/
+再调用ngx_init_cycle 方法时就可以把旧的ngx_cycle_t对象传进去*/
 ngx_cycle_t *
 ngx_init_cycle(ngx_cycle_t *old_cycle) {
     void *rv;
@@ -177,7 +175,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
     ngx_time_update();
 
-//在解析配置文件的error_log前，使用这个旧的默认log,后面解析完配置文件后，会重新按照error_log配置文件来写日志
+    //在解析配置文件的error_log前，使用这个旧的默认log,后面解析完配置文件后，会重新按照error_log配置文件来写日志
     log = old_cycle->log;
 
     pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, log);
@@ -334,14 +332,12 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
         return NULL;
     }
 
-    /*
-在初始化ngx_cycle_t中的所有容器后，会为读取、解析配置文件做准备工作。因为每个模块都必须有相应的数据
-结构来存储配置文件中的各配置项，创建这些数据结构的工作都需要在这一步进行。Nginx框架只关心NGX_CORE_MODULE核
-心模块，这也是为了降低框架的复杂度。这里将会调用所有核心模块的create conf方法（也只有核心模块才有这个方法），
-这意味着需要所有的核心模块开始构造用于存储配置项的结构体。其他非核心模块怎么办呢？其实很简单。这些模块大都
-从属于一个核心模块，如每个HTTP模块都由ngx_http_module管理（如图8-2所示），这样ngx_http_module在解析自己感兴
-趣的“http”配置项时，将会调用所有HTTP模块约定的方法来创建存储配置项的结构体（xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法）。
-*/
+    /*在初始化ngx_cycle_t中的所有容器后，会为读取、解析配置文件做准备工作。因为每个模块都必须有相应的数据
+      结构来存储配置文件中的各配置项，创建这些数据结构的工作都需要在这一步进行。Nginx框架只关心NGX_CORE_MODULE核
+      心模块，这也是为了降低框架的复杂度。这里将会调用所有核心模块的create conf方法（也只有核心模块才有这个方法），
+      这意味着需要所有的核心模块开始构造用于存储配置项的结构体。其他非核心模块怎么办呢？其实很简单。这些模块大都
+      从属于一个核心模块，如每个HTTP模块都由ngx_http_module管理（如图8-2所示），这样ngx_http_module在解析自己感兴
+      趣的“http”配置项时，将会调用所有HTTP模块约定的方法来创建存储配置项的结构体（xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法）*/
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;

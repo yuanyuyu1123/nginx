@@ -11,7 +11,7 @@
 
 
 ngx_int_t ngx_ncpu; //cpu个数
-ngx_int_t ngx_max_sockets; //每个进程能打开的最多文件数。
+ngx_int_t ngx_max_sockets; //每个进程能打开的最多套接字数。
 ngx_uint_t ngx_inherited_nonblocking;
 ngx_uint_t ngx_tcp_nodelay_and_tcp_nopush;
 
@@ -49,8 +49,7 @@ ngx_os_init(ngx_log_t *log) {
         return NGX_ERROR;
     }
     /*
-    返回一个分页的大小，单位为字节(Byte)。该值为系统的分页大小，不一定会和硬件分页大小相同。
-    */
+    返回一个分页的大小，单位为字节(Byte)。该值为系统的分页大小，不一定会和硬件分页大小相同。*/
     ngx_pagesize = getpagesize();
     ngx_cacheline_size = NGX_CPU_CACHE_LINE;
 
@@ -90,7 +89,7 @@ ngx_os_init(ngx_log_t *log) {
 #endif
 
     tp = ngx_timeofday();
-    srandom(((unsigned) ngx_pid << 16) ^ tp->sec ^ tp->msec);
+    srandom(((unsigned) ngx_pid << 16) ^ tp->sec ^ tp->msec);//random()默认无seed, srandom()调用后给random提供seed
 
     return NGX_OK;
 }

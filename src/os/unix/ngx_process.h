@@ -16,37 +16,29 @@
 typedef pid_t ngx_pid_t;
 
 #define NGX_INVALID_PID  -1
-/*
-Worker进程的工作循环ngx_worker_process_cycle方法也是依照ngx_spawn_proc_pt来定义的
-cacheManage进程或者cache_loader进程的工作循环ngx_cache_manager_process_cycle方法也是如此
-*/
+/*Worker进程的工作循环ngx_worker_process_cycle方法也是依照ngx_spawn_proc_pt来定义的
+cacheManage进程或者cache_loader进程的工作循环ngx_cache_manager_process_cycle方法也是如此*/
 //ngx_spawn_process函数中调用
 typedef void (*ngx_spawn_proc_pt)(ngx_cycle_t *cycle, void *data);
-/*
-在解释master工作流程前，还需要对master进程管理子进程的数据结构有个初步了解。下面定义了pgx_processes全局数组，虽然子进程中也会
+/*在解释master工作流程前，还需要对master进程管理子进程的数据结构有个初步了解。下面定义了pgx_processes全局数组，虽然子进程中也会
 有ngx_processes数组，但这个数组仅仅是给master进程使用的
-master进程中所有子进程相关的状态信息都保存在ngx_processes数组中。再来看一下数组元素的类型ngx_process_t结构体的定义，代码如下。
-*/
+master进程中所有子进程相关的状态信息都保存在ngx_processes数组中。再来看一下数组元素的类型ngx_process_t结构体的定义，代码如下。*/
 typedef struct {
     ngx_pid_t           pid; //进程ID
     int                 status; //子进程退出后，父进程收到SIGCHLD后，开始waitpid，父进程由waitpid系统调用获取到的进程状态，见ngx_process_get_status
 
-    /*
-    这是由socketpair系统调用产生出的用于进程间通信的socket句柄，这一对socket句柄可以互相通信，目前用于master父进程与worker子进程问的通信，详见14.4节
-    */
+    /*这是由socketpair系统调用产生出的用于进程间通信的socket句柄，这一对socket句柄可以互相通信，目前用于master父进程与worker子进程问的通信，详见14.4节*/
     ngx_socket_t        channel[2];//socketpair实际上是通过管道封装实现的 ngx_spawn_process中赋值
 
     //子进程的循环执行方法，当父进程调用ngx_spawn_proces生成子进程时使用
     ngx_spawn_proc_pt   proc;
 
-    /*
-    上面的ngx_spawn_proc_pt方法中第2个参数雷要传递1个指针，它是可选的。例如，worker子进程就不需要，而cache manage进程
-    就需要ngx_cache_manager_ctx上下文成员。这时，data一般与ngx_spawn_proc_pt方法中第2个参数是等价的
-    */
+    /*上面的ngx_spawn_proc_pt方法中第2个参数雷要传递1个指针，它是可选的。例如，worker子进程就不需要，而cache manage进程
+    就需要ngx_cache_manager_ctx上下文成员。这时，data一般与ngx_spawn_proc_pt方法中第2个参数是等价的*/
     void               *data;
     char               *name;//进程名称。操作系统中显示的进程名称与name相同
 
-    //一下这些前三个标记在ngx_spawn_process中赋值
+    //以下这些前三个标记在ngx_spawn_process中赋值
     unsigned            respawn:1; //标志位，为1时表示在重新生成子进程
     unsigned            just_spawn:1; //标志位，为1时表示正在生成子进程
     unsigned            detached:1; //标志位，为1时表示在进行父、子进程分离

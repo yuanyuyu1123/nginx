@@ -14,29 +14,24 @@
 
 
 typedef void *ngx_buf_tag_t;
-/*
-缓冲区ngx_buf_t是Nginx处理大数据的关键数据结构，它既应用于内存数据也应用于磁盘数据
-*/
+/*缓冲区ngx_buf_t是Nginx处理大数据的关键数据结构，它既应用于内存数据也应用于磁盘数据*/
 typedef struct ngx_buf_s ngx_buf_t; //从内存池中分配ngx_buf_t空间，通过ngx_chain_s和pool关联，并初始化其中的各个变量初值函数为ngx_create_temp_buf
-/*
-ngx_buf_t是一种基本数据结构，本质上它提供的仅仅是一些指针成员和标志位。对于HTTP模块来说，需要注意HTTP框架、事件框架是如何设置
+/*ngx_buf_t是一种基本数据结构，本质上它提供的仅仅是一些指针成员和标志位。对于HTTP模块来说，需要注意HTTP框架、事件框架是如何设置
 和使用pos、last等指针以及如何处理这些标志位的，上述说明只是最常见的用法。（如果我们自定义一个ngx_buf_t结构体，不应当受限于上
 述用法，而应该根据业务需求自行定义。例如用一个ngx_buf_t缓冲区转发上下游TCP流时，pos会指向将要发送到下游的TCP流起
-始地址，而last会指向预备接收上游TCP流的缓冲区起始地址。）
-*/
-/*
-实际上，Nginx还封装了一个生成ngx_buf_t的简便方法，它完全等价于上面的6行语句，如下所示。
+始地址，而last会指向预备接收上游TCP流的缓冲区起始地址。）*/
+/*实际上，Nginx还封装了一个生成ngx_buf_t的简便方法，它完全等价于上面的6行语句，如下所示。
 ngx_buf_t *b = ngx_create_temp_buf(r->pool, 128);
 分配完内存后，可以向这段内存写入数据。当写完数据后，要让b->last指针指向数据的末尾，如果b->last与b->pos相等，那么HTTP框架是不会发送一个字节的包体的。
 最后，把上面的ngx_buf_t *b用ngx_chain_t传给ngx_http_output_filter方法就可以发送HTTP响应的包体内容了。例如：
 ngx_chain_t out;
 out.buf = b;
 out.next = NULL;
-return ngx_http_output_filter(r, &out);
-*/ //参考http://blog.chinaunix.net/uid-26335251-id-3483044.html
+return ngx_http_output_filter(r, &out);*/
+//参考http://blog.chinaunix.net/uid-26335251-id-3483044.html
 struct ngx_buf_s { //可以参考ngx_create_temp_buf 函数空间在ngx_create_temp_buf创建，让指针指向这些空间
     /*pos通常是用来告诉使用者本次应该从pos这个位置开始处理内存中的数据，这样设置是因为同一个ngx_buf_t可能被多次反复处理。
-当然，pos的含义是由使用它的模块定义的*/
+      当然，pos的含义是由使用它的模块定义的*/
     //它的pos成员和last成员指向的地址之间的内存就是接收到的还未解析的字符流
     u_char *pos; //pos指针指向从内存池里分配的内存。 pos为已扫描的内存端中，还未解析的内存的尾部，
     u_char *last; /*last通常表示有效的内容到此为止，注意，pos与last之间的内存是希望nginx处理的内容*/
@@ -57,8 +52,7 @@ struct ngx_buf_s { //可以参考ngx_create_temp_buf 函数空间在ngx_create_t
 ngx_buf_t结构体指向了同一块内存，它们之间的关系就通过shadow成员来引用。这种设计过于复杂，通常不建议使用
 当这个buf完整copy了另外一个buf的所有字段的时候，那么这两个buf指向的实际上是同一块内存，或者是同一个文件的同一部分，此
 时这两个buf的shadow字段都是指向对方的。那么对于这样的两个buf，在释放的时候，就需要使用者特别小心，具体是由哪里释放，要
-提前考虑好，如果造成资源的多次释放，可能会造成程序崩溃！
-*/
+提前考虑好，如果造成资源的多次释放，可能会造成程序崩溃！*/
     ngx_buf_t *shadow; //参考ngx_http_fastcgi_input_filter
 
     /* the buf's content could be changed */
@@ -93,11 +87,10 @@ ngx_buf_t结构体指向了同一块内存，它们之间的关系就通过shado
     它支持高并发的关键。有些框架代码在sync为1时可能会有阻塞的方式进行I/O操作，它的意义视使用它的Nginx模块而定*/
     unsigned sync: 1;
     /*标志位，表示是否是最后一块缓冲区，因为ngx_buf_t可以由ngx_chain_t链表串联起来，因此，当last_buf为1时，表示当前是最后一块待处理的缓冲区*/
-    /*
-    如果接受包体接收完成，则存储最后一个包体内容的buf的last_buf置1，见ngx_http_request_body_length_filter
+    /*如果接受包体接收完成，则存储最后一个包体内容的buf的last_buf置1，见ngx_http_request_body_length_filter
     如果发送包体的时候只有头部，这里会置1，见ngx_http_header_filter
-    如果各个模块在发送包体内容的时候，如果送入ngx_http_write_filter函数的in参数chain表中的某个buf为该包体的最后一段内容，则该buf中的last_buf会置1
-     */ // ngx_http_send_special中会置1  见ngx_http_write_filter -> if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
+    如果各个模块在发送包体内容的时候，如果送入ngx_http_write_filter函数的in参数chain表中的某个buf为该包体的最后一段内容，则该buf中的last_buf会置1*/
+    // ngx_http_send_special中会置1  见ngx_http_write_filter -> if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
     //置1了表示该buf需要马上发送出去，参考ngx_http_write_filter -> if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
     unsigned last_buf: 1; //数据被以多个chain传递给了过滤器，此字段为1表明这是最后一个chain。
     unsigned last_in_chain: 1; //标志位，表示是否是ngx_chain_t中的最后一块缓冲区
@@ -156,15 +149,13 @@ struct ngx_output_chain_ctx_s { //ngx_http_copy_filter中创建空间和赋值
     ngx_chain_t *in; //in是待发送的数据，busy是已经调用ngx_chain_writer但还没有发送完毕。
     ngx_chain_t *free; /* 保存了已经发送完毕的chain，以便于重复利用 */
     ngx_chain_t *busy; /* 保存了还未发送的chain */
-    /*
-       和后端的ngx_connection_t在ngx_event_connect_peer这里置为1，但在ngx_http_upstream_connect中c->sendfile &= r->connection->sendfile;，
+    /*和后端的ngx_connection_t在ngx_event_connect_peer这里置为1，但在ngx_http_upstream_connect中c->sendfile &= r->connection->sendfile;，
        和客户端浏览器的ngx_connextion_t的sendfile需要在ngx_http_update_location_config中判断，因此最终是由是否在configure的时候是否有加
-       sendfile选项来决定是置1还是置0
-    */
+       sendfile选项来决定是置1还是置0*/
     unsigned sendfile: 1; /* sendfile标记 */
     //direct实际上有几方面的优势，不使用系统缓存一方面，另一方面是使用dma直接由dma控制从内存输入到用户空间的buffer中不经过cpu做mov操作，不消耗cpu。
-//表示在获取空间的时候是否需要ctx->alignment字节对齐，见ngx_output_chain_get_buf
-//在ngx_output_chain_copy_buf中会对sendfile有影响  //调值置1的前提是ngx_output_chain_as_is返回0
+    //表示在获取空间的时候是否需要ctx->alignment字节对齐，见ngx_output_chain_get_buf
+    //在ngx_output_chain_copy_buf中会对sendfile有影响  //调值置1的前提是ngx_output_chain_as_is返回0
     /*
          Ngx_http_echo_subrequest.c (src\echo-nginx-module-master\src):        b->file->directio = of.is_directio;
          Ngx_http_flv_module.c (src\http\modules):    b->file->directio = of.is_directio;
@@ -185,11 +176,11 @@ struct ngx_output_chain_ctx_s { //ngx_http_copy_filter中创建空间和赋值
     /* 是否需要在内存中重新复制一份，不管buf是在内存还是文件, 这样的话，后续模块可以直接修改这块内存 */
     unsigned need_in_temp: 1;
     /*
-ngx_http_copy_aio_handler handler ngx_http_copy_aio_event_handler执行后，会置回到0
-ngx_http_copy_thread_handler ngx_http_copy_thread_event_handler置0
-ngx_http_cache_thread_handler置1， ngx_http_cache_thread_event_handler置0
-ngx_http_file_cache_aio_read中置1，
-*/
+     ngx_http_copy_aio_handler handler ngx_http_copy_aio_event_handler执行后，会置回到0
+     ngx_http_copy_thread_handler ngx_http_copy_thread_event_handler置0
+     ngx_http_cache_thread_handler置1， ngx_http_cache_thread_event_handler置0
+     ngx_http_file_cache_aio_read中置1，
+     */
     //ngx_http_copy_aio_handler中置1   ngx_http_copy_filter中ctx->aio = ngx_http_request_t->aio
     //生效地方见ngx_output_chain
     unsigned aio: 1; //配置aio on或者aio thread poll的时候置1
@@ -215,10 +206,10 @@ ngx_http_file_cache_aio_read中置1，
     ngx_bufs_t bufs; //赋值见ngx_http_upstream_init_request  对应loc conf中设置的bufs
     ngx_buf_tag_t tag; //标识自己所属的模块，例如参考ngx_http_fastcgi_handler  模块标记，主要用于buf回收
     /*
-如果是fastcgi_pass，并且不需要缓存客户端包体，则output_filter=ngx_http_fastcgi_body_output_filter
-如果是proxy_pass，并且不需要缓存客户端包体,并且internal_chunked ==1，则output_filter=ngx_http_proxy_body_output_filter
-其他情况默认在ngx_http_upstream_init_request设置为ngx_chain_writer
-*/ //copy_filter模块的outpu_filter=ngx_http_next_body_filter
+    如果是fastcgi_pass，并且不需要缓存客户端包体，则output_filter=ngx_http_fastcgi_body_output_filter
+    如果是proxy_pass，并且不需要缓存客户端包体,并且internal_chunked ==1，则output_filter=ngx_http_proxy_body_output_filter
+    其他情况默认在ngx_http_upstream_init_request设置为ngx_chain_writer*/
+    //copy_filter模块的outpu_filter=ngx_http_next_body_filter
     ngx_output_chain_filter_pt output_filter; //ngx_output_chain 赋值见ngx_http_upstream_init_request 一般是ngx_http_next_filter,也就是继续调用filter链
     void *filter_ctx; // 赋值见ngx_http_upstream_init_request /* 当前filter的上下文，这里是由于upstream也会调用output_chain */
 };

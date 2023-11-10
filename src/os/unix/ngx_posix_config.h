@@ -143,7 +143,8 @@
 
 /*
  struct iocb  f
-//存储着业务需要的指针。例如，在Nginx中，这个字段通常存储着对应的ngx_event_t亭件的指针。它实际上与io_getevents方法中返回的io event结构体的data成员是完全一致的+／
+//存储着业务需要的指针。例如，在Nginx中，这个字段通常存储着对应的ngx_event_t亭件的指针。
+ 它实际上与io_getevents方法中返回的io event结构体的data成员是完全一致的+／
     u int64 t aio_data;
 //不需要设置
 u  int32_t PADDED (aio_key,  aio_raservedl)j
@@ -161,7 +162,8 @@ u int64 t aio_nbytes;
 int64 t aio offset;
 //保留字段
 u int64_t aio reserved2;
-//表示可以设置为IOCB FLAG RESFD，它会告诉内核当有异步I/O请求处理完成时使用eventfd进行通知，可与epoll配合使用，其在Nginx中的使用方法可参见9.9.2节+／
+//表示可以设置为IOCB FLAG RESFD，它会告诉内核当有异步I/O请求处理完成时使用eventfd进行通知，
+ 可与epoll配合使用，其在Nginx中的使用方法可参见9.9.2节+／
     u int32_t aio_flags；
 //表示当使用IOCB FLAG RESFD标志位时，用于进行事件通知的句柄
 U int32 t aio resfd;
