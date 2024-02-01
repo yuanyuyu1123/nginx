@@ -5,7 +5,8 @@
 			"path" : "CMakeLists.txt"
 		},
 		{
-			"path" : "CMakeFiles/3.22.1/CMakeSystem.cmake"
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.22.1/CMakeSystem.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -13,10 +14,12 @@
 			"path" : "/usr/share/cmake-3.22/Modules/CMakeSystemSpecificInitialize.cmake"
 		},
 		{
-			"path" : "CMakeFiles/3.22.1/CMakeCCompiler.cmake"
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.22.1/CMakeCCompiler.cmake"
 		},
 		{
-			"path" : "CMakeFiles/3.22.1/CMakeCXXCompiler.cmake"
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.22.1/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -137,7 +140,7 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "/usr/local/cdir/nginx",
+		"build" : "/usr/local/cdir/nginx/cmake-build-debug",
 		"source" : "/usr/local/cdir/nginx"
 	},
 	"version" : 

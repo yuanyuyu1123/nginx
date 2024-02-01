@@ -1,210 +1,110 @@
-2023/11/09 11:26:48 [debug] 12227#0: bind() 0.0.0.0:80 #7 
-2023/11/09 11:26:48 [notice] 12227#0: using the "epoll" event method
-2023/11/09 11:26:48 [notice] 12227#0: nginx/1.21.6
-2023/11/09 11:26:48 [notice] 12227#0: built by gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) 
-2023/11/09 11:26:48 [notice] 12227#0: OS: Linux 5.15.90.1-microsoft-standard-WSL2
-2023/11/09 11:26:48 [notice] 12227#0: getrlimit(RLIMIT_NOFILE): 1024:1048576
-2023/11/09 11:26:48 [debug] 12227#0: write: 8, 00007FFFFFFFE530, 6, 0
-2023/11/09 11:26:48 [debug] 12227#0: add cleanup: 00005555556C1E08
-2023/11/09 11:26:48 [debug] 12227#0: malloc: 000055555569E430:8
-2023/11/09 11:26:48 [debug] 12227#0: notify eventfd: 8
-2023/11/09 11:26:48 [debug] 12227#0: eventfd: 9
-2023/11/09 11:26:48 [debug] 12227#0: testing the EPOLLRDHUP flag: success
-2023/11/09 11:26:48 [debug] 12227#0: malloc: 00005555556AB630:6144
-2023/11/09 11:26:48 [debug] 12227#0: malloc: 00007FFFF7C52010:229376
-2023/11/09 11:26:48 [debug] 12227#0: malloc: 00005555556C4420:98304
-2023/11/09 11:26:48 [debug] 12227#0: malloc: 00005555556DC430:98304
-2023/11/09 11:26:48 [debug] 12227#0: epoll add event: fd:7 op:1 ev:00002001
-2023/11/09 11:26:48 [debug] 12227#0: worker cycle
-2023/11/09 11:26:48 [debug] 12227#0: epoll timer: -1
-2023/11/09 11:26:59 [debug] 12227#0: epoll: fd:7 ev:0001 d:00007FFFF7C52010
-2023/11/09 11:26:59 [debug] 12227#0: accept on 0.0.0.0:80, ready: 0
-2023/11/09 11:26:59 [debug] 12227#0: posix_memalign: 00005555556A6A20:512 @16
-2023/11/09 11:26:59 [debug] 12227#0: *1 accept: 127.0.0.1:39296 fd:10
-2023/11/09 11:26:59 [debug] 12227#0: *1 event timer add: 10: 60000:648524
-2023/11/09 11:26:59 [debug] 12227#0: *1 reusable connection: 1
-2023/11/09 11:26:59 [debug] 12227#0: *1 epoll add event: fd:10 op:1 ev:80002001
-2023/11/09 11:26:59 [debug] 12227#0: timer delta: 10330
-2023/11/09 11:26:59 [debug] 12227#0: worker cycle
-2023/11/09 11:26:59 [debug] 12227#0: epoll timer: 60000
-2023/11/09 11:26:59 [debug] 12227#0: epoll: fd:7 ev:0001 d:00007FFFF7C52010
-2023/11/09 11:26:59 [debug] 12227#0: accept on 0.0.0.0:80, ready: 0
-2023/11/09 11:26:59 [debug] 12227#0: posix_memalign: 00005555556A6C30:512 @16
-2023/11/09 11:26:59 [debug] 12227#0: *2 accept: 127.0.0.1:39298 fd:11
-2023/11/09 11:26:59 [debug] 12227#0: *2 event timer add: 11: 60000:648524
-2023/11/09 11:26:59 [debug] 12227#0: *2 reusable connection: 1
-2023/11/09 11:26:59 [debug] 12227#0: *2 epoll add event: fd:11 op:1 ev:80002001
-2023/11/09 11:26:59 [debug] 12227#0: timer delta: 0
-2023/11/09 11:26:59 [debug] 12227#0: worker cycle
-2023/11/09 11:26:59 [debug] 12227#0: epoll timer: 60000
-2023/11/09 11:26:59 [debug] 12227#0: epoll: fd:11 ev:0001 d:00007FFFF7C521D0
-2023/11/09 11:26:59 [debug] 12227#0: *2 http wait request handler
-2023/11/09 11:26:59 [debug] 12227#0: *2 malloc: 000055555569D530:1024
-2023/11/09 11:26:59 [debug] 12227#0: *2 recv: eof:0, avail:-1
-2023/11/09 11:26:59 [debug] 12227#0: *2 recv: fd:11 657 of 1024
-2023/11/09 11:26:59 [debug] 12227#0: *2 reusable connection: 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 posix_memalign: 00005555556ACE40:4096 @16
-2023/11/09 11:26:59 [debug] 12227#0: *2 http process request line
-2023/11/09 11:26:59 [debug] 12227#0: *2 http request line: "GET /test HTTP/1.1"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http uri: "/test"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http args: ""
-2023/11/09 11:26:59 [debug] 12227#0: *2 http exten: ""
-2023/11/09 11:26:59 [debug] 12227#0: *2 posix_memalign: 00005555556A2600:4096 @16
-2023/11/09 11:26:59 [debug] 12227#0: *2 http process request header line
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Host: localhost"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Connection: keep-alive"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "sec-ch-ua: "Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24""
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "sec-ch-ua-mobile: ?0"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "sec-ch-ua-platform: "Windows""
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Upgrade-Insecure-Requests: 1"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Sec-Fetch-Site: none"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Sec-Fetch-Mode: navigate"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Sec-Fetch-User: ?1"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Sec-Fetch-Dest: document"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Accept-Encoding: gzip, deflate, br"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header: "Accept-Language: zh-CN,zh;q=0.9"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http header done
-2023/11/09 11:26:59 [debug] 12227#0: *2 event timer del: 11: 648524
-2023/11/09 11:26:59 [debug] 12227#0: *2 rewrite phase: 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 test location: "/"
-2023/11/09 11:26:59 [debug] 12227#0: *2 test location: "test"
-2023/11/09 11:26:59 [debug] 12227#0: *2 using configuration "/test"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http cl:-1 max:1048576
-2023/11/09 11:26:59 [debug] 12227#0: *2 rewrite phase: 2
-2023/11/09 11:26:59 [debug] 12227#0: *2 post rewrite phase: 3
-2023/11/09 11:26:59 [debug] 12227#0: *2 generic phase: 4
-2023/11/09 11:26:59 [debug] 12227#0: *2 generic phase: 5
-2023/11/09 11:26:59 [debug] 12227#0: *2 access phase: 6
-2023/11/09 11:26:59 [debug] 12227#0: *2 access phase: 7
-2023/11/09 11:26:59 [debug] 12227#0: *2 post access phase: 8
-2023/11/09 11:26:59 [debug] 12227#0: *2 generic phase: 9
-2023/11/09 11:26:59 [debug] 12227#0: *2 generic phase: 10
-2023/11/09 11:26:59 [debug] 12227#0: *2 yang test:xxxxxxxxx <ngx_http_mytest_handler, >
+2024/02/01 14:40:41 [debug] 84586#0: epoll: fd:7 ev:0001 d:00007FFFF7C4F010
+2024/02/01 14:40:41 [debug] 84586#0: accept on 0.0.0.0:80, ready: 0
+2024/02/01 14:40:41 [debug] 84586#0: posix_memalign: 00005555556B6EE0:512 @16
+2024/02/01 14:40:41 [debug] 84586#0: *4 accept: 127.0.0.1:58770 fd:10
+2024/02/01 14:40:41 [debug] 84586#0: *4 event timer add: 10: 60000:2951295
+2024/02/01 14:40:41 [debug] 84586#0: *4 reusable connection: 1
+2024/02/01 14:40:41 [debug] 84586#0: *4 epoll add event: fd:10 op:1 ev:80002001
+2024/02/01 14:40:41 [debug] 84586#0: timer delta: 3119
+2024/02/01 14:40:41 [debug] 84586#0: worker cycle
+2024/02/01 14:40:41 [debug] 84586#0: epoll timer: 60000
+2024/02/01 14:40:41 [debug] 84586#0: epoll: fd:7 ev:0001 d:00007FFFF7C4F010
+2024/02/01 14:40:41 [debug] 84586#0: accept on 0.0.0.0:80, ready: 0
+2024/02/01 14:40:41 [debug] 84586#0: posix_memalign: 00005555556B7300:512 @16
+2024/02/01 14:40:41 [debug] 84586#0: *5 accept: 127.0.0.1:58776 fd:11
+2024/02/01 14:40:41 [debug] 84586#0: *5 event timer add: 11: 60000:2951295
+2024/02/01 14:40:41 [debug] 84586#0: *5 reusable connection: 1
+2024/02/01 14:40:41 [debug] 84586#0: *5 epoll add event: fd:11 op:1 ev:80002001
+2024/02/01 14:40:41 [debug] 84586#0: epoll: fd:10 ev:0001 d:00007FFFF7C4F0F1
+2024/02/01 14:40:41 [debug] 84586#0: *4 http wait request handler
+2024/02/01 14:40:41 [debug] 84586#0: *4 malloc: 000055555569D530:1024
+2024/02/01 14:40:41 [debug] 84586#0: *4 recv: eof:0, avail:-1
+2024/02/01 14:40:41 [debug] 84586#0: *4 recv: fd:10 743 of 1024
+2024/02/01 14:40:41 [debug] 84586#0: *4 reusable connection: 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 posix_memalign: 00005555556ACE40:4096 @16
+2024/02/01 14:40:41 [debug] 84586#0: *4 http process request line
+2024/02/01 14:40:41 [debug] 84586#0: *4 http request line: "GET /test HTTP/1.1"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http uri: "/test"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http args: ""
+2024/02/01 14:40:41 [debug] 84586#0: *4 http exten: ""
+2024/02/01 14:40:41 [debug] 84586#0: *4 posix_memalign: 00005555556A2600:4096 @16
+2024/02/01 14:40:41 [debug] 84586#0: *4 http process request header line
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Host: localhost"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Connection: keep-alive"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Cache-Control: max-age=0"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "sec-ch-ua: "Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121""
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "sec-ch-ua-mobile: ?0"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "sec-ch-ua-platform: "Windows""
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Upgrade-Insecure-Requests: 1"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Sec-Fetch-Site: none"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Sec-Fetch-Mode: navigate"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Sec-Fetch-User: ?1"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Sec-Fetch-Dest: document"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Accept-Encoding: gzip, deflate, br"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Accept-Language: zh-CN,zh;q=0.9"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header: "Cookie: Idea-f9cd73c6=f91e22a1-cf64-4dc5-9f53-7090f3255835"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http header done
+2024/02/01 14:40:41 [debug] 84586#0: *4 event timer del: 10: 2951295
+2024/02/01 14:40:41 [debug] 84586#0: *4 rewrite phase: 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 test location: "/"
+2024/02/01 14:40:41 [debug] 84586#0: *4 test location: "test"
+2024/02/01 14:40:41 [debug] 84586#0: *4 using configuration "/test"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http cl:-1 max:1048576
+2024/02/01 14:40:41 [debug] 84586#0: *4 rewrite phase: 2
+2024/02/01 14:40:41 [debug] 84586#0: *4 post rewrite phase: 3
+2024/02/01 14:40:41 [debug] 84586#0: *4 generic phase: 4
+2024/02/01 14:40:41 [debug] 84586#0: *4 generic phase: 5
+2024/02/01 14:40:41 [debug] 84586#0: *4 access phase: 6
+2024/02/01 14:40:41 [debug] 84586#0: *4 access phase: 7
+2024/02/01 14:40:41 [debug] 84586#0: *4 post access phase: 8
+2024/02/01 14:40:41 [debug] 84586#0: *4 generic phase: 9
+2024/02/01 14:40:41 [debug] 84586#0: *4 generic phase: 10
+2024/02/01 14:40:41 [debug] 84586#0: *4 yang test:xxxxxxxxx <ngx_http_mytest_handler, >
 
-2023/11/09 11:26:59 [debug] 12227#0: *2 http set discard body
-2023/11/09 11:26:59 [debug] 12227#0: *2 HTTP/1.1 200 OK
+2024/02/01 14:40:41 [debug] 84586#0: *4 http set discard body
+2024/02/01 14:40:41 [debug] 84586#0: *4 HTTP/1.1 200 OK
 Server: nginx/1.21.6
-Date: Thu, 09 Nov 2023 03:26:59 GMT
+Date: Thu, 01 Feb 2024 06:40:41 GMT
 Content-Type: text/plain
 Content-Length: 14
 Connection: keep-alive
 
-2023/11/09 11:26:59 [debug] 12227#0: *2 write new buf t:1 f:0 00005555556ADBC8, pos 00005555556ADBC8, size: 148 file: 0, size: 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 http write filter: l:0 f:0 s:148
-2023/11/09 11:26:59 [debug] 12227#0: *2 http output filter "/test?"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http copy filter: "/test?"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http postpone filter "/test?" 00007FFFFFFFE210
-2023/11/09 11:26:59 [debug] 12227#0: *2 write old buf t:1 f:0 00005555556ADBC8, pos 00005555556ADBC8, size: 148 file: 0, size: 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 write new buf t:1 f:0 00005555556ADCD0, pos 00005555556ADCD0, size: 14 file: 0, size: 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 http write filter: l:1 f:0 s:162
-2023/11/09 11:26:59 [debug] 12227#0: *2 http write filter limit 2097152
-2023/11/09 11:26:59 [debug] 12227#0: *2 writev: 162 of 162
-2023/11/09 11:26:59 [debug] 12227#0: *2 http write filter 0000000000000000
-2023/11/09 11:26:59 [debug] 12227#0: *2 http copy filter: 0 "/test?"
-2023/11/09 11:26:59 [debug] 12227#0: *2 http finalize request: 0, "/test?" a:1, c:1
-2023/11/09 11:26:59 [debug] 12227#0: *2 set http keepalive handler
-2023/11/09 11:26:59 [debug] 12227#0: *2 http close request
-2023/11/09 11:26:59 [debug] 12227#0: *2 http log handler
-2023/11/09 11:26:59 [debug] 12227#0: *2 free: 00005555556ACE40, unused: 224
-2023/11/09 11:26:59 [debug] 12227#0: *2 free: 00005555556A2600, unused: 2876
-2023/11/09 11:26:59 [debug] 12227#0: *2 free: 000055555569D530
-2023/11/09 11:26:59 [debug] 12227#0: *2 hc free: 0000000000000000
-2023/11/09 11:26:59 [debug] 12227#0: *2 hc busy: 0000000000000000 0
-2023/11/09 11:26:59 [debug] 12227#0: *2 tcp_nodelay
-2023/11/09 11:26:59 [debug] 12227#0: *2 reusable connection: 1
-2023/11/09 11:26:59 [debug] 12227#0: *2 event timer add: 11: 65000:653524
-2023/11/09 11:26:59 [debug] 12227#0: timer delta: 0
-2023/11/09 11:26:59 [debug] 12227#0: worker cycle
-2023/11/09 11:26:59 [debug] 12227#0: epoll timer: 60000
-2023/11/09 11:26:59 [debug] 12227#0: epoll: fd:7 ev:0001 d:00007FFFF7C52010
-2023/11/09 11:26:59 [debug] 12227#0: accept on 0.0.0.0:80, ready: 0
-2023/11/09 11:26:59 [debug] 12227#0: posix_memalign: 00005555556A6E40:512 @16
-2023/11/09 11:26:59 [debug] 12227#0: *3 accept: 127.0.0.1:39308 fd:12
-2023/11/09 11:26:59 [debug] 12227#0: *3 event timer add: 12: 60000:648772
-2023/11/09 11:26:59 [debug] 12227#0: *3 reusable connection: 1
-2023/11/09 11:26:59 [debug] 12227#0: *3 epoll add event: fd:12 op:1 ev:80002001
-2023/11/09 11:26:59 [debug] 12227#0: timer delta: 248
-2023/11/09 11:26:59 [debug] 12227#0: worker cycle
-2023/11/09 11:26:59 [debug] 12227#0: epoll timer: 59752
-2023/11/10 15:17:19 [debug] 140028#0: bind() 0.0.0.0:80 #7 
-2023/11/10 15:17:19 [notice] 140028#0: using the "epoll" event method
-2023/11/10 15:17:19 [notice] 140028#0: nginx/1.21.6
-2023/11/10 15:17:19 [notice] 140028#0: built by gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) 
-2023/11/10 15:17:19 [notice] 140028#0: OS: Linux 5.15.90.1-microsoft-standard-WSL2
-2023/11/10 15:17:19 [notice] 140028#0: getrlimit(RLIMIT_NOFILE): 1024:1048576
-2023/11/10 15:17:19 [debug] 140028#0: write: 8, 00007FFFFFFFE530, 7, 0
-2023/11/10 15:17:19 [debug] 140028#0: add cleanup: 00005555556C1E08
-2023/11/10 15:17:19 [debug] 140028#0: malloc: 000055555569E430:8
-2023/11/10 15:17:19 [debug] 140028#0: notify eventfd: 8
-2023/11/10 15:17:19 [debug] 140028#0: eventfd: 9
-2023/11/10 15:17:19 [debug] 140028#0: testing the EPOLLRDHUP flag: success
-2023/11/10 15:17:19 [debug] 140028#0: malloc: 00005555556AB630:6144
-2023/11/10 15:17:19 [debug] 140028#0: malloc: 00007FFFF7C52010:229376
-2023/11/10 15:17:19 [debug] 140028#0: malloc: 00005555556C4420:98304
-2023/11/10 15:17:19 [debug] 140028#0: malloc: 00005555556DC430:98304
-2023/11/10 15:17:19 [debug] 140028#0: epoll add event: fd:7 op:1 ev:00002001
-2023/11/10 15:17:19 [debug] 140028#0: worker cycle
-2023/11/10 15:17:19 [debug] 140028#0: epoll timer: -1
-2023/11/10 15:17:52 [notice] 140213#0: signal process started
-2023/11/10 15:18:20 [notice] 140028#0: signal 1 (SIGHUP) received from 140213, reconfiguring
-2023/11/10 15:19:02 [info] 140028#0: epoll_wait() failed (4: Interrupted system call)
-2023/11/10 15:19:02 [debug] 140028#0: timer delta: 103132
-2023/11/10 15:19:02 [notice] 140028#0: reconfiguring
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 00005555556A2600:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: add cleanup: 00005555556A37B0
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 00005555556F4440:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556ACE40:4096
-2023/11/10 15:19:36 [debug] 140028#0: read: 10, 00005555556ACE40, 2775, 0
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556F8450:4280
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556F9510:4280
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556FA5D0:4280
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 00005555556FB690:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556FF6A0:4280
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555700760:4280
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555701820:4280
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555557028E0:4096
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 00005555557038F0:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: include mime.types
-2023/11/10 15:19:36 [debug] 140028#0: include /usr/local/cdir/nginx/conf/mime.types
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555707900:4096
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555708910:5349
-2023/11/10 15:19:36 [debug] 140028#0: read: 11, 0000555555707900, 4096, 0
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555709E00:4096
-2023/11/10 15:19:36 [debug] 140028#0: read: 11, 0000555555707901, 1253, 4096
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 000055555570AE10:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556ADE50:2048
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555570EE20:4544
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 000055555570FFF0:16384 @16
-2023/11/10 15:19:36 [debug] 140028#0: add cleanup: 000055555570EC88
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555707900:4096
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556ADE50:2048
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555707900:4096
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555707900:4096
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569D530:1024
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 00005555556ADE50:2048
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 0000555555714000:4672
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569E220:160
-2023/11/10 15:19:36 [debug] 140028#0: log: 00005555556A2980 10 "/usr/local/cdir/nginx/logs/error.log"
-2023/11/10 15:19:36 [debug] 140028#0: log: 00005555556A29A8 11 "/usr/local/cdir/nginx/logs/access.log"
-2023/11/10 15:19:36 [notice] 140028#0: using the "epoll" event method
-2023/11/10 15:19:36 [debug] 140028#0: posix_memalign: 00005555556B79B0:128 @16
-2023/11/10 15:19:36 [debug] 140028#0: malloc: 000055555569E450:80
-2023/11/10 15:19:36 [debug] 140028#0: event timer add: -1: 30000:54309456
-2023/11/10 15:19:36 [debug] 140028#0: worker cycle
-2023/11/10 15:19:36 [debug] 140028#0: epoll timer: 30000
-2023/11/10 15:20:12 [debug] 140028#0: timer delta: 35915
-2023/11/10 15:20:12 [debug] 140028#0: event timer del: -1: 54309456
-2023/11/10 15:20:12 [debug] 140028#0: clean old cycles
-2023/11/10 15:20:12 [debug] 140028#0: live fd:0
-2023/11/10 15:20:12 [debug] 140028#0: old cycles status: 1
-2023/11/10 15:20:12 [debug] 140028#0: event timer add: -1: 30000:54345371
-2023/11/10 15:20:12 [debug] 140028#0: worker cycle
-2023/11/10 15:20:12 [debug] 140028#0: epoll timer: 30000
+2024/02/01 14:40:41 [debug] 84586#0: *4 write new buf t:1 f:0 00005555556ADBE8, pos 00005555556ADBE8, size: 148 file: 0, size: 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 http write filter: l:0 f:0 s:148
+2024/02/01 14:40:41 [debug] 84586#0: *4 http output filter "/test?"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http copy filter: "/test?"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http postpone filter "/test?" 00007FFFFFFFE190
+2024/02/01 14:40:41 [debug] 84586#0: *4 write old buf t:1 f:0 00005555556ADBE8, pos 00005555556ADBE8, size: 148 file: 0, size: 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 write new buf t:1 f:0 00005555556ADCF0, pos 00005555556ADCF0, size: 14 file: 0, size: 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 http write filter: l:1 f:0 s:162
+2024/02/01 14:40:41 [debug] 84586#0: *4 http write filter limit 2097152
+2024/02/01 14:40:41 [debug] 84586#0: *4 writev: 162 of 162
+2024/02/01 14:40:41 [debug] 84586#0: *4 http write filter 0000000000000000
+2024/02/01 14:40:41 [debug] 84586#0: *4 http copy filter: 0 "/test?"
+2024/02/01 14:40:41 [debug] 84586#0: *4 http finalize request: 0, "/test?" a:1, c:1
+2024/02/01 14:40:41 [debug] 84586#0: *4 set http keepalive handler
+2024/02/01 14:40:41 [debug] 84586#0: *4 http close request
+2024/02/01 14:40:41 [debug] 84586#0: *4 http log handler
+2024/02/01 14:40:41 [debug] 84586#0: *4 free: 00005555556ACE40, unused: 192
+2024/02/01 14:40:41 [debug] 84586#0: *4 free: 00005555556A2600, unused: 2876
+2024/02/01 14:40:41 [debug] 84586#0: *4 free: 000055555569D530
+2024/02/01 14:40:41 [debug] 84586#0: *4 hc free: 0000000000000000
+2024/02/01 14:40:41 [debug] 84586#0: *4 hc busy: 0000000000000000 0
+2024/02/01 14:40:41 [debug] 84586#0: *4 tcp_nodelay
+2024/02/01 14:40:41 [debug] 84586#0: *4 reusable connection: 1
+2024/02/01 14:40:41 [debug] 84586#0: *4 event timer add: 10: 65000:2956295
+2024/02/01 14:40:41 [debug] 84586#0: timer delta: 0
+2024/02/01 14:40:41 [debug] 84586#0: worker cycle
+2024/02/01 14:40:41 [debug] 84586#0: epoll timer: 60000
+2024/02/01 14:40:41 [debug] 84586#0: epoll: fd:7 ev:0001 d:00007FFFF7C4F010
+2024/02/01 14:40:41 [debug] 84586#0: accept on 0.0.0.0:80, ready: 0
+2024/02/01 14:40:41 [debug] 84586#0: posix_memalign: 00005555556B70F0:512 @16
+2024/02/01 14:40:41 [debug] 84586#0: *6 accept: 127.0.0.1:58784 fd:12
+2024/02/01 14:40:41 [debug] 84586#0: *6 event timer add: 12: 60000:2951562
+2024/02/01 14:40:41 [debug] 84586#0: *6 reusable connection: 1
+2024/02/01 14:40:41 [debug] 84586#0: *6 epoll add event: fd:12 op:1 ev:80002001
+2024/02/01 14:40:41 [debug] 84586#0: timer delta: 267
+2024/02/01 14:40:41 [debug] 84586#0: worker cycle
+2024/02/01 14:40:41 [debug] 84586#0: epoll timer: 59733

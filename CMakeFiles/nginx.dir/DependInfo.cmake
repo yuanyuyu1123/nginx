@@ -132,8 +132,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/usr/local/cdir/nginx/src/os/unix/ngx_writev_chain.c" "CMakeFiles/nginx.dir/src/os/unix/ngx_writev_chain.c.o" "gcc" "CMakeFiles/nginx.dir/src/os/unix/ngx_writev_chain.c.o.d"
   )
 
-# Targets to which this target links.
-set(CMAKE_TARGET_LINKED_INFO_FILES
+# Targets to which this target links which contain Fortran sources.
+set(CMAKE_Fortran_TARGET_LINKED_INFO_FILES
   )
 
 # Fortran module output directory.
