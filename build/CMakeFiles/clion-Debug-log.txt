@@ -1,4 +1,4 @@
-C:\WINDOWS\system32\wsl.exe --distribution ubuntu22 --exec /bin/zsh -c "export CMAKE_COLOR_DIAGNOSTICS=ON && export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd /usr/local/cdir/nginx && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /usr/local/cdir/nginx -B /usr/local/cdir/nginx"
+C:\WINDOWS\system32\wsl.exe --distribution ubuntu22 --exec "/mnt/c/Users/yuan/AppData/Local/Programs/CLion Nova/bin/ttyfix" /bin/zsh -c "export PATH=\"/usr/bin:$PATH\" && export CLION_IDE=TRUE && export CMAKE_COLOR_DIAGNOSTICS=ON && export JETBRAINS_IDE=TRUE && cd /usr/local/cdir/nginx && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/usr/bin/make -DCMAKE_C_COMPILER=/usr/bin/cc '-DCMAKE_CXX_COMPILER=/usr/bin/c++' -G 'CodeBlocks - Unix Makefiles' -S /usr/local/cdir/nginx -B /usr/local/cdir/nginx"
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /usr/local/cdir/nginx

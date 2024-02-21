@@ -130,8 +130,9 @@ typedef intptr_t ngx_flag_t; //一般用用配置项中的 ON | OFF选项标记 
 #define NGX_ALIGNMENT   sizeof(unsigned long)    /* platform word */
 #endif
 
+// 将 d 对其到内存对齐地址
 #define ngx_align(d, a)     (((d) + (a - 1)) & ~(a - 1))
-// 将 m 对其到内存对齐地址
+// 将 p 对其到内存对齐地址
 #define ngx_align_ptr(p, a)                                                   \
     (u_char *) (((uintptr_t) (p) + ((uintptr_t) a - 1)) & ~((uintptr_t) a - 1))
 

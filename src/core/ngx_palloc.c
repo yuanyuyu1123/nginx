@@ -56,6 +56,7 @@ ngx_destroy_pool(ngx_pool_t *pool) {
     ngx_pool_large_t *l;
     ngx_pool_cleanup_t *c;
 
+    // 先回调清理函数
     for (c = pool->cleanup; c; c = c->next) { //cleanup在ngx_pool_cleanup_add赋值
         if (c->handler) {
             ngx_log_debug1(NGX_LOG_DEBUG_ALLOC, pool->log, 0,
@@ -86,12 +87,14 @@ ngx_destroy_pool(ngx_pool_t *pool) {
 
 #endif
 
+    //再释放大块内存
     for (l = pool->large; l; l = l->next) {
         if (l->alloc) {
             ngx_free(l->alloc);
         }
     }
 
+    //最后释放整个ngx_pool_t链表结构
     for (p = pool, n = pool->d.next; /* void */; p = n, n = n->d.next) {
         ngx_free(p);
 
@@ -123,13 +126,10 @@ ngx_reset_pool(ngx_pool_t *pool) {
     pool->large = NULL;
 }
 
-/*
-实际上，在r中可以获得许多内存池对象，这些内存池的大小、意义及生存期各不相同。第3部分会涉及许多内存池，本章使用r->pool内存池即可。有了ngx_pool_t对象后，
-可以从内存池中分配内存。
+/*实际上，在r中可以获得许多内存池对象,这些内存池的大小,意义及生存期各不相同.有了ngx_pool_t对象后，可以从内存池中分配内存。
 其中，ngx_palloc函数将会从pool内存池中分配到size字节的内存，并返回这段内存的起始地址。如果返回NULL空指针，则表示分配失败。
-还有一个封装了ngx_palloc的函数ngx_pcalloc，它多做了一件事，就是把ngx_palloc申请到的内存块全部置为0，虽然，多数情况下更适合用ngx_pcalloc来分配内存。
-*/ //我们使用ngx_palloc从内存池中获取一块内存
-//ngx_palloc和ngx_palloc的区别是分片小块内存时是否需要内存对齐
+还有一个封装了ngx_palloc的函数ngx_pcalloc，它多做了一件事，就是把ngx_palloc申请到的内存块全部置为0，虽然，多数情况下更适合用ngx_pcalloc来分配内存。*/
+//ngx_palloc和ngx_pnalloc的区别是分片小块内存时是否需要内存对齐
 void *
 ngx_palloc(ngx_pool_t *pool, size_t size) {
 #if !(NGX_DEBUG_PALLOC)
@@ -178,7 +178,7 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align) {
         p = p->d.next; //如果当前内存不够，则在下一个内存快中分配空间
 
     } while (p);
-
+    //当前的poll都无法分配时新创建一个适合的pool
     return ngx_palloc_block(pool, size);
 }
 
@@ -202,6 +202,9 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size) {
     new->d.next = NULL;
     new->d.failed = 0;
 
+    /*新的ngx_pool_t结构体d后面的所有字段值都是和之前内存池里面的值相同的。
+     *为了节约内存，因此在这个方法里面，我们会看到申请挂载的ngx_pool_t结构体的可分配起始位置是在申请内存返回地址的基础上加上的ngx_pool_data_t的大小,
+     *和创建的时候加上ngx_pool_t的大小不一样。*/
     m += sizeof(ngx_pool_data_t);
     m = ngx_align_ptr(m, NGX_ALIGNMENT);
     new->d.last = m + size;
@@ -210,7 +213,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size) {
     //如果失败次数大于4（不等于4），则更新current指针，放弃对老pool的内存进行再使用
     for (p = pool->current; p->d.next; p = p->d.next) {
         if (p->d.failed++ > 4) {
-            pool->current = p->d.next; // 更新 current 指针， 每次从pool中分配内存的时候都是从curren开始遍历pool节点获取内存的
+            pool->current = p->d.next; // 更新 current 指针,每次从pool中分配内存的时候都是从curren开始遍历pool节点获取内存的
         }
     }
     // 让旧指针数据区的 next 指向新分配的 pool
@@ -219,19 +222,16 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size) {
     return m;
 }
 
-/*
-当需要的内存大于pool最大可分配内存大小时，此时首先判断size已经大于pool->max的大小了，所以直接调用ngx_palloc_large进行大内存分配，
-本篇文章来源于 Linux公社网站(www.linuxidc.com)  原文链接：http://www.linuxidc.com/Linux/2011-08/41860.htm
-*/
+/*当需要的内存大于pool最大可分配内存大小时，此时首先判断size已经大于pool->max的大小了，所以直接调用ngx_palloc_large进行大内存分配*/
 static void *
 ngx_palloc_large(ngx_pool_t *pool, size_t size) {
     void *p;
     ngx_uint_t n;
     ngx_pool_large_t *large;
     /*
-    // 重新申请一块大小为 size 的新内存
-    // 注意：此处不使用 ngx_memalign 的原因是，新分配的内存较大，对其也没太大必要
-    //  而且后面提供了 ngx_pmemalign 函数，专门用户分配对齐了的内存
+     * 重新申请一块大小为 size 的新内存
+     * 注意：此处不使用 ngx_memalign 的原因是,新分配的内存较大,对齐也没太大必要
+     * 而且后面提供了 ngx_pmemalign 函数,专门用户分配对齐了的内存
     */
     p = ngx_alloc(size, pool->log);
     if (p == NULL) {
@@ -257,7 +257,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size) {
         ngx_free(p);
         return NULL;
     }
-    // 将新分配的 large 串到链表后面
+    // 将新分配的 large 串到链表前面
     large->alloc = p;
     large->next = pool->large;
     pool->large = large;
@@ -321,13 +321,7 @@ ngx_pcalloc(ngx_pool_t *pool, size_t size) {
     return p;
 }
 
-/*
-ngx_create_pool：创建pool
-ngx_destory_pool：销毁 pool
-ngx_reset_pool：重置pool中的部分数据
-ngx_palloc/ngx_pnalloc：从pool中分配一块内存
-ngx_pool_cleanup_add：为pool添加cleanup数据
-*/ //在pool中分配带有handler的内存，
+//在pool中分配带有handler的内存，
 /*
 以回收file为例:
 可以看到，ngx_pool_cleanup_file_t中的对象在ngx_buf_t缓冲区的file结构体中都出现过了，意义也是相同的。对于file结构体，我们在内存池中已经为它分配过内存，
@@ -362,8 +356,8 @@ ngx_pool_cleanup_add(ngx_pool_t *p, size_t size) {
         c->data = NULL;
     }
 
-    c->handler = NULL;
-    c->next = p->cleanup;
+    c->handler = NULL;//等待后续添加
+    c->next = p->cleanup;//添加到头部
 
     p->cleanup = c;
 
@@ -384,6 +378,7 @@ ngx_pool_run_cleanup_file(ngx_pool_t *p, ngx_fd_t fd) {
             cf = c->data;
 
             if (cf->fd == fd) {
+                //关闭文件
                 c->handler(cf);
                 c->handler = NULL;
                 return;
@@ -393,28 +388,6 @@ ngx_pool_run_cleanup_file(ngx_pool_t *p, ngx_fd_t fd) {
 }
 
 
-/*
-Nginx会异步地将整个文件高效地发送给用户，但是我们必须要求HTTP框架在响应发送完毕后关闭已经打开的文件句柄，否则将会出现句柄泄露问题。
-设置清理文件句柄也很简单，只需要定义一个ngx_pool_cleanup_t结构体（这是最简单的方法，HTTP框架还提供了其他方式，在请求结束时回调各个HTTP模块的cleanup方法，将在第11章介绍），
-将我们刚得到的文件句柄等信息赋给它，并将Nginx提供的ngx_pool_cleanup_file函数设置到它的handler回调方法中即可。
-*/
-//ngx_pool_cleanup_file的作用是把文件句柄关闭。从上面的实现中可以看出，ngx_pool_cleanup_file方法需要一个ngx_pool_cleanup_file_t类型的参数，
-//那么，如何提供这个参数呢？在ngx_pool_cleanup_t结构体的data成员上赋值即可。下面介绍一下ngx_pool_cleanup_file_t的结构。
-
-/*
-可以看到，ngx_pool_cleanup_file_t中的对象在ngx_buf_t缓冲区的file结构体中都出现过了，意义也是相同的。对于file结构体，我们在内存池中已经为它分配过内存，
-只有在请求结束时才会释放，因此，这里简单地引用file里的成员即可。清理文件句柄的完整代码如下。
-ngx_pool_cleanup_t* cln = ngx_pool_cleanup_add(r->pool, sizeof(ngx_pool_cleanup_file_t));
-if (cln == NULL) {
- return NGX_ERROR;
-}
-cln->handler = ngx_pool_cleanup_file;
-ngx_pool_cleanup_file_t  *clnf = cln->data;
-clnf->fd = b->file->fd;
-clnf->name = b->file->name.data;
-clnf->log = r->pool->log;
-ngx_pool_cleanup_add用于告诉HTTP框架，在请求结束时调用cln的handler方法清理资源。
-*/
 void
 ngx_pool_cleanup_file(void *data) {
     ngx_pool_cleanup_file_t *c = data;

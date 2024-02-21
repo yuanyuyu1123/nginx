@@ -43,6 +43,7 @@ ngx_create_temp_buf(ngx_pool_t *pool, size_t size) {
 }
 
 
+//获取并移除pool中的chain,没有则创建一个返回
 ngx_chain_t *
 ngx_alloc_chain_link(ngx_pool_t *pool) {
     ngx_chain_t *cl;
@@ -175,11 +176,9 @@ ngx_chain_get_free_buf(ngx_pool_t *p, ngx_chain_t **free) {
     return cl;
 }
 
-/*
-因为nginx可以提前flush输出，所以这些buf被输出后就可以重复使用，可以避免重分配，提高系统性能，被称为free_buf，而没有被输出的
-        buf就是busy_buf。nginx没有特别的集成这个特性到自身，但是提供了一个函数ngx_chain_update_chains来帮助开发者维护这两个缓冲区队列
-*/
-//该函数功能就是把新读到的out数据添加到busy表尾部，然后把busy表中已经处理完毕的buf节点从busy表中摘除，然后放到free表头部
+/*因为nginx可以提前flush输出,所以这些buf被输出后就可以重复使用,可以避免重分配，提高系统性能,被称为free_buf,而没有被输出的
+        buf就是busy_buf. nginx没有特别的集成这个特性到自身,但是提供了一个函数ngx_chain_update_chains来帮助开发者维护这两个缓冲区队列*/
+//该函数功能就是把新读到的out数据添加到busy表尾部,然后把busy表中已经处理完毕的buf节点从busy表中摘除,然后放到free表头部
 //未发送出去的buf节点既会在out链表中，也会在busy链表中
 void
 ngx_chain_update_chains(ngx_pool_t *p, ngx_chain_t **free, ngx_chain_t **busy,
@@ -268,7 +267,7 @@ ngx_chain_coalesce_file(ngx_chain_t **in, off_t limit) {
     return total;
 }
 
-//计算本次掉用ngx_writev发送出去的send字节在in链表中所有数据的那个位置
+//计算本次调用ngx_writev发送出去的send字节在in链表中所有数据的那个位置
 ngx_chain_t *
 ngx_chain_update_sent(ngx_chain_t *in, off_t sent) {
     off_t size;

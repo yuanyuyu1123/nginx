@@ -54,10 +54,9 @@ static ngx_conf_enum_t ngx_debug_points[] = {
 };
 
 //相关配置见ngx_event_core_commands ngx_http_core_commands ngx_stream_commands ngx_http_core_commands ngx_core_commands  ngx_mail_commands
-
 //对应的存放参数的值的结构体为ngx_core_conf_t
 static ngx_command_t ngx_core_commands[] = {
-//daemon on|off 是否已守护进程方式运行，守护进程是脱离终端在后台运行的进程，脱离终端是避免进程执行过程中的打印在任何终端上面显示
+           //daemon on|off 是否已守护进程方式运行，守护进程是脱离终端在后台运行的进程，脱离终端是避免进程执行过程中的打印在任何终端上面显示
         {ngx_string("daemon"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -65,7 +64,7 @@ static ngx_command_t ngx_core_commands[] = {
          offsetof(ngx_core_conf_t, daemon),
          NULL},
 
-//是否以master/slave方式运行  master_process on | off,如果以master/slave方式运行将以slave来接收连接，否则以master接收连接
+           //是否以master/slave方式运行  master_process on | off,如果以master/slave方式运行将以slave来接收连接，否则以master接收连接
         {ngx_string("master_process"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -74,10 +73,9 @@ static ngx_command_t ngx_core_commands[] = {
          NULL},
 
         //timer_resolution t表示至少t秒后才调用一次gettimeofday
-        /*
-         如果nginx.conf配置文件中设置了timer_resolution酡置项，即表明需要控制时间精度，这时会调用setitimer方法，设置时间间隔
-         为timer_resolution毫秒来回调ngx_timer_signal_handler方法
-         */ //timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次，从而可以从epoll中返回，并跟新时间，判断哪些事件有超时，执行超时事件，例如客户端继上次
+        /*如果nginx.conf配置文件中设置了timer_resolution酡置项，即表明需要控制时间精度，这时会调用setitimer方法，设置时间间隔
+         为timer_resolution毫秒来回调ngx_timer_signal_handler方法*/
+        //timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次，从而可以从epoll中返回，并跟新时间，判断哪些事件有超时，执行超时事件，例如客户端继上次
         //发请求过来，隔了client_header_timeout时间后还没有新请求过来，这会关闭连接
         {ngx_string("timer_resolution"), //单位是s
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
@@ -86,7 +84,7 @@ static ngx_command_t ngx_core_commands[] = {
          offsetof(ngx_core_conf_t, timer_resolution),
          NULL},
 
-//设置pid文件路径
+           //设置pid文件路径
         {ngx_string("pid"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_str_slot,
@@ -96,9 +94,7 @@ static ngx_command_t ngx_core_commands[] = {
 
         //lock_file logs/nginx.lock，如果不打开lock_file，则该nginx.lock文件不生效，没作用，如果打开，则开操作系统是否支持原子锁，如果不支持则用文件锁实现
         //一般linux是支持原子锁的，所以该文件没有意义
-        /*
-          见ngx_trylock_fd
-         */
+        /*见ngx_trylock_fd*/
         {ngx_string("lock_file"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_str_slot,
