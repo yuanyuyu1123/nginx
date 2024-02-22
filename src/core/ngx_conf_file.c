@@ -155,38 +155,11 @@ ngx_conf_add_dump(ngx_conf_t *cf, ngx_str_t *filename) {
     return NGX_OK;
 }
 
-/*
-    8) HTTP框架开始循环解析nginx.conf文件中http{．．．}里面的所有配置项，
-过程到第19步才会返回。
-    9)配置文件解析器在检测到1个配置项后，会遍历所有的HTTP模块，
-ngx_command_t数组中的name项是否与配置项名相同。
-    10)如果找到有1个HTTP模块（如mytest模块）对这个配置项感兴趣（如test- myconfig
-配置项），就调用ngx_command_t结构中的set方法来处理。
-    11) set方法返回是否处理成功。如果处理失败，那么Nginx进程会停止。
-    12)配置文件解析器继续检测配置项。如果发现server{．．．）配置项，就会调用ngx_http_
-core_module模块来处理。因为ngx_http_core_module模块明确表示希望处理server{}块下
-的配置项。注意，这次调用到第18步才会返回。
-    13) ngx_http_core_module棋块在解析server{...}之前，也会如第3步一样建立ngx_
-http_conf_ctx_t结构，并建立数组保存所有HTTP模块返回的指针地址。然后，它会调用每
-个HTTP模块的create_srv_conf、create_loc_conf方法（如果实现的话）。
-    14)将上一步各HTTP模块返回的指针地址保存到ngx_http_conf_ctx_t对应的数组中。
-    15)开始调用配置文件解析器来处理server{．．．}里面的配置项，注意，这个过程在第17
-步返回。
-    16)继续重复第9步的过程，遍历nginx.conf中当前server{．．．）内的所有配置项。
-    17)配置文件解析器继续解析配置项，发现当前server块已经遍历到尾部，说明server
-块内的配置项处理完毕，返回ngx_http_core_module模块。
-    18) http core模块也处理完server配置项了，返回至配置文件解析器继续解析后面的配
-置项。
-    19)配置文件解析器继续解析配置项，这时发现处理到了http{．．．）的尾部，返回给
-HTTP框架继续处理。
-*/
 
-/*
-它是一个间接的递归函数，也就是说虽然我们在该函数体内看不到直接的对其本身的调用，但是它执行的一些函数（比如ngx_conf_handler）内又会
-调用ngx_conf_parse函数，因此形成递归，这一般在处理一些特殊配置指令或复杂配置项，比如指令include、events、http、 server、location等的处理时。
-*/ //ngx配置解析数据结构图解参考:http://tech.uc.cn/?p=300  这个比较全
+/*它是一个间接的递归函数，也就是说虽然我们在该函数体内看不到直接的对其本身的调用，但是它执行的一些函数（比如ngx_conf_handler）内又会
+调用ngx_conf_parse函数，因此形成递归，这一般在处理一些特殊配置指令或复杂配置项，比如指令include、events、http、 server、location等的处理时。*/
 char *
-ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) { //参考:http://blog.chinaunix.net/uid-26335251-id-3483044.html
+ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
     char *rv;
     ngx_fd_t fd;
     ngx_int_t rc;
@@ -194,8 +167,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) { //参考:http://blog.china
     ngx_conf_file_t *prev, conf_file;
 
     /* ngx_conf_parse 这个函数来完成对配置文件的解析，其实这个函数不仅仅解析文件，还可以用来解析参数和块 */
-    /*
-    当执行到ngx_conf_parse函数内时，配置的解析可能处于三种状态：
+    /*当执行到ngx_conf_parse函数内时，配置的解析可能处于三种状态：
     第一种，刚开始解析一个配置文件，即此时的参数filename指向一个配置文件路径字符串，需要函数ngx_conf_parse打开该文件并获取相关
     的文件信息以便下面代码读取文件内容并进行解析，除了在上面介绍的nginx启动时开始主配置文件解析时属于这种情况，还有当遇到include
     指令时也将以这种状态调用ngx_conf_parse函数，因为include指令表示一个新的配置文件要开始解析。状态标记为type = parse_file;。
@@ -289,7 +261,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) { //参考:http://blog.china
         type = parse_param; //解析命令行参数
     }
 
-/* 读取文件中的内容放到缓冲区中，并进行解析，把解析的结果放到了cf->args 里面， 指令的每个单词都在数组中占一个位置，比如 set debug off  ，那么数组中存三个位置。*/
+    /*读取文件中的内容放到缓冲区中,并进行解析,把解析的结果放到了cf->args 里面,指令的每个单词都在数组中占一个位置,比如set debug off,那么数组中存三个位置*/
     for (;;) { //读取文件
         rc = ngx_conf_read_token(cf);
 
@@ -366,14 +338,6 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) { //参考:http://blog.china
             goto failed;
         }
 
-        /*
-               这个功能是在函数ngx_conf_handle中实现的，整个过程中需要遍历所有模块中的所有指令，如果找到一个，就直接调用指令的set函数，
-               完成对模块的配置信息的设置。 这里主要的过程就是判断是否是找到，需要判断下面一些条件：
-                 a  名字一致。配置文件中指令的名字和模块指令中的名字需要一致
-                 b  模块类型一致。配置文件指令处理的模块类型和当前模块一致
-                 c  指令类型一致。 配置文件指令类型和当前模块指令一致
-                 d  参数个数一致。配置文件中参数的个数和当前模块的当前指令参数一致。
-               */
         rc = ngx_conf_handler(cf, rc); //上面的ngx_conf_read_token返回的是解析到的一行配置，任何在ngx_modules中查找匹配该条配置的命令，执行相应的set
 
         if (rc == NGX_ERROR) {
@@ -512,11 +476,9 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
             /* 例如执行到http行，会走第二个if，确定http一级NGX_CORE_MODULE类型在ngx_cycle_s->conf_ctx中的位置，然后在继续后面的set函数，在
                该函数中开辟空间，并让conf_ctx[]数组里面的具体成员指针指向该空间，从而使http{}空间和ngx_cycle_s关联起来 */
 
-            /*
-            第一个if中执行的命令主要有(NGX_DIRECT_CONF):ngx_core_commands  ngx_openssl_commands  ngx_google_perftools_commands   ngx_regex_commands  ngx_thread_pool_commands
+            /*第一个if中执行的命令主要有(NGX_DIRECT_CONF):ngx_core_commands  ngx_openssl_commands  ngx_google_perftools_commands   ngx_regex_commands  ngx_thread_pool_commands
             第二个if中执行的命令主要有(NGX_MAIN_CONF):http   events include等
-            第三个if中执行的命令主要有(其他):http{}   events{} server server{} location及其location{}内部的命令
-            */
+            第三个if中执行的命令主要有(其他):http{}   events{} server server{} location及其location{}内部的命令*/
 
             //conf为开辟的main_conf  srv_conf loc_conf空间指针，真正的空间为各个模块module的ctx成员中,
             //可以参考ngx_http_mytest_config_module_ctx, http{}对应的空间开辟在ngx_http_block
@@ -531,7 +493,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
 
             } else if (cf->ctx) {
                 /*http{}内部行相关命令可以参考:ngx_http_core_commands,通过这些命令里面的NGX_HTTP_MAIN_CONF_OFFSET NGX_HTTP_SRV_CONF_OFFSET NGX_HTTP_LOC_CONF_OFFSET
-    可以确定出该命令行的地址对应在ngx_http_conf_ctx_t中的地址空间头部指针位置, 就是确定出该命令为ngx_http_conf_ctx的成员main srv loc中的那一个*/
+                  可以确定出该命令行的地址对应在ngx_http_conf_ctx_t中的地址空间头部指针位置, 就是确定出该命令为ngx_http_conf_ctx的成员main srv loc中的那一个*/
                 confp = *(void **) ((char *) cf->ctx + cmd->conf); //如果是http{}内部的行，则cf->ctx已经在ngx_http_block中被重新赋值为新的ngx_http_conf_ctx_t空间
                 //这里的cf->ctx为二级或者三级里面分配的空间了，而不是ngx_cycle_s->conf_ctx,例如为存储http{}内部配置项的空间，见ngx_http_block分配的空间
                 if (confp) { //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2，结合图看,并可以配合http://tech.uc.cn/?p=300看
@@ -578,7 +540,11 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
 }
 
 /*
-函数ngx_conf_read_token在读取了合适数量的标记token之后就开始下一步骤即对这些标记进行实际的处理。那多少才算是读取了合适数量的标记呢？区别对待，对于简单配置项则是读取其全部的标记，也就是遇到结束标记分号;为止，此时一条简单配置项的所有标记都被读取并存放在 cf->args数组内，因此可以调用其对应的回调函数进行实际的处理；对于复杂配置项则是读完其配置块前的所有标记，即遇到大括号{为止，此时复杂配置项处理函数所需要的标记都已读取到，而对于配置块{}内的标记将在接下来的函数ngx_conf_parse递归调用中继续处理，这可能是一个反复的过程。
+函数ngx_conf_read_token在读取了合适数量的标记token之后就开始下一步骤即对这些标记进行实际的处理。
+那多少才算是读取了合适数量的标记呢？区别对待，对于简单配置项则是读取其全部的标记，也就是遇到结束标记分号;为止，
+此时一条简单配置项的所有标记都被读取并存放在 cf->args数组内，因此可以调用其对应的回调函数进行实际的处理；
+对于复杂配置项则是读完其配置块前的所有标记，即遇到大括号{为止，此时复杂配置项处理函数所需要的标记都已读取到，
+而对于配置块{}内的标记将在接下来的函数ngx_conf_parse递归调用中继续处理，这可能是一个反复的过程。
 当然，函数ngx_conf_read_token也可能在其它情况下返回，比如配置文件格式出错、文件处理完（遇到文件结束）、块配置处理完（遇到大括号}），这几种返回情况的处理都很简单，不多详叙。
 对于简单/复杂配置项的处理，一般情况下，这是通过函数ngx_conf_handler来进行的，而也有特殊的情况，也就是配置项提供了自定义的处理函数，
 比如types指令。函数ngx_conf_handler也做了三件事情，首先，它需要找到当前解析出来的配置项所对应的 ngx_command_s结构体，
@@ -590,17 +556,13 @@ rv = cmd->set(cf, cmd, conf);
 进行处理，这也就是第三件事情。在处理函数内，根据实际的需要又可能再次调用函数ngx_conf_parse，如此反复直至所有配置信息都被处理完。
 */
 
-/*
- 首先明确,什么是一个token:
- token是处在两个相邻空格,换行符,双引号,单引号等之间的字符串.
-*/
+/*首先明确,什么是一个token:token是处在两个相邻空格,换行符,双引号,单引号等之间的字符串.*/
 
-/******************************************
+/*
 1.读取文件内容,每次读取一个buf大小(4K),如果文件内容不足4K则全部读取到buf中.
 2.扫描buf中的内容,每次扫描一个token就会存入cf->args中,然后返回.
 3.返回后调用ngx_conf_parse函数会调用*cf->handler和ngx_conf_handler(cf, rc)函数处理.
-3.如果是复杂配置项,会调用上次执行的状态继续解析配置文件.
-*****************************************/
+3.如果是复杂配置项,会调用上次执行的状态继续解析配置文件.*/
 static ngx_int_t
 ngx_conf_read_token(ngx_conf_t *cf) { //参考http://blog.chinaunix.net/uid-26335251-id-3483044.html
     u_char *start, ch, *src, *dst;
@@ -613,11 +575,9 @@ ngx_conf_read_token(ngx_conf_t *cf) { //参考http://blog.chinaunix.net/uid-2633
     ngx_buf_t *b, *dump; //b为在函数外层开辟的4096字节的存储file文件内容的空间，dump为当解析到尾部的时候不足以构成一个token的时候，零时把这部分内存存起来
 
     found = 0; //标志位,表示找到一个token
-    /*************************
-    标志位,表示此时需要一个token分隔符,即token前面的分隔符
+    /*标志位,表示此时需要一个token分隔符,即token前面的分隔符
     一般刚刚解析完一对双引号或者单引号,此时设置need_space为1,
-    表示期待下一个字符为分隔符
-    **********************/
+    表示期待下一个字符为分隔符*/
     need_space = 0;
     last_space = 1; //标志位,表示上一个字符为token分隔符
     sharp_comment = 0; //注释(#)
@@ -1276,95 +1236,6 @@ ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-/*
-char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
-    如果处理配置项，我们既可以自己实现一个回调方法来处理配置项（），也可以使用Nginx预设的14个解析配置项方法，这会少
-写许多代码，表4-2列出了这些预设的解析配置项方法。
-表4-2预设的14个配置项解析方法
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名              ┃    行为                                                                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
-┃                            ┃或者关闭某个功能的意思），而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
-┃ngx_conf_set_flag_slot      ┃存这个配置项的参数，就可以将set回调方法设为ngx_conf_set_flag_slot。当nginx.   ┃
-┃                            ┃conf文件中参数是on时，代码中的ngx_flag_t类型变量将设为1，参数为off时则        ┃
-┃                            ┃设为O                                                                         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果配置项后只有1个参数，同时在代码中我们希望用ngx_str_t类型的变量来保      ┃
-┃ngx_conf_set_str_slot       ┃                                                                              ┃
-┃                            ┃存这个配置项的参数，则可以使用ngx_conf_set_ str slot方法                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果这个配置项会出现多次，每个配置项后面都跟着1个参数，而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数，且数组中      ┃
-┃ngx_conf_set_str_array_slot ┃                                                                              ┃
-┃                            ┃的每个参数都以ngx_str_t来存储，那么预设的ngx_conf_set_str_array_slot有法可    ┃
-┃                            ┃以帮我们做到                                                                  ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_str_array_slot类似，也是用一个ngx_array_t数组来存储所有同    ┃
-┃                            ┃名配置项的参数。只是每个配置项的参数不再只是1个，而必须是两个，且以“配       ┃
-┃ngx_conf_set_keyval_slot    ┃                                                                              ┃
-┃                            ┃置项名关键字值；”的形式出现在nginx．conf文件中，同时，ngx_conf_set_keyval    ┃
-┃                            ┃ slot将把这蜱配置项转化为数组，其中每个元素都存储着key/value键值对            ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_conf_set_num_slot       ┃  配置项后必须携带1个参数，且只能是数字。存储这个参数的变量必须是整型         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间大小，可以是一个数字，这时表示字节数       ┃
-┃                            ┃(Byte)。如果数字后跟着k或者K，就表示Kilobyt，IKB=1024B；如果数字后跟          ┃
-┃ngx_conf_set_size_slot      ┃                                                                              ┃
-┃                            ┃着m或者M，就表示Megabyte，1MB=1024KB。ngx_conf_set_ size slot解析后将         ┃
-┃                            ┃把配置项后的参数转化成以字节数为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间上的偏移量。它与设置的参数非常类似，       ┃
-┃                            ┃其参数是一个数字时表示Byte，也可以在后面加单位，但与ngx_conf_set_size slot    ┃
-┃ngx_conf_set_off_slot       ┃不同的是，数字后面的单位不仅可以是k或者K、m或者M，还可以是g或者G，            ┃
-┃                            ┃这时表示Gigabyte，IGB=1024MB。ngx_conf_set_off_slot解析后将把配置项后的       ┃
-┃                            ┃参数转化成以字节数为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示时间。这个参数可以在数字后面加单位，如         ┃
-┃                            ┃果单位为s或者没有任何单位，那么这个数字表示秒；如果单位为m，则表示分          ┃
-┃                            ┃钟，Im=60s：如果单位为h，则表示小时，th=60m：如果单位为d，则表示天，          ┃
-┃ngx_conf_set_msec_slot      ┃                                                                              ┃
-┃                            ┃ld=24h：如果单位为w，则表示周，lw=7d；如果单位为M，则表示月，1M=30d；         ┃
-┃                            ┃如果单位为y，则表示年，ly=365d。ngx_conf_set_msec_slot解析后将把配置项后     ┃
-┃                            ┃的参数转化成以毫秒为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_msec slot非常类似，唯一的区别是ngx_conf_set msec—slot解析   ┃
-┃ngx_conf_set_sec_slot       ┃后将把配置项后的参数转化成以毫秒为单位的数字，而ngx_conf_set_sec一slot解析    ┃
-┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带一两个参数，第1个参数是数字，第2个参数表示空间大小。        ┃
-┃                            ┃例如，“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区），其中第1  ┃
-┃                            ┃个参数不可以携带任何单位，第2个参数不带任何单位时表示Byte，如果以k或          ┃
-┃ngx_conf_set_bufs_slot      ┃者K作为单位，则表示Kilobyte，如果以m或者M作为单位，则表示Megabyte。           ┃
-┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员。这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
-┃                            ┃接对端发来的TCP流）                                                           ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，其取值范围必须是我们设定好的字符串之一（就像       ┃
-┃                            ┃C语言中的枚举一样）。首先，我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
-┃ngx_conf_set_enum_slot      ┃                                                                              ┃
-┃                            ┃围，并设定每个值对应的序列号。然后，ngx_conf_set enum slot将会把配置项参      ┃
-┃                            ┃数转化为对应的序列号                                                          ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  写ngx_conf_set bitmask slot类似，配置项后必须携带1个参数，其取值范围必      ┃
-┃                            ┃须是设定好的字符串之一。首先，我们要用ngx_conf_bitmask_t结构定义配置项的      ┃
-┃ngx_conf_set_bitmask_slot   ┃                                                                              ┃
-┃                            ┃取值范围，并设定每个值对应的比特位。注意，每个值所对应的比特位都要不同。      ┃
-┃                            ┃然后ngx_conf_set_bitmask_ slot将会把配置项参数转化为对应的比特位              ┃
-┗━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名            ┃    行为                                                                    ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置目录或者文件的读写权限。配置项后可以携带1～3个参数，      ┃
-┃                          ┃可以是如下形式：user:rw group:rw all:rw。注意，它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access slot  ┃录的权限意义是一致的，但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读），不可以有其他任何形式，如w或者rx等。ngx_conf_set- access slot   ┃
-┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置路径，配置项后必须携带1个参数，表示1个有意义的路径。      ┃
-┃ngx_conf_set_path_slot    ┃                                                                            ┃
-┃                          ┃ngx_conf_set_path_slot将会把参数转化为ngx_path_t结构                        ┃
-┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛*/
 
 /*
 test_str_array配置项也只能出现在location{．．．}块内。如果有以下配置：
@@ -1377,8 +1248,7 @@ ngx_str_t类型组成的数组，这样就可以按以下方式访问这两个�
 ngx_str_t*  pstr  =  mycf->my_str_array->elts ;
 于是，pstr[0]和pstr[l]可以取到参数值，分别是{len=14;data=“Content-Length”；}和
 {len=16;data=“Content-Encoding”；)。从这里可以看到，当处理HTTP头部这样的配置项
-时是很适合使用ngx_conf_set_str_array_slot预设方法的。
-*/
+时是很适合使用ngx_conf_set_str_array_slot预设方法的。*/
 char *
 ngx_conf_set_str_array_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     char *p = conf;
@@ -1428,11 +1298,9 @@ ngx_conf_set_str_array_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-/*
-注意  在ngx_http_mytest_create_loc_conf创建结构体时，如果想使用ngx_conf_set_
+/*注意在ngx_http_mytest_create_loc_conf创建结构体时，如果想使用ngx_conf_set_
 keyval_slot，必须把my_keyval初始化为NULL空指针，
-否则ngx_conf_set_keyval_slot在解析时会报错。
-*/
+否则ngx_conf_set_keyval_slot在解析时会报错。*/
 char *
 ngx_conf_set_keyval_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     char *p = conf;
@@ -1469,101 +1337,9 @@ ngx_conf_set_keyval_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-/*
-char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
-    关于set回调方法，在处理mytest配置项时已经使用过，其中mytest配置项是
-不带参数的。如果处理配置项，我们既可以自己实现一个回调方法来处理配置项（），也可以使用Nginx预设的14个解析配置项方法，这会少
-写许多代码
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名              ┃    行为                                                                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
-┃                            ┃或者关闭某个功能的意思），而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
-┃ngx_conf_set_flag_slot      ┃存这个配置项的参数，就可以将set回调方法设为ngx_conf_set_flag_slot。当nginx.   ┃
-┃                            ┃conf文件中参数是on时，代码中的ngx_flag_t类型变量将设为1，参数为off时则        ┃
-┃                            ┃设为O                                                                         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果配置项后只有1个参数，同时在代码中我们希望用ngx_str_t类型的变量来保      ┃
-┃ngx_conf_set_str_slot       ┃                                                                              ┃
-┃                            ┃存这个配置项的参数，则可以使用ngx_conf_set_ str slot方法                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果这个配置项会出现多次，每个配置项后面都跟着1个参数，而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数，且数组中      ┃
-┃ngx_conf_set_str_array_slot ┃                                                                              ┃
-┃                            ┃的每个参数都以ngx_str_t来存储，那么预设的ngx_conf_set_str_array_slot有法可    ┃
-┃                            ┃以帮我们做到                                                                  ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_str_array_slot类似，也是用一个ngx_array_t数组来存储所有同    ┃
-┃                            ┃名配置项的参数。只是每个配置项的参数不再只是1个，而必须是两个，且以“配       ┃
-┃ngx_conf_set_keyval_slot    ┃                                                                              ┃
-┃                            ┃置项名关键字值；”的形式出现在nginx．conf文件中，同时，ngx_conf_set_keyval    ┃
-┃                            ┃ slot将把这蜱配置项转化为数组，其中每个元素都存储着key/value键值对            ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_conf_set_num_slot       ┃  配置项后必须携带1个参数，且只能是数字。存储这个参数的变量必须是整型         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间大小，可以是一个数字，这时表示字节数       ┃
-┃                            ┃(Byte)。如果数字后跟着k或者K，就表示Kilobyt，IKB=1024B；如果数字后跟          ┃
-┃ngx_conf_set_size_slot      ┃                                                                              ┃
-┃                            ┃着m或者M，就表示Megabyte，1MB=1024KB。ngx_conf_set_ size slot解析后将         ┃
-┃                            ┃把配置项后的参数转化成以字节数为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间上的偏移量。它与设置的参数非常类似，       ┃
-┃                            ┃其参数是一个数字时表示Byte，也可以在后面加单位，但与ngx_conf_set_size slot    ┃
-┃ngx_conf_set_off_slot       ┃不同的是，数字后面的单位不仅可以是k或者K、m或者M，还可以是g或者G，            ┃
-┃                            ┃这时表示Gigabyte，IGB=1024MB。ngx_conf_set_off_slot解析后将把配置项后的       ┃
-┃                            ┃参数转化成以字节数为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示时间。这个参数可以在数字后面加单位，如         ┃
-┃                            ┃果单位为s或者没有任何单位，那么这个数字表示秒；如果单位为m，则表示分          ┃
-┃                            ┃钟，Im=60s：如果单位为h，则表示小时，th=60m：如果单位为d，则表示天，          ┃
-┃ngx_conf_set_msec_slot      ┃                                                                              ┃
-┃                            ┃ld=24h：如果单位为w，则表示周，lw=7d；如果单位为M，则表示月，1M=30d；         ┃
-┃                            ┃如果单位为y，则表示年，ly=365d。ngx_conf_set_msec_slot解析后将把配置项后     ┃
-┃                            ┃的参数转化成以毫秒为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_msec slot非常类似，唯一的区别是ngx_conf_set msec—slot解析   ┃
-┃ngx_conf_set_sec_slot       ┃后将把配置项后的参数转化成以毫秒为单位的数字，而ngx_conf_set_sec一slot解析    ┃
-┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带一两个参数，第1个参数是数字，第2个参数表示空间大小。        ┃
-┃                            ┃例如，“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区），其中第1  ┃
-┃                            ┃个参数不可以携带任何单位，第2个参数不带任何单位时表示Byte，如果以k或          ┃
-┃ngx_conf_set_bufs_slot      ┃者K作为单位，则表示Kilobyte，如果以m或者M作为单位，则表示Megabyte。           ┃
-┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员。这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
-┃                            ┃接对端发来的TCP流）                                                           ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，其取值范围必须是我们设定好的字符串之一（就像       ┃
-┃                            ┃C语言中的枚举一样）。首先，我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
-┃ngx_conf_set_enum_slot      ┃                                                                              ┃
-┃                            ┃围，并设定每个值对应的序列号。然后，ngx_conf_set enum slot将会把配置项参      ┃
-┃                            ┃数转化为对应的序列号                                                          ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  写ngx_conf_set bitmask slot类似，配置项后必须携带1个参数，其取值范围必      ┃
-┃                            ┃须是设定好的字符串之一。首先，我们要用ngx_conf_bitmask_t结构定义配置项的      ┃
-┃ngx_conf_set_bitmask_slot   ┃                                                                              ┃
-┃                            ┃取值范围，并设定每个值对应的比特位。注意，每个值所对应的比特位都要不同。      ┃
-┃                            ┃然后ngx_conf_set_bitmask_ slot将会把配置项参数转化为对应的比特位              ┃
-┗━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名            ┃    行为                                                                    ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置目录或者文件的读写权限。配置项后可以携带1～3个参数，      ┃
-┃                          ┃可以是如下形式：user:rw group:rw all:rw。注意，它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access slot  ┃录的权限意义是一致的，但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读），不可以有其他任何形式，如w或者rx等。ngx_conf_set- access slot   ┃
-┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置路径，配置项后必须携带1个参数，表示1个有意义的路径。      ┃
-┃ngx_conf_set_path_slot    ┃                                                                            ┃
-┃                          ┃ngx_conf_set_path_slot将会把参数转化为ngx_path_t结构                        ┃
-┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
 
-/*
-注意在ngx_http_mytest_create loc conf创建结构体时，如果想使用ngx_conf_set_num_slot,
-必须把my_num初始化为NGX_CONF_UNSET宏  否则ngx_conf_set_num_slot在解析时会报错。
-*/
+/*注意在ngx_http_mytest_create loc conf创建结构体时，如果想使用ngx_conf_set_num_slot,
+必须把my_num初始化为NGX_CONF_UNSET宏  否则ngx_conf_set_num_slot在解析时会报错。*/
 char *
 ngx_conf_set_num_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     char *p = conf;
@@ -1635,95 +1411,6 @@ ngx_conf_set_size_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-/*
-char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
-    关于set回调方法，在处理mytest配置项时已经使用过，其中mytest配置项是
-不带参数的。如果处理配置项，我们既可以自己实现一个回调方法来处理配置项（），也可以使用Nginx预设的14个解析配置项方法，这会少
-写许多代码，
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名              ┃    行为                                                                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
-┃                            ┃或者关闭某个功能的意思），而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
-┃ngx_conf_set_flag_slot      ┃存这个配置项的参数，就可以将set回调方法设为ngx_conf_set_flag_slot。当nginx.   ┃
-┃                            ┃conf文件中参数是on时，代码中的ngx_flag_t类型变量将设为1，参数为off时则        ┃
-┃                            ┃设为O                                                                         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果配置项后只有1个参数，同时在代码中我们希望用ngx_str_t类型的变量来保      ┃
-┃ngx_conf_set_str_slot       ┃                                                                              ┃
-┃                            ┃存这个配置项的参数，则可以使用ngx_conf_set_ str slot方法                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果这个配置项会出现多次，每个配置项后面都跟着1个参数，而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数，且数组中      ┃
-┃ngx_conf_set_str_array_slot ┃                                                                              ┃
-┃                            ┃的每个参数都以ngx_str_t来存储，那么预设的ngx_conf_set_str_array_slot有法可    ┃
-┃                            ┃以帮我们做到                                                                  ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_str_array_slot类似，也是用一个ngx_array_t数组来存储所有同    ┃
-┃                            ┃名配置项的参数。只是每个配置项的参数不再只是1个，而必须是两个，且以“配       ┃
-┃ngx_conf_set_keyval_slot    ┃                                                                              ┃
-┃                            ┃置项名关键字值；”的形式出现在nginx．conf文件中，同时，ngx_conf_set_keyval    ┃
-┃                            ┃ slot将把这蜱配置项转化为数组，其中每个元素都存储着key/value键值对            ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_conf_set_num_slot       ┃  配置项后必须携带1个参数，且只能是数字。存储这个参数的变量必须是整型         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间大小，可以是一个数字，这时表示字节数       ┃
-┃                            ┃(Byte)。如果数字后跟着k或者K，就表示Kilobyt，IKB=1024B；如果数字后跟          ┃
-┃ngx_conf_set_size_slot      ┃                                                                              ┃
-┃                            ┃着m或者M，就表示Megabyte，1MB=1024KB。ngx_conf_set_ size slot解析后将         ┃
-┃                            ┃把配置项后的参数转化成以字节数为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间上的偏移量。它与设置的参数非常类似，       ┃
-┃                            ┃其参数是一个数字时表示Byte，也可以在后面加单位，但与ngx_conf_set_size slot    ┃
-┃ngx_conf_set_off_slot       ┃不同的是，数字后面的单位不仅可以是k或者K、m或者M，还可以是g或者G，            ┃
-┃                            ┃这时表示Gigabyte，IGB=1024MB。ngx_conf_set_off_slot解析后将把配置项后的       ┃
-┃                            ┃参数转化成以字节数为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示时间。这个参数可以在数字后面加单位，如         ┃
-┃                            ┃果单位为s或者没有任何单位，那么这个数字表示秒；如果单位为m，则表示分          ┃
-┃                            ┃钟，Im=60s：如果单位为h，则表示小时，th=60m：如果单位为d，则表示天，          ┃
-┃ngx_conf_set_msec_slot      ┃                                                                              ┃
-┃                            ┃ld=24h：如果单位为w，则表示周，lw=7d；如果单位为M，则表示月，1M=30d；         ┃
-┃                            ┃如果单位为y，则表示年，ly=365d。ngx_conf_set_msec_slot解析后将把配置项后     ┃
-┃                            ┃的参数转化成以毫秒为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_msec slot非常类似，唯一的区别是ngx_conf_set msec—slot解析   ┃
-┃ngx_conf_set_sec_slot       ┃后将把配置项后的参数转化成以毫秒为单位的数字，而ngx_conf_set_sec一slot解析    ┃
-┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带一两个参数，第1个参数是数字，第2个参数表示空间大小。        ┃
-┃                            ┃例如，“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区），其中第1  ┃
-┃                            ┃个参数不可以携带任何单位，第2个参数不带任何单位时表示Byte，如果以k或          ┃
-┃ngx_conf_set_bufs_slot      ┃者K作为单位，则表示Kilobyte，如果以m或者M作为单位，则表示Megabyte。           ┃
-┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员。这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
-┃                            ┃接对端发来的TCP流）                                                           ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，其取值范围必须是我们设定好的字符串之一（就像       ┃
-┃                            ┃C语言中的枚举一样）。首先，我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
-┃ngx_conf_set_enum_slot      ┃                                                                              ┃
-┃                            ┃围，并设定每个值对应的序列号。然后，ngx_conf_set enum slot将会把配置项参      ┃
-┃                            ┃数转化为对应的序列号                                                          ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  写ngx_conf_set bitmask slot类似，配置项后必须携带1个参数，其取值范围必      ┃
-┃                            ┃须是设定好的字符串之一。首先，我们要用ngx_conf_bitmask_t结构定义配置项的      ┃
-┃ngx_conf_set_bitmask_slot   ┃                                                                              ┃
-┃                            ┃取值范围，并设定每个值对应的比特位。注意，每个值所对应的比特位都要不同。      ┃
-┃                            ┃然后ngx_conf_set_bitmask_ slot将会把配置项参数转化为对应的比特位              ┃
-┗━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名            ┃    行为                                                                    ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置目录或者文件的读写权限。配置项后可以携带1～3个参数，      ┃
-┃                          ┃可以是如下形式：user:rw group:rw all:rw。注意，它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access slot  ┃录的权限意义是一致的，但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读），不可以有其他任何形式，如w或者rx等。ngx_conf_set- access slot   ┃
-┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置路径，配置项后必须携带1个参数，表示1个有意义的路径。      ┃
-┃ngx_conf_set_path_slot    ┃                                                                            ┃
-┃                          ┃ngx_conf_set_path_slot将会把参数转化为ngx_path_t结构                        ┃
-┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛*/
 
 /*
 如果希望配置项表达的含义是空间的偏移位置，那么可以使用ngx_conf_set_off_slot预

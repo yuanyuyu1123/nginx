@@ -102,17 +102,14 @@ ngx_test_full_name(ngx_str_t *name) {
 #endif
 }
 
-/*
-如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了，则会把缓存中的数据写入临时文件，然后继续读，读到ngx_event_pipe_write_chain_to_temp_file
+/*如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了，则会把缓存中的数据写入临时文件，然后继续读，读到ngx_event_pipe_write_chain_to_temp_file
 后写入临时文件，直到read返回NGX_AGAIN,然后在ngx_event_pipe_write_to_downstream->ngx_output_chain->ngx_output_chain_copy_buf中读取临时文件内容
-发送到后端，当数据继续到来，通过epoll read继续循环该流程
-*/
+发送到后端，当数据继续到来，通过epoll read继续循环该流程*/
 
 /*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
 中创建临时文件，然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件，最后在
 ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
-的cache目录下面
-*/
+的cache目录下面*/
 
 
 //创建temp_file临时文件，并把chain链表中的数据写入文件，返回值为写入到文件中的字节数
@@ -255,9 +252,7 @@ ngx_create_temp_file(ngx_file_t *file, ngx_path_t *path, ngx_pool_t *pool,
     }
 }
 
-/*
-ngx_create_hashed_filename 是通过level设置对应的文件夹路径，是根据md5值过来的后面的位数定义的文件夹。
-*/
+/*ngx_create_hashed_filename 是通过level设置对应的文件夹路径，是根据md5值过来的后面的位数定义的文件夹。*/
 void
 ngx_create_hashed_filename(ngx_path_t *path, u_char *file, size_t len) {
     size_t i, level;
@@ -266,11 +261,9 @@ ngx_create_hashed_filename(ngx_path_t *path, u_char *file, size_t len) {
     i = path->name.len + 1;
 
     file[path->name.len + path->len] = '/';
-    /*
-     levels=1:2，意思是说使用两级目录，第一级目录名是一个字符，第二级用两个字符。但是nginx最大支持3级目录，即levels=xxx:xxx:xxx。
+    /*levels=1:2，意思是说使用两级目录，第一级目录名是一个字符，第二级用两个字符。但是nginx最大支持3级目录，即levels=xxx:xxx:xxx。
      那么构成目录名字的字符哪来的呢？假设我们的存储目录为/cache，levels=1:2，那么对于上面的文件 就是这样存储的：
-     /cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致
-    */
+     /cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致*/
     for (n = 0; n < NGX_MAX_PATH_LEVEL; n++) { //拷贝最后面的MD5值字符串中的最后level[i]个字节到level所处位置
         level = path->level[n];
 
@@ -381,96 +374,6 @@ ngx_next_temp_number(ngx_uint_t collision) {
     return n + add;
 }
 
-/*
-char*(*set)(ngx_conf_t *cf, ngx_command_t 'vcmd,void *conf)
-    关于set回调方法，在处理mytest配置项时已经使用过，其中mytest配置项是
-不带参数的。如果处理配置项，我们既可以自己实现一个回调方法来处理配置项（），也可以使用Nginx预设的14个解析配置项方法，这会少
-写许多代码，
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名              ┃    行为                                                                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
-┃                            ┃或者关闭某个功能的意思），而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
-┃ngx_conf_set_flag_slot      ┃存这个配置项的参数，就可以将set回调方法设为ngx_conf_set_flag_slot。当nginx.   ┃
-┃                            ┃conf文件中参数是on时，代码中的ngx_flag_t类型变量将设为1，参数为off时则        ┃
-┃                            ┃设为O                                                                         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果配置项后只有1个参数，同时在代码中我们希望用ngx_str_t类型的变量来保      ┃
-┃ngx_conf_set_str_slot       ┃                                                                              ┃
-┃                            ┃存这个配置项的参数，则可以使用ngx_conf_set_ str slot方法                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果这个配置项会出现多次，每个配置项后面都跟着1个参数，而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数，且数组中      ┃
-┃ngx_conf_set_str_array_slot ┃                                                                              ┃
-┃                            ┃的每个参数都以ngx_str_t来存储，那么预设的ngx_conf_set_str_array_slot有法可    ┃
-┃                            ┃以帮我们做到                                                                  ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_str_array_slot类似，也是用一个ngx_array_t数组来存储所有同    ┃
-┃                            ┃名配置项的参数。只是每个配置项的参数不再只是1个，而必须是两个，且以“配       ┃
-┃ngx_conf_set_keyval_slot    ┃                                                                              ┃
-┃                            ┃置项名关键字值；”的形式出现在nginx．conf文件中，同时，ngx_conf_set_keyval    ┃
-┃                            ┃ slot将把这蜱配置项转化为数组，其中每个元素都存储着key/value键值对            ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_conf_set_num_slot       ┃  配置项后必须携带1个参数，且只能是数字。存储这个参数的变量必须是整型         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间大小，可以是一个数字，这时表示字节数       ┃
-┃                            ┃(Byte)。如果数字后跟着k或者K，就表示Kilobyt，IKB=1024B；如果数字后跟          ┃
-┃ngx_conf_set_size_slot      ┃                                                                              ┃
-┃                            ┃着m或者M，就表示Megabyte，1MB=1024KB。ngx_conf_set_ size slot解析后将         ┃
-┃                            ┃把配置项后的参数转化成以字节数为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间上的偏移量。它与设置的参数非常类似，       ┃
-┃                            ┃其参数是一个数字时表示Byte，也可以在后面加单位，但与ngx_conf_set_size slot    ┃
-┃ngx_conf_set_off_slot       ┃不同的是，数字后面的单位不仅可以是k或者K、m或者M，还可以是g或者G，            ┃
-┃                            ┃这时表示Gigabyte，IGB=1024MB。ngx_conf_set_off_slot解析后将把配置项后的       ┃
-┃                            ┃参数转化成以字节数为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示时间。这个参数可以在数字后面加单位，如         ┃
-┃                            ┃果单位为s或者没有任何单位，那么这个数字表示秒；如果单位为m，则表示分          ┃
-┃                            ┃钟，Im=60s：如果单位为h，则表示小时，th=60m：如果单位为d，则表示天，          ┃
-┃ngx_conf_set_msec_slot      ┃                                                                              ┃
-┃                            ┃ld=24h：如果单位为w，则表示周，lw=7d；如果单位为M，则表示月，1M=30d；         ┃
-┃                            ┃如果单位为y，则表示年，ly=365d。ngx_conf_set_msec_slot解析后将把配置项后     ┃
-┃                            ┃的参数转化成以毫秒为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_msec slot非常类似，唯一的区别是ngx_conf_set msec—slot解析   ┃
-┃ngx_conf_set_sec_slot       ┃后将把配置项后的参数转化成以毫秒为单位的数字，而ngx_conf_set_sec一slot解析    ┃
-┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带一两个参数，第1个参数是数字，第2个参数表示空间大小。        ┃
-┃                            ┃例如，“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区），其中第1  ┃
-┃                            ┃个参数不可以携带任何单位，第2个参数不带任何单位时表示Byte，如果以k或          ┃
-┃ngx_conf_set_bufs_slot      ┃者K作为单位，则表示Kilobyte，如果以m或者M作为单位，则表示Megabyte。           ┃
-┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员。这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
-┃                            ┃接对端发来的TCP流）                                                           ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，其取值范围必须是我们设定好的字符串之一（就像       ┃
-┃                            ┃C语言中的枚举一样）。首先，我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
-┃ngx_conf_set_enum_slot      ┃                                                                              ┃
-┃                            ┃围，并设定每个值对应的序列号。然后，ngx_conf_set enum slot将会把配置项参      ┃
-┃                            ┃数转化为对应的序列号                                                          ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  写ngx_conf_set bitmask slot类似，配置项后必须携带1个参数，其取值范围必      ┃
-┃                            ┃须是设定好的字符串之一。首先，我们要用ngx_conf_bitmask_t结构定义配置项的      ┃
-┃ngx_conf_set_bitmask_slot   ┃                                                                              ┃
-┃                            ┃取值范围，并设定每个值对应的比特位。注意，每个值所对应的比特位都要不同。      ┃
-┃                            ┃然后ngx_conf_set_bitmask_ slot将会把配置项参数转化为对应的比特位              ┃
-┗━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名            ┃    行为                                                                    ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置目录或者文件的读写权限。配置项后可以携带1～3个参数，      ┃
-┃                          ┃可以是如下形式：user:rw group:rw all:rw。注意，它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access_slot  ┃录的权限意义是一致的，但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读），不可以有其他任何形式，如w或者rx等。ngx_conf_set- access slot   ┃
-┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置路径，配置项后必须携带1个参数，表示1个有意义的路径。      ┃
-┃ngx_conf_set_path_slot    ┃                                                                            ┃
-┃                          ┃ngx_conf_set_path_slot将会把参数转化为ngx_path_t结构                        ┃
-┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
 
 /*
 ngx_conf_set_path_slot可以携带1～4个参数，其中第1个参数必须是路径，第2～4
@@ -601,96 +504,6 @@ ngx_conf_merge_path_value(ngx_conf_t *cf, ngx_path_t **path, ngx_path_t *prev,
     return NGX_CONF_OK;
 }
 
-/*
-char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
-    关于set回调方法，在处理mytest配置项时已经使用过，其中mytest配置项是
-    不带参数的。如果处理配置项，我们既可以自己实现一个回调方法来处理配置项（），也可以使用Nginx预设的14个解析配置项方法，这会少
-写许多代码
-┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名              ┃    行为                                                                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
-┃                            ┃或者关闭某个功能的意思），而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
-┃ngx_conf_set_flag_slot      ┃存这个配置项的参数，就可以将set回调方法设为ngx_conf_set_flag_slot。当nginx.   ┃
-┃                            ┃conf文件中参数是on时，代码中的ngx_flag_t类型变量将设为1，参数为off时则        ┃
-┃                            ┃设为O                                                                         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果配置项后只有1个参数，同时在代码中我们希望用ngx_str_t类型的变量来保      ┃
-┃ngx_conf_set_str_slot       ┃                                                                              ┃
-┃                            ┃存这个配置项的参数，则可以使用ngx_conf_set_ str slot方法                      ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果这个配置项会出现多次，每个配置项后面都跟着1个参数，而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数，且数组中      ┃
-┃ngx_conf_set_str_array_slot ┃                                                                              ┃
-┃                            ┃的每个参数都以ngx_str_t来存储，那么预设的ngx_conf_set_str_array_slot有法可    ┃
-┃                            ┃以帮我们做到                                                                  ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_str_array_slot类似，也是用一个ngx_array_t数组来存储所有同    ┃
-┃                            ┃名配置项的参数。只是每个配置项的参数不再只是1个，而必须是两个，且以“配       ┃
-┃ngx_conf_set_keyval_slot    ┃                                                                              ┃
-┃                            ┃置项名关键字值；”的形式出现在nginx．conf文件中，同时，ngx_conf_set_keyval    ┃
-┃                            ┃ slot将把这蜱配置项转化为数组，其中每个元素都存储着key/value键值对            ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_conf_set_num_slot       ┃  配置项后必须携带1个参数，且只能是数字。存储这个参数的变量必须是整型         ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间大小，可以是一个数字，这时表示字节数       ┃
-┃                            ┃(Byte)。如果数字后跟着k或者K，就表示Kilobyt，IKB=1024B；如果数字后跟          ┃
-┃ngx_conf_set_size_slot      ┃                                                                              ┃
-┃                            ┃着m或者M，就表示Megabyte，1MB=1024KB。ngx_conf_set_ size slot解析后将         ┃
-┃                            ┃把配置项后的参数转化成以字节数为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示空间上的偏移量。它与设置的参数非常类似，       ┃
-┃                            ┃其参数是一个数字时表示Byte，也可以在后面加单位，但与ngx_conf_set_size slot    ┃
-┃ngx_conf_set_off_slot       ┃不同的是，数字后面的单位不仅可以是k或者K、m或者M，还可以是g或者G，            ┃
-┃                            ┃这时表示Gigabyte，IGB=1024MB。ngx_conf_set_off_slot解析后将把配置项后的       ┃
-┃                            ┃参数转化成以字节数为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，表示时间。这个参数可以在数字后面加单位，如         ┃
-┃                            ┃果单位为s或者没有任何单位，那么这个数字表示秒；如果单位为m，则表示分          ┃
-┃                            ┃钟，Im=60s：如果单位为h，则表示小时，th=60m：如果单位为d，则表示天，          ┃
-┃ngx_conf_set_msec_slot      ┃                                                                              ┃
-┃                            ┃ld=24h：如果单位为w，则表示周，lw=7d；如果单位为M，则表示月，1M=30d；         ┃
-┃                            ┃如果单位为y，则表示年，ly=365d。ngx_conf_set_msec_slot解析后将把配置项后     ┃
-┃                            ┃的参数转化成以毫秒为单位的数字                                                ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  与ngx_conf_set_msec slot非常类似，唯一的区别是ngx_conf_set msec—slot解析   ┃
-┃ngx_conf_set_sec_slot       ┃后将把配置项后的参数转化成以毫秒为单位的数字，而ngx_conf_set_sec一slot解析    ┃
-┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带一两个参数，第1个参数是数字，第2个参数表示空间大小。        ┃
-┃                            ┃例如，“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区），其中第1  ┃
-┃                            ┃个参数不可以携带任何单位，第2个参数不带任何单位时表示Byte，如果以k或          ┃
-┃ngx_conf_set_bufs_slot      ┃者K作为单位，则表示Kilobyte，如果以m或者M作为单位，则表示Megabyte。           ┃
-┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员。这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
-┃                            ┃接对端发来的TCP流）                                                           ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数，其取值范围必须是我们设定好的字符串之一（就像       ┃
-┃                            ┃C语言中的枚举一样）。首先，我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
-┃ngx_conf_set_enum_slot      ┃                                                                              ┃
-┃                            ┃围，并设定每个值对应的序列号。然后，ngx_conf_set enum slot将会把配置项参      ┃
-┃                            ┃数转化为对应的序列号                                                          ┃
-┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  写ngx_conf_set bitmask slot类似，配置项后必须携带1个参数，其取值范围必      ┃
-┃                            ┃须是设定好的字符串之一。首先，我们要用ngx_conf_bitmask_t结构定义配置项的      ┃
-┃ngx_conf_set_bitmask_slot   ┃                                                                              ┃
-┃                            ┃取值范围，并设定每个值对应的比特位。注意，每个值所对应的比特位都要不同。      ┃
-┃                            ┃然后ngx_conf_set_bitmask_ slot将会把配置项参数转化为对应的比特位              ┃
-┗━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    预设方法名            ┃    行为                                                                    ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置目录或者文件的读写权限。配置项后可以携带1～3个参数，      ┃
-┃                          ┃可以是如下形式：user:rw group:rw all:rw。注意，它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access slot  ┃录的权限意义是一致的，但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读），不可以有其他任何形式，如w或者rx等。ngx_conf_set- access slot   ┃
-┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
-┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                          ┃  这个方法用于设置路径，配置项后必须携带1个参数，表示1个有意义的路径。      ┃
-┃ngx_conf_set_path_slot    ┃                                                                            ┃
-┃                          ┃ngx_conf_set_path_slot将会把参数转化为ngx_path_t结构                        ┃
-┗━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
 
 /*
 ngx_conf_set_access_slot 用于设置读／写权限，配置项后可以掳带1～3个参数，因此，

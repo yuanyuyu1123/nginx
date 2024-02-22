@@ -779,18 +779,7 @@ ngx_hash_key(u_char *data, size_t len) {
     return key;
 }
 
-/*
-┏━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ┃    表7-8 Nginx提供的两种散列方法                                                                     ┃
-┣━╋━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  ┃    散列方法                                      ┃    意义                                          ┃
-┣━┻━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_uint_t ngx_hash_key(u_char *data, size_t len)     ┃  使用BKDR算法将任意长度的字符串映射为整型        ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                                      ┃  将字符串全小写后，再使用BKDR算法将任意长度的字  ┃
-┃.gx_uint_t ngx_hash_key_lc(I_char *data, size_t len)  ┃符串映射为整型                                    ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
+
 ngx_uint_t
 ngx_hash_key_lc(u_char *data, size_t len) {
     ngx_uint_t i, key;
@@ -821,10 +810,9 @@ ngx_hash_strlow(u_char *dst, u_char *src, size_t n) {
     return key;
 }
 
-/*
-初始化ngx_hash_keys_arrays_t 结构体，type的取值范围只有两个，NGX_HASH_SMALL表示初始化元素较少，NGX_HASH_LARGE表示初始化元素较多，
-在向ha中加入时必须调用此方法。
-*/ //ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用，前者表示初始化ngx_hash_keys_arrays_t数组空间，后者用来存储对应的key到数组中的对应hash和数组中
+/*初始化ngx_hash_keys_arrays_t 结构体，type的取值范围只有两个，NGX_HASH_SMALL表示初始化元素较少，NGX_HASH_LARGE表示初始化元素较多，
+在向ha中加入时必须调用此方法。*/
+//ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用，前者表示初始化ngx_hash_keys_arrays_t数组空间，后者用来存储对应的key到数组中的对应hash和数组中
 ngx_int_t
 ngx_hash_keys_array_init(ngx_hash_keys_arrays_t *ha, ngx_uint_t type) { //使用方法可以参考ngx_http_server_names
     ngx_uint_t asize;

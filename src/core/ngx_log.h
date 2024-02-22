@@ -12,34 +12,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-表4-6 ngx_log_error日志接口level参数的取值范围
-┏━━━━━━━━┳━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    级别名称    ┃  值  ┃    意义                                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                ┃      ┃    最高级别日志，日志的内容不会再写入log参数指定的文件，而是会直接 ┃
-┃NGX_LOG_STDERR  ┃    O ┃                                                                    ┃
-┃                ┃      ┃将日志输出到标准错误设备，如控制台屏幕                              ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                ┃      ┃  大于NGX—LOG ALERT级别，而小于或等于NGX LOG EMERG级别的           ┃
-┃NGX_LOG_EMERG   ┃   1  ┃                                                                    ┃
-┃                ┃      ┃日志都会输出到log参数指定的文件中                                   ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG_ALERT   ┃    2 ┃    大干NGX LOG CRIT级别                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG_CRIT  ┃    3 ┃    大干NGX LOG ERR级别                                             ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG_ERR   ┃    4 ┃    大干NGX—LOG WARN级别                                           ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX LOG_WARN  ┃    5 ┃    大于NGX LOG NOTICE级别                                          ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_NOTICE  ┃  6   ┃  大于NGX__ LOG INFO级别                                            ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  NGX_LOG_INFO  ┃    7 ┃    大于NGX—LOG DEBUG级别                                          ┃
-┣━━━━━━━━╋━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX_LOG_DEBUG   ┃    8 ┃    调试级别，最低级别日志                                          ┃
-┗━━━━━━━━┻━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
+
 //stderr (0)>= emerg(1) >= alert(2) >= crit(3) >= err(4)>= warn(5) >= notice(6) >= info(7) >= debug(8)
 //debug级别最低，stderr级别最高；圆括号中的数据是对应日志等级的值。
 //log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
@@ -53,34 +26,12 @@
 #define NGX_LOG_NOTICE            6
 #define NGX_LOG_INFO              7
 #define NGX_LOG_DEBUG             8
-/*
-在使用ngx_log_debug宏时，level的崽义完全不同，它表达的意义不再是级别（已经
-是DEBUG级别），而是日志类型，因为ngx_log_debug宏记录的日志必须是NGX-LOG—
-DEBUG调试级别的，这里的level由各子模块定义。level的取值范围参见表4-7。
-表4-7 ngx_log_debug日志接口level参数的取值范围
-┏━━━━━━━━━━┳━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃    级别名称        ┃  值    ┃    意义                                        ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG CORE  ┃ Ox010  ┃    Nginx核心模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG ALLOC ┃ Ox020  ┃    Nginx在分配内存时使用的调试日志             ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG MUTEX ┃ Ox040  ┃    Nginx在使用进程锁时使用的调试日志           ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG EVENT ┃ Ox080  ┃    Nginx事件模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG HTTP  ┃ Oxl00  ┃    Nginx http模块的调试日志                    ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG DEBUG MAIL  ┃ Ox200  ┃    Nginx邮件模块的调试日志                     ┃
-┣━━━━━━━━━━╋━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃NGX LOG_DEBUG_MYSQL ┃ Ox400  ┃    表示与MySQL相关的Nginx模块所使用的调试日志  ┃
-┗━━━━━━━━━━┻━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━┛
-    当HTTP模块调用ngx_log_debug宏记录日志时，传人的level参数是NGX- LOG—
-DEBUG HTTP，这时如果109参数不属于HTTP模块，如使周了event事件模块的log，则
-不会输出任何日志。它正是ngx_log_debug拥有level参数的意义所在。
-*/ //下面这些是通过与操作判断是否需要打印，可以参考ngx_log_debug7
-//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
-//如果通过加参数debug_http则会打开NGX_LOG_DEBUG_HTTP开关，见debug_levels  ngx_log_set_levels,如果打开下面开关中的一个，则NGX_LOG_STDERR到NGX_LOG_DEBUG会全部打开，因为log_level很大
+
+//下面这些是通过与操作判断是否需要打印，可以参考ngx_log_debug7
+//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志
+//另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
+//如果通过加参数debug_http则会打开NGX_LOG_DEBUG_HTTP开关，见debug_levels  ngx_log_set_levels,
+//如果打开下面开关中的一个，则NGX_LOG_STDERR到NGX_LOG_DEBUG会全部打开，因为log_level很大
 //下面这些通过ngx_log_debug0 -- ngx_log_debug8输出  对应debug_levels[] 参考ngx_log_set_levels
 #define NGX_LOG_DEBUG_CORE        0x010
 #define NGX_LOG_DEBUG_ALLOC       0x020

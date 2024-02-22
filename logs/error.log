@@ -492,3 +492,22 @@ Connection: keep-alive
 2024/02/21 23:20:02 [debug] 169067#0: timer delta: 262
 2024/02/21 23:20:02 [debug] 169067#0: worker cycle
 2024/02/21 23:20:02 [debug] 169067#0: epoll timer: 59737
+2024/02/22 00:28:59 [debug] 172796#0: bind() 0.0.0.0:80 #7 
+2024/02/22 00:28:59 [notice] 172796#0: using the "epoll" event method
+2024/02/22 00:28:59 [notice] 172796#0: nginx/1.21.6
+2024/02/22 00:28:59 [notice] 172796#0: built by gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) 
+2024/02/22 00:28:59 [notice] 172796#0: OS: Linux 5.15.133.1-microsoft-standard-WSL2
+2024/02/22 00:28:59 [notice] 172796#0: getrlimit(RLIMIT_NOFILE): 1024:1048576
+2024/02/22 00:28:59 [debug] 172796#0: write: 8, 00007FFFFFFFE4D0, 7, 0
+2024/02/22 00:28:59 [debug] 172796#0: add cleanup: 00005555556C1E00
+2024/02/22 00:28:59 [debug] 172796#0: malloc: 000055555569E490:8
+2024/02/22 00:28:59 [debug] 172796#0: notify eventfd: 8
+2024/02/22 00:28:59 [debug] 172796#0: eventfd: 9
+2024/02/22 00:28:59 [debug] 172796#0: testing the EPOLLRDHUP flag: success
+2024/02/22 00:28:59 [debug] 172796#0: malloc: 00005555556AB630:6144
+2024/02/22 00:28:59 [debug] 172796#0: malloc: 00007FFFF7C4F010:229376
+2024/02/22 00:28:59 [debug] 172796#0: malloc: 00005555556C4420:98304
+2024/02/22 00:28:59 [debug] 172796#0: malloc: 00005555556DC430:98304
+2024/02/22 00:28:59 [debug] 172796#0: epoll add event: fd:7 op:1 ev:00002001
+2024/02/22 00:28:59 [debug] 172796#0: worker cycle
+2024/02/22 00:28:59 [debug] 172796#0: epoll timer: -1

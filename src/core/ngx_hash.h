@@ -64,18 +64,7 @@ typedef struct { //赋值参考ngx_hash_add_key
     void *value; //该key对应的值，组成一个键-值对<key,value>    在通配符hash中也可能指向下一个通配符hash,见ngx_hash_wildcard_init
 } ngx_hash_key_t; //ngx_hash_init中names数组存入hash桶前，其结构是ngx_hash_key_t形式，在往hash桶里面存数据的时候，会把ngx_hash_key_t里面的成员拷贝到ngx_hash_elt_t中相应成员
 
-/*
-┏━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃  ┃    表7-8 Nginx提供的两种散列方法                                                                     ┃
-┣━╋━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃  ┃    散列方法                                      ┃    意义                                          ┃
-┣━┻━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_uint_t ngx_hash_key(u_char *data, size_t len)     ┃  使用BKDR算法将任意长度的字符串映射为整型        ┃
-┣━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                                      ┃  将字符串全小写后，再使用BKDR算法将任意长度的字  ┃
-┃.gx_uint_t ngx_hash_key_lc(I_char *data, size_t len)  ┃符串映射为整型                                    ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/
+
 typedef ngx_uint_t (*ngx_hash_key_pt)(u_char *data, size_t len);
 
 /*
