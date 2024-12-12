@@ -130,7 +130,6 @@ set(SOURCE_FILES
 	src/http/modules/ngx_http_upstream_least_conn_module.c 
 	src/http/modules/ngx_http_upstream_random_module.c 
 	src/http/modules/ngx_http_upstream_keepalive_module.c 
-	src/http/modules/ngx_http_upstream_zone_module.c 
-	src/ext/http_mytest_module/ngx_http_mytest_module.c)
+	src/http/modules/ngx_http_upstream_zone_module.c)
 add_executable(nginx ${SOURCE_FILES})
 target_link_libraries(nginx crypt pcre2-8 z)

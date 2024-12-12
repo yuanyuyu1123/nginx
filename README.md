@@ -1,15 +1,15 @@
 # nginx
 
-说明：该源码为 1.21.5 版本
+说明:该源码为 1.21.5 版本
 
-环境搭建：
+环境搭建:
 
-1.进入nginx目录，分别执行
+1.进入nginx目录,分别执行
 
 ./auto/configure --add-module=src/ext/http_mytest_module 或
 
-./auto/configure --prefix=/usr/local/cdir/nginx  \
-            --conf-path=/usr/local/cdir/nginx/conf/nginx.conf \
+./auto/configure --prefix=/home/yuan/code/cgit/nginx  \
+            --conf-path=/home/yuan/code/cgit/nginx/conf/nginx.conf \
             --with-file-aio --with-pcre --with-debug \
             --add-module=src/ext/http_mytest_module
 
@@ -19,7 +19,7 @@ make
 
 2.在linux上用clion打开该项目
 
-3.编辑运行环境设置，将程序参数设置为
+3.编辑运行环境设置,将程序参数设置为
 
 -c  /usr/local/cdir/nginx/conf/nginx.conf
 

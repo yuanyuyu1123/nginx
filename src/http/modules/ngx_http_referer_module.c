@@ -61,7 +61,7 @@ typedef struct {
 #if (NGX_PCRE)
     //成员类型ngx_regex_elt_t
     /*
- 用于解析valid_referers server_names ~\.google\.后面跟的正则表达式域名信息，除正则表达式以外的域名信息存储在下面的keys hash数组中
+ 用于解析valid_referers server_names ~\.google\.后面跟的正则表达式域名信息,除正则表达式以外的域名信息存储在下面的keys hash数组中
     */
     ngx_array_t             *regex; //创建空间和赋值见ngx_http_add_regex_referer
     ngx_array_t *server_name_regex;
@@ -72,11 +72,11 @@ typedef struct {
     ngx_flag_t               server_names; //valid_referers server_names *.example.com example.* www.example.org/galleries/
 
 
-//创建空间和赋值见ngx_http_valid_referers 里面存储的是valid_referers server_names配置的除正则表达式以外的域名信息，正则表达式域名信息存储在上面的regex
+//创建空间和赋值见ngx_http_valid_referers 里面存储的是valid_referers server_names配置的除正则表达式以外的域名信息,正则表达式域名信息存储在上面的regex
     ngx_hash_keys_arrays_t  *keys;
 
     //这两个值的生效原理参考ngx_hash_init_t中max_size和bucket_size
-    //referer_hash_max_size配置  默认2048  并不是表示实际需要2048个桶，实际需要多少个是算根据有多少个成员添加到桶中来算处理的，参考ngx_hash_init
+    //referer_hash_max_size配置  默认2048  并不是表示实际需要2048个桶,实际需要多少个是算根据有多少个成员添加到桶中来算处理的,参考ngx_hash_init
     ngx_uint_t               referer_hash_max_size;
     ngx_uint_t               referer_hash_bucket_size;//referer_hash_bucket_size配置 默认64
 } ngx_http_referer_conf_t;
@@ -110,20 +110,20 @@ static int ngx_libc_cdecl ngx_http_cmp_referer_wildcards(const void *one,
 
 
 /*
-我的实现防盗链的做法，也是参考该位前辈的文章。基本原理就是就是一句话：通过判断request请求头的refer是否来源于本站。（当然请求头是来自于客户端的，
-是可伪造的，暂不在本文讨论范围内）。
-2．  首先我们去了解下什么是HTTP Referer。简言之，HTTP Referer是header的一部分，当浏览器向web服务器发送请求的时候，一般会带上Referer，告诉
-服务器我是从哪个页面链接过来的，服务器籍此可以获得一些信息用于处理。比如从我主页上链接到一个朋友那里，他的服务器就能够从HTTP Referer中统计
-出每天有多少用户点击我主页上的链接访问他的网站。（注：该文所有用的站点均假设以 http://blog.csdn.net为例）
-假如我们要访问资源：http://blog.csdn.net/Beacher_Ma 有两种情况：
-1．  我们直接在浏览器上输入该网址。那么该请求的HTTP Referer 就为null
-2．  如果我们在其他其他页面中，通过点击，如 http://www.csdn.net 上有一个 http://blog.csdn.net/Beacher_Ma 这样的链接，那么该请求的HTTP Referer
+我的实现防盗链的做法,也是参考该位前辈的文章.基本原理就是就是一句话:通过判断request请求头的refer是否来源于本站.（当然请求头是来自于客户端的,
+是可伪造的,暂不在本文讨论范围内）.
+2．  首先我们去了解下什么是HTTP Referer.简言之,HTTP Referer是header的一部分,当浏览器向web服务器发送请求的时候,一般会带上Referer,告诉
+服务器我是从哪个页面链接过来的,服务器籍此可以获得一些信息用于处理.比如从我主页上链接到一个朋友那里,他的服务器就能够从HTTP Referer中统计
+出每天有多少用户点击我主页上的链接访问他的网站.（注:该文所有用的站点均假设以 http://blog.csdn.net为例）
+假如我们要访问资源:http://blog.csdn.net/Beacher_Ma 有两种情况:
+1．  我们直接在浏览器上输入该网址.那么该请求的HTTP Referer 就为null
+2．  如果我们在其他其他页面中,通过点击,如 http://www.csdn.net 上有一个 http://blog.csdn.net/Beacher_Ma 这样的链接,那么该请求的HTTP Referer
 就为http://www.csdn.net
 */
 
 
 /*
-一：一般的防盗链如下：
+一:一般的防盗链如下:
 location ~* \.(gif|jpg|png|swf|flv)$ {
 valid_referers none blocked www.jb51.net jb51.net ;
 if ($invalid_referer) {
@@ -131,37 +131,37 @@ rewrite ^/ http://www.jb51.net/retrun.html;
 #return 403;
 }
 }
-第一行：gif|jpg|png|swf|flv
+第一行:gif|jpg|png|swf|flv
 表示对gif、jpg、png、swf、flv后缀的文件实行防盗链
-第二行： 表示对www.ingnix.com这2个来路进行判断
-if{}里面内容的意思是，如果来路不是指定来路就跳转到http://www.jb51.net/retrun.html页面，当然直接返回403也是可以的。
-二：针对图片目录防止盗链
+第二行: 表示对www.ingnix.com这2个来路进行判断
+if{}里面内容的意思是,如果来路不是指定来路就跳转到http://www.jb51.net/retrun.html页面,当然直接返回403也是可以的.
+二:针对图片目录防止盗链
 复制代码 代码如下:
 location /images/ {
 alias /data/images/;
 valid_referers none blocked server_names *.xok.la xok.la ;
 if ($invalid_referer) {return 403;}
 }
-三：使用第三方模块ngx_http_accesskey_module实现Nginx防盗链
-实现方法如下：
-实现方法如下：
-1. 下载NginxHttpAccessKeyModule模块文件：Nginx-accesskey-2.0.3.tar.gz；
-2. 解压此文件后，找到nginx-accesskey-2.0.3下的config文件。编辑此文件：替换其中的”$HTTP_ACCESSKEY_MODULE”为”ngx_http_accesskey_module”；
-3. 用一下参数重新编译nginx：
+三:使用第三方模块ngx_http_accesskey_module实现Nginx防盗链
+实现方法如下:
+实现方法如下:
+1. 下载NginxHttpAccessKeyModule模块文件:Nginx-accesskey-2.0.3.tar.gz；
+2. 解压此文件后,找到nginx-accesskey-2.0.3下的config文件.编辑此文件:替换其中的”$HTTP_ACCESSKEY_MODULE”为”ngx_http_accesskey_module”；
+3. 用一下参数重新编译nginx:
 ./configure --add-module=path/to/nginx-accesskey
-4. 修改nginx的conf文件，添加以下几行：
+4. 修改nginx的conf文件,添加以下几行:
 location /download {
   accesskey             on;
   accesskey_hashmethod  md5;
   accesskey_arg         "key";
   accesskey_signature   "mypass$remote_addr";
 }
-其中：
+其中:
 accesskey为模块开关；
 accesskey_hashmethod为加密方式MD5或者SHA-1；
 accesskey_arg为url中的关键字参数；
-accesskey_signature为加密值，此处为mypass和访问IP构成的字符串。
-访问测试脚本download.php：
+accesskey_signature为加密值,此处为mypass和访问IP构成的字符串.
+访问测试脚本download.php:
 <?
 $ipkey= md5("mypass".$_SERVER['REMOTE_ADDR']);
 $output_add_key="<a href=http://www.jb51.net/download/G3200507120520LM.rar?key=".$ipkey.">download_add_key</a><br />";
@@ -169,12 +169,12 @@ $output_org_url="<a href=http://www.jb51.net/download/G3200507120520LM.rar>downl
 echo $output_add_key;
 echo $output_org_url;
 ?>
-访问第一个download_add_key链接可以正常下载，第二个链接download_org_path会返回403 Forbidden错误。
+访问第一个download_add_key链接可以正常下载,第二个链接download_org_path会返回403 Forbidden错误.
 */
-//ngx_http_secure_link_module现在可以代替ngx_http_accesskey_module，他们功能类似   ngx_http_secure_link_module Nginx的安全模块,免得别人拿webserver权限。
+//ngx_http_secure_link_module现在可以代替ngx_http_accesskey_module,他们功能类似   ngx_http_secure_link_module Nginx的安全模块,免得别人拿webserver权限.
 //ngx_http_referer_module具有普通防盗链功能
 
-//$invalid_referer变量，Empty string, if the “Referer” request header field value is considered valid, otherwise '1' 见ngx_http_valid_referers
+//$invalid_referer变量,Empty string, if the “Referer” request header field value is considered valid, otherwise '1' 见ngx_http_valid_referers
 static ngx_command_t ngx_http_referer_commands[] = {
 
         {ngx_string("valid_referers"), //该变量值获取生效在ngx_http_referer_variable
@@ -186,7 +186,7 @@ static ngx_command_t ngx_http_referer_commands[] = {
 
 /*
 这两个值的生效原理参考ngx_hash_init_t中max_size和bucket_size
-referer_hash_max_size配置  默认2048  并不是表示实际需要2048个桶，实际需要多少个是算根据有多少个成员添加到桶中来算处理的，参考ngx_hash_init
+referer_hash_max_size配置  默认2048  并不是表示实际需要2048个桶,实际需要多少个是算根据有多少个成员添加到桶中来算处理的,参考ngx_hash_init
  */
         {ngx_string("referer_hash_max_size"),
          NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -220,7 +220,7 @@ static ngx_http_module_t ngx_http_referer_module_ctx = {
         ngx_http_referer_merge_conf            /* merge location configuration */
 };
 
-//ngx_http_secure_link_module现在可以代替ngx_http_accesskey_module，他们功能类似   ngx_http_secure_link_module Nginx的安全模块,免得别人拿webserver权限。
+//ngx_http_secure_link_module现在可以代替ngx_http_accesskey_module,他们功能类似   ngx_http_secure_link_module Nginx的安全模块,免得别人拿webserver权限.
 //ngx_http_referer_module具有普通防盗链功能
 ngx_module_t ngx_http_referer_module = {
         NGX_MODULE_V1,
@@ -659,12 +659,12 @@ ngx_http_valid_referers(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
         p = (u_char *) ngx_strchr(value[i].data, '/');
 
-        if (p) { //如果value中带有/字符，则截取其后的字符串，例如www.example.org/galleries/则value会变为/galleries/
+        if (p) { //如果value中带有/字符,则截取其后的字符串,例如www.example.org/galleries/则value会变为/galleries/
             uri.len = (value[i].data + value[i].len) - p;
             uri.data = p;
             value[i].len = p - value[i].data;
         }
-        //如果server_name中包含/字符，则uri为/开头的字符串
+        //如果server_name中包含/字符,则uri为/开头的字符串
         if (ngx_http_add_referer(cf, rlcf->keys, &value[i], &uri) != NGX_OK) {
             return NGX_CONF_ERROR;
         }

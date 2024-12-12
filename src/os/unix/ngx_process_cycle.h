@@ -13,9 +13,9 @@
 #include <ngx_core.h>
 
 
-//打开频道，使用频道这种方式通信前必须发送的命令
+//打开频道,使用频道这种方式通信前必须发送的命令
 #define NGX_CMD_OPEN_CHANNEL   1
-//关闭已经打开的频道，实际上也就是关闭套接字
+//关闭已经打开的频道,实际上也就是关闭套接字
 #define NGX_CMD_CLOSE_CHANNEL  2
 //要求接收方正常地退出进程
 #define NGX_CMD_QUIT           3
@@ -43,7 +43,7 @@ static ngx_cache_manager_ctx_t  ngx_cache_loader_ctx = {
 typedef struct { //ngx_cache_manager_process_cycle
     ngx_event_handler_pt       handler; //ngx_cache_manager_process_handler  ngx_cache_loader_process_handler
     char                      *name; //进程名
-    ngx_msec_t                 delay; //延迟多长时间执行上面的handler，通过定时器实现，见ngx_cache_manager_process_cycle
+    ngx_msec_t                 delay; //延迟多长时间执行上面的handler,通过定时器实现,见ngx_cache_manager_process_cycle
 } ngx_cache_manager_ctx_t;
 
 

@@ -56,7 +56,7 @@ static ngx_conf_enum_t ngx_debug_points[] = {
 //相关配置见ngx_event_core_commands ngx_http_core_commands ngx_stream_commands ngx_http_core_commands ngx_core_commands  ngx_mail_commands
 //对应的存放参数的值的结构体为ngx_core_conf_t
 static ngx_command_t ngx_core_commands[] = {
-           //daemon on|off 是否已守护进程方式运行，守护进程是脱离终端在后台运行的进程，脱离终端是避免进程执行过程中的打印在任何终端上面显示
+           //daemon on|off 是否已守护进程方式运行,守护进程是脱离终端在后台运行的进程,脱离终端是避免进程执行过程中的打印在任何终端上面显示
         {ngx_string("daemon"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -64,7 +64,7 @@ static ngx_command_t ngx_core_commands[] = {
          offsetof(ngx_core_conf_t, daemon),
          NULL},
 
-           //是否以master/slave方式运行  master_process on | off,如果以master/slave方式运行将以slave来接收连接，否则以master接收连接
+           //是否以master/slave方式运行  master_process on | off,如果以master/slave方式运行将以slave来接收连接,否则以master接收连接
         {ngx_string("master_process"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -73,10 +73,10 @@ static ngx_command_t ngx_core_commands[] = {
          NULL},
 
         //timer_resolution t表示至少t秒后才调用一次gettimeofday
-        /*如果nginx.conf配置文件中设置了timer_resolution酡置项，即表明需要控制时间精度，这时会调用setitimer方法，设置时间间隔
+        /*如果nginx.conf配置文件中设置了timer_resolution酡置项,即表明需要控制时间精度,这时会调用setitimer方法,设置时间间隔
          为timer_resolution毫秒来回调ngx_timer_signal_handler方法*/
-        //timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次，从而可以从epoll中返回，并跟新时间，判断哪些事件有超时，执行超时事件，例如客户端继上次
-        //发请求过来，隔了client_header_timeout时间后还没有新请求过来，这会关闭连接
+        //timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次,从而可以从epoll中返回,并跟新时间,判断哪些事件有超时,执行超时事件,例如客户端继上次
+        //发请求过来,隔了client_header_timeout时间后还没有新请求过来,这会关闭连接
         {ngx_string("timer_resolution"), //单位是s
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -92,8 +92,8 @@ static ngx_command_t ngx_core_commands[] = {
          offsetof(ngx_core_conf_t, pid),
          NULL},
 
-        //lock_file logs/nginx.lock，如果不打开lock_file，则该nginx.lock文件不生效，没作用，如果打开，则开操作系统是否支持原子锁，如果不支持则用文件锁实现
-        //一般linux是支持原子锁的，所以该文件没有意义
+        //lock_file logs/nginx.lock,如果不打开lock_file,则该nginx.lock文件不生效,没作用,如果打开,则开操作系统是否支持原子锁,如果不支持则用文件锁实现
+        //一般linux是支持原子锁的,所以该文件没有意义
         /*见ngx_trylock_fd*/
         {ngx_string("lock_file"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
@@ -110,8 +110,8 @@ static ngx_command_t ngx_core_commands[] = {
          0,
          NULL},
 
-        //debug_points [stop|abort] nginx在一些关键逻辑错误处设置了调试点，如果设置为stop,nginx在执行到这些调试点讲发出SIGSTOP信号以用以调试。
-        //如果设置为abort则在这些调试点会产生coredump文件，从而可以使用gdb查看nginx当时的各种信息
+        //debug_points [stop|abort] nginx在一些关键逻辑错误处设置了调试点,如果设置为stop,nginx在执行到这些调试点讲发出SIGSTOP信号以用以调试.
+        //如果设置为abort则在这些调试点会产生coredump文件,从而可以使用gdb查看nginx当时的各种信息
         {ngx_string("debug_points"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
@@ -127,7 +127,7 @@ static ngx_command_t ngx_core_commands[] = {
          0,
          NULL},
 
-        //进程优先级，取值范围-20 - 19 越小优先权越高
+        //进程优先级,取值范围-20 - 19 越小优先权越高
         {ngx_string("worker_priority"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,
          ngx_set_priority,
@@ -192,7 +192,7 @@ static ngx_command_t ngx_core_commands[] = {
         ngx_null_command
 };
 
-//http{}外的配置见ngx_core_module_ctx， http{}内的配置见ngx_http_module
+//http{}外的配置见ngx_core_module_ctx, http{}内的配置见ngx_http_module
 static ngx_core_module_t ngx_core_module_ctx = {
         ngx_string("core"),
         ngx_core_module_create_conf,
@@ -219,13 +219,13 @@ ngx_module_t ngx_core_module = {
 static ngx_uint_t ngx_show_help;
 static ngx_uint_t ngx_show_version;
 static ngx_uint_t ngx_show_configure;
-static u_char *ngx_prefix;//赋值见ngx_log_init，值为NGX_PREFIX 或者为nginx -p参数携带的参数
+static u_char *ngx_prefix;//赋值见ngx_log_init,值为NGX_PREFIX 或者为nginx -p参数携带的参数
 static u_char *ngx_error_log;
 static u_char *ngx_conf_file;//nginx -c参数携带的参数
 static u_char *ngx_conf_params;
 
 /*
-如果加了-s 参数  这个记录的是-s参数带的参数，在main中的
+如果加了-s 参数  这个记录的是-s参数带的参数,在main中的
 if (ngx_signal) { //加了-S参数
         return ngx_signal_process(cycle, ngx_signal);
     }
@@ -259,7 +259,7 @@ main(int argc, char *const *argv) {
         return 1;
     }
 
-    //获取参数和配置参数，比如命令是nginx -v 那么ngx_show_version就设置为1
+    //获取参数和配置参数,比如命令是nginx -v 那么ngx_show_version就设置为1
     if (ngx_get_options(argc, argv) != NGX_OK) {//解析命令参数
         return 1;
     }
@@ -284,9 +284,9 @@ main(int argc, char *const *argv) {
     ngx_parent = ngx_getppid();
 
     /*
- 主进程启动的时候，此时还没有读取配置文件，即没有指定日志打印在哪里。nginx这时候虽然可以将一些出错内容或者结果输到标准输出，但是如果要记录一些系统初始化情况，
-socket监听状况，还是需要写到日志文件中去的。在nginx的main函数中，首先会调用ngx_log_init 函数，默认日志文件为：安装路径/logs/error.log，如果这个文件没有权限访问的话，
-会直接报错退出。在main函数结尾处，在ngx_master_process_cycle函数调用之前，会close掉这个日志文件。
+ 主进程启动的时候,此时还没有读取配置文件,即没有指定日志打印在哪里.nginx这时候虽然可以将一些出错内容或者结果输到标准输出,但是如果要记录一些系统初始化情况,
+socket监听状况,还是需要写到日志文件中去的.在nginx的main函数中,首先会调用ngx_log_init 函数,默认日志文件为:安装路径/logs/error.log,如果这个文件没有权限访问的话,
+会直接报错退出.在main函数结尾处,在ngx_master_process_cycle函数调用之前,会close掉这个日志文件.
   */
     log = ngx_log_init(ngx_prefix, ngx_error_log);
     if (log == NULL) {
@@ -435,12 +435,12 @@ socket监听状况，还是需要写到日志文件中去的。在nginx的main�
     ngx_use_stderr = 0;
 
     /*
-    如果nginx.conf中配置为单进程工作模式，这时将会调用ngx_single_process_cycle方法进入单迸程工作模式。
+    如果nginx.conf中配置为单进程工作模式,这时将会调用ngx_single_process_cycle方法进入单迸程工作模式.
     */
-    if (ngx_process == NGX_PROCESS_SINGLE) {//如果配置的是单进程工作模式，好像不会走到这里
+    if (ngx_process == NGX_PROCESS_SINGLE) {//如果配置的是单进程工作模式,好像不会走到这里
         ngx_single_process_cycle(cycle);
 
-    } else {//一般都是走到这里，master方式
+    } else {//一般都是走到这里,master方式
         ngx_master_process_cycle(cycle);
     }
 
@@ -462,7 +462,7 @@ ngx_show_version_info(void) {
                 "  -v            : show version and exit" NGX_LINEFEED
                 "  -V            : show version and configure options then exit"//除了version外还可以显示操作系统和configure阶段等相关信息
                 NGX_LINEFEED
-                "  -t            : test configuration and exit" NGX_LINEFEED //不启动nginx进程，只是测试配置文件是否有错误
+                "  -t            : test configuration and exit" NGX_LINEFEED //不启动nginx进程,只是测试配置文件是否有错误
                 "  -T            : test configuration, dump it and exit"
                 NGX_LINEFEED
                 "  -q            : suppress non-error messages "
@@ -515,16 +515,16 @@ ngx_show_version_info(void) {
 }
 
 /*
-在执行不重启服务升级Nginx的操作时，老的Nginx进程会通过环境变量“NGINX”来传递需要打开的监听端口，
-新的Nginx进程会通过ngx_add_inherited_sockets方法来使用已经打开的TCP监听端口,不采用这种方式的话会报错，说该端口已经bind
-ngx_add_inherited_sockets 函数通过环境变量NGINX完成socket的继承，继承来的socket将会放到init_cycle的listening数组中。在NGINX环
-境变量中，每个socket中间用冒号或分号隔开。完成继承同时设置全局变量ngx_inherited为1
+在执行不重启服务升级Nginx的操作时,老的Nginx进程会通过环境变量“NGINX”来传递需要打开的监听端口,
+新的Nginx进程会通过ngx_add_inherited_sockets方法来使用已经打开的TCP监听端口,不采用这种方式的话会报错,说该端口已经bind
+ngx_add_inherited_sockets 函数通过环境变量NGINX完成socket的继承,继承来的socket将会放到init_cycle的listening数组中.在NGINX环
+境变量中,每个socket中间用冒号或分号隔开.完成继承同时设置全局变量ngx_inherited为1
 */
 /*
-Nginx在不重启服务升级时，也就是我们说过的平滑升级时，它会不重启master进程而启动新版本的Nginx程序。这样，旧版本的
-master进程会通过execve系统调用来启动新版本的master进程（先fork出子进程再调用exec来运行新程序），这时旧版本的master
-进程必须要通过一种方式告诉新版本的master进程这是在平滑升级，并且传递一些必要的信息。Nginx是通过环境变量来传递这些
-信息的，新版本的master进程通过ngx_add_inherited_sockets方法由环境变量里读取平滑升级信息，并对旧版本Nginx服务监听的句柄做继承处理。
+Nginx在不重启服务升级时,也就是我们说过的平滑升级时,它会不重启master进程而启动新版本的Nginx程序.这样,旧版本的
+master进程会通过execve系统调用来启动新版本的master进程（先fork出子进程再调用exec来运行新程序）,这时旧版本的master
+进程必须要通过一种方式告诉新版本的master进程这是在平滑升级,并且传递一些必要的信息.Nginx是通过环境变量来传递这些
+信息的,新版本的master进程通过ngx_add_inherited_sockets方法由环境变量里读取平滑升级信息,并对旧版本Nginx服务监听的句柄做继承处理.
 */
 static ngx_int_t
 ngx_add_inherited_sockets(ngx_cycle_t *cycle) {//ngx_add_inherited_sockets和ngx_exec_new_binary对应
@@ -532,8 +532,8 @@ ngx_add_inherited_sockets(ngx_cycle_t *cycle) {//ngx_add_inherited_sockets和ngx
     ngx_int_t s;
     ngx_listening_t *ls;
 
-    //getenv()用来取得参数envvar环境变量的内容。参数envvar为环境变量的名称，如果该变量存在则会返回指向该内容的指针
-    inherited = (u_char *) getenv(NGINX_VAR);//获取环境变量 这里的"NGINX_VAR"是宏定义，值为"NGINX"
+    //getenv()用来取得参数envvar环境变量的内容.参数envvar为环境变量的名称,如果该变量存在则会返回指向该内容的指针
+    inherited = (u_char *) getenv(NGINX_VAR);//获取环境变量 这里的"NGINX_VAR"是宏定义,值为"NGINX"
 
     if (inherited == NULL) {
         return NGX_OK;
@@ -542,9 +542,9 @@ ngx_add_inherited_sockets(ngx_cycle_t *cycle) {//ngx_add_inherited_sockets和ngx
     ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0,
                   "using inherited sockets from \"%s\"", inherited);
 
-    /* 如果是热升级nginx的时候inherit不为NULL，走到这里，配合ngx_exec_new_binary阅读 */
+    /* 如果是热升级nginx的时候inherit不为NULL,走到这里,配合ngx_exec_new_binary阅读 */
 
-    //初始化ngx_cycle.listening数组，并且数组中包含10个元素
+    //初始化ngx_cycle.listening数组,并且数组中包含10个元素
     if (ngx_array_init(&cycle->listening, cycle->pool, 10,
                        sizeof(ngx_listening_t))
         != NGX_OK) {
@@ -626,7 +626,7 @@ ngx_set_environment(ngx_cycle_t *cycle, ngx_uint_t *last) {
 
     n = 0;
 
-    /* 计算出有多少个环境变量，然后存入n变量中 */
+    /* 计算出有多少个环境变量,然后存入n变量中 */
     for (i = 0; i < ccf->env.nelts; i++) {
 
         if (var[i].data[var[i].len] == '=') {//例如kye=   =号后面没有值则continue
@@ -644,7 +644,7 @@ ngx_set_environment(ngx_cycle_t *cycle, ngx_uint_t *last) {
         }
     }
 
-    if (last) {//last表示需要多分配last个环境变量，+1的原因是末尾是一个NULL，见后面的env[n] = NULL;
+    if (last) {//last表示需要多分配last个环境变量,+1的原因是末尾是一个NULL,见后面的env[n] = NULL;
         env = ngx_alloc((*last + n + 1) * sizeof(char *), cycle->log);
         if (env == NULL) {
             return NULL;
@@ -716,14 +716,14 @@ ngx_cleanup_environment(void *data) {
 }
 
 /*
-由于Nginx只有一个可执行程序，当该可执行程序更新时，就创建一个子进程来执行新的二进制文件。同时要注意的是
-老进程通过环境变量将所有的侦听描述字传递给新进程，又因为文件描述字可以跨execve系统调用保留(关于跨exec函
-数保留文件描述字，可参考《Unix系统环境高级编程》第二版8.10节：exec函数集)，所以在新进程中这些侦听描述字
-可以接受新的连接请求。新进程获取环境变量中的描述字的实现在nginx.c的函数ngx_add_inherited_sockets中
-该函数的执行流程如下：
-1）构造启动新进程需要的环境变量。该环境变量的内容包括当前进程的环境变量以及当前进程的所有侦听socket描述字。
-2）给当前进程的pid文件添上后缀名oldbin。
-3）fork一个子进程并触发系统调用execve，该系统调用使用更新后的二进制文件路径作为参数。
+由于Nginx只有一个可执行程序,当该可执行程序更新时,就创建一个子进程来执行新的二进制文件.同时要注意的是
+老进程通过环境变量将所有的侦听描述字传递给新进程,又因为文件描述字可以跨execve系统调用保留(关于跨exec函
+数保留文件描述字,可参考《Unix系统环境高级编程》第二版8.10节:exec函数集),所以在新进程中这些侦听描述字
+可以接受新的连接请求.新进程获取环境变量中的描述字的实现在nginx.c的函数ngx_add_inherited_sockets中
+该函数的执行流程如下:
+1）构造启动新进程需要的环境变量.该环境变量的内容包括当前进程的环境变量以及当前进程的所有侦听socket描述字.
+2）给当前进程的pid文件添上后缀名oldbin.
+3）fork一个子进程并触发系统调用execve,该系统调用使用更新后的二进制文件路径作为参数.
 */
 ngx_pid_t
 ngx_exec_new_binary(ngx_cycle_t *cycle, char *const *argv) {
@@ -946,8 +946,8 @@ ngx_get_options(int argc, char *const *argv) {
                     if (ngx_strcmp(ngx_signal, "stop") == 0
                         || ngx_strcmp(ngx_signal, "quit") == 0
                         || ngx_strcmp(ngx_signal, "reopen") == 0
-                        /*reload实际上是执行reload的nginx进程向原master+worker中的master进程发送reload信号，源master收到后，启动新的worker进程，同时向源worker
-           进程发送quit信号，等他们处理完已有的数据信息后，退出，这样就只有新的worker进程运行。见ngx_signal_handler*/
+                        /*reload实际上是执行reload的nginx进程向原master+worker中的master进程发送reload信号,源master收到后,启动新的worker进程,同时向源worker
+           进程发送quit信号,等他们处理完已有的数据信息后,退出,这样就只有新的worker进程运行.见ngx_signal_handler*/
                         || ngx_strcmp(ngx_signal, "reload") == 0) {
                         ngx_process = NGX_PROCESS_SIGNALLER;
                         goto next;

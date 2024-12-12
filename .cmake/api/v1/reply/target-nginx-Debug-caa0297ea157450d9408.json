@@ -26,13 +26,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 135,
+				"line" : 134,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 136,
+				"line" : 135,
 				"parent" : 0
 			},
 			{
@@ -49,42 +49,42 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-g"
+					"fragment" : "-g -fdiagnostics-color=always"
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/."
+					"path" : "/home/yuan/code/cgit/nginx/."
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/core"
+					"path" : "/home/yuan/code/cgit/nginx/src/core"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/event"
+					"path" : "/home/yuan/code/cgit/nginx/src/event"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/event/modules"
+					"path" : "/home/yuan/code/cgit/nginx/src/event/modules"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/os/unix"
+					"path" : "/home/yuan/code/cgit/nginx/src/os/unix"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/objs"
+					"path" : "/home/yuan/code/cgit/nginx/objs"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/http"
+					"path" : "/home/yuan/code/cgit/nginx/src/http"
 				},
 				{
 					"backtrace" : 3,
-					"path" : "/usr/local/cdir/nginx/src/http/modules"
+					"path" : "/home/yuan/code/cgit/nginx/src/http/modules"
 				}
 			],
 			"language" : "C",
@@ -210,8 +210,7 @@
 				117,
 				118,
 				119,
-				120,
-				121
+				120
 			]
 		}
 	],
@@ -379,8 +378,7 @@
 				117,
 				118,
 				119,
-				120,
-				121
+				120
 			]
 		}
 	],
@@ -1110,12 +1108,6 @@
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
 			"path" : "src/http/modules/ngx_http_upstream_zone_module.c",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "src/ext/http_mytest_module/ngx_http_mytest_module.c",
 			"sourceGroupIndex" : 0
 		}
 	],

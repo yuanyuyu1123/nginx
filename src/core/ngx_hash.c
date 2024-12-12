@@ -48,13 +48,13 @@ ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len) {
 }
 
 /*
-nginx为了处理带有通配符的域名的匹配问题，实现了ngx_hash_wildcard_t这样的hash表。他可以支持两种类型的带有通配符的域名。一种是通配符在前的，
-例如：“*.abc.com”，也可以省略掉星号，直接写成”.abc.com”。这样的key，可以匹配www.abc.com，qqq.www.abc.com之类的。另外一种是通配符在末
-尾的，例如：“mail.xxx.*”，请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉。这样的通配符，可以匹配mail.xxx.com、mail.xxx.com.cn、
-mail.xxx.net之类的域名。
-有一点必须说明，就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key。不能同时包含两种类型的通配符
-的key。ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的，而查询是通过函数ngx_hash_find_wc_head或者
-ngx_hash_find_wc_tail来做的。ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的，而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的。
+nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
+例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+mail.xxx.net之类的域名.
+有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
+的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
+ngx_hash_find_wc_tail来做的.ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的,而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的.
 */
 void *
 ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
@@ -66,8 +66,8 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
 #endif
 
     n = len;
-    //从后往前搜索第一个dot，则n 到 len-1 即为关键字中最后一个 子关键字
-    while (n) { //name中最后面的字符串，如 AA.BB.CC.DD，则这里获取到的就是DD
+    //从后往前搜索第一个dot,则n 到 len-1 即为关键字中最后一个 子关键字
+    while (n) { //name中最后面的字符串,如 AA.BB.CC.DD,则这里获取到的就是DD
         if (name[n - 1] == '.') {
             break;
         }
@@ -76,7 +76,7 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
     }
 
     key = 0;
-    //n 到 len-1 即为关键字中最后一个 子关键字，计算其hash值
+    //n 到 len-1 即为关键字中最后一个 子关键字,计算其hash值
     for (i = n; i < len; i++) {
         key = ngx_hash(key, name[i]);
     }
@@ -107,73 +107,73 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
 
         if ((uintptr_t) value & 2) {
 
-            if (n == 0) { //搜索到了最后一个子关键字且没有通配符，如"example.com"的example
+            if (n == 0) { //搜索到了最后一个子关键字且没有通配符,如"example.com"的example
 
                 /* "example.com" */
 
-                if ((uintptr_t) value & 1) { //value低两位为11，仅为"*.example.com"的指针，这里没有通配符，没招到，返回NULL
+                if ((uintptr_t) value & 1) { //value低两位为11,仅为"*.example.com"的指针,这里没有通配符,没招到,返回NULL
                     return NULL;
                 }
-                //value低两位为10，为"example.com"的指针，value就在下一级的ngx_hash_wildcard_t 的value中，去掉携带的低2位11    参考ngx_hash_wildcard_init
+                //value低两位为10,为"example.com"的指针,value就在下一级的ngx_hash_wildcard_t 的value中,去掉携带的低2位11    参考ngx_hash_wildcard_init
                 hwc = (ngx_hash_wildcard_t *)
                         ((uintptr_t) value & (uintptr_t) ~3);
                 return hwc->value;
             }
-            //还未搜索完，低两位为11或10，继续去下级ngx_hash_wildcard_t中搜索
-            hwc = (ngx_hash_wildcard_t *) ((uintptr_t) value & (uintptr_t) ~3); //把最低的两个地址为清0还回去，参考ngx_hash_wildcard_init
-            //继续搜索 关键字中剩余部分，如"example.com"，搜索 0 到 n -1 即为 example
+            //还未搜索完,低两位为11或10,继续去下级ngx_hash_wildcard_t中搜索
+            hwc = (ngx_hash_wildcard_t *) ((uintptr_t) value & (uintptr_t) ~3); //把最低的两个地址为清0还回去,参考ngx_hash_wildcard_init
+            //继续搜索 关键字中剩余部分,如"example.com",搜索 0 到 n -1 即为 example
             value = ngx_hash_find_wc_head(hwc, name, n - 1);
 
-            if (value) { //若找到，则返回
+            if (value) { //若找到,则返回
                 return value;
             }
 
-            return hwc->value; //低两位为00 找到，即为wc->value
+            return hwc->value; //低两位为00 找到,即为wc->value
         }
 
         if ((uintptr_t) value & 1) { //低两位为01
 
-            if (n == 0) { //关键字没有通配符，错误返回空
+            if (n == 0) { //关键字没有通配符,错误返回空
 
                 /* "example.com" */
 
                 return NULL;
             }
 
-            return (void *) ((uintptr_t) value & (uintptr_t) ~3); //有通配符，直接返回
+            return (void *) ((uintptr_t) value & (uintptr_t) ~3); //有通配符,直接返回
         }
 
-        return value; //低两位为00，直接返回
+        return value; //低两位为00,直接返回
     }
 
     return hwc->value;
 }
 
 /*
-nginx为了处理带有通配符的域名的匹配问题，实现了ngx_hash_wildcard_t这样的hash表。他可以支持两种类型的带有通配符的域名。一种是通配符在前的，
-例如：“*.abc.com”，也可以省略掉星号，直接写成”.abc.com”。这样的key，可以匹配www.abc.com，qqq.www.abc.com之类的。另外一种是通配符在末
-尾的，例如：“mail.xxx.*”，请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉。这样的通配符，可以匹配mail.xxx.com、mail.xxx.com.cn、
-mail.xxx.net之类的域名。
-有一点必须说明，就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key。不能同时包含两种类型的通配符
-的key。ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的，而查询是通过函数ngx_hash_find_wc_head或者
-ngx_hash_find_wc_tail来做的。ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的，而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的。
-hinit: 构造一个通配符hash表的一些参数的一个集合。关于该参数对应的类型的说明，请参见ngx_hash_t类型中ngx_hash_init函数的说明。
-names: 构造此hash表的所有的通配符key的数组。特别要注意的是这里的key已经都是被预处理过的。例如：“*.abc.com”或者“.abc.com”
-被预处理完成以后，变成了“com.abc.”。而“mail.xxx.*”则被预处理为“mail.xxx.”。为什么会被处理这样？这里不得不简单地描述一下
-通配符hash表的实现原理。当构造此类型的hash表的时候，实际上是构造了一个hash表的一个“链表”，是通过hash表中的key“链接”起来的。
-比如：对于“*.abc.com”将会构造出2个hash表，第一个hash表中有一个key为com的表项，该表项的value包含有指向第二个hash表的指针，
-而第二个hash表中有一个表项abc，该表项的value包含有指向*.abc.com对应的value的指针。那么查询的时候，比如查询www.abc.com的时候，
-先查com，通过查com可以找到第二级的hash表，在第二级hash表中，再查找abc，依次类推，直到在某一级的hash表中查到的表项对应的value对
-应一个真正的值而非一个指向下一级hash表的指针的时候，查询过程结束。这里有一点需要特别注意的，就是names数组中元素的value所对应的
-值（也就是真正的value所在的地址）必须是能被4整除的，或者说是在4的倍数的地址上是对齐的。因为这个value的值的低两位bit是有用的，
-所以必须为0。如果不满足这个条件，这个hash表查询不出正确结果。
-nelts: names数组元素的个数。
+nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
+例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+mail.xxx.net之类的域名.
+有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
+的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
+ngx_hash_find_wc_tail来做的.ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的,而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的.
+hinit: 构造一个通配符hash表的一些参数的一个集合.关于该参数对应的类型的说明,请参见ngx_hash_t类型中ngx_hash_init函数的说明.
+names: 构造此hash表的所有的通配符key的数组.特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com”或者“.abc.com”
+被预处理完成以后,变成了“com.abc.”.而“mail.xxx.*”则被预处理为“mail.xxx.”.为什么会被处理这样？这里不得不简单地描述一下
+通配符hash表的实现原理.当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”起来的.
+比如:对于“*.abc.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+而第二个hash表中有一个表项abc,该表项的value包含有指向*.abc.com对应的value的指针.那么查询的时候,比如查询www.abc.com的时候,
+先查com,通过查com可以找到第二级的hash表,在第二级hash表中,再查找abc,依次类推,直到在某一级的hash表中查到的表项对应的value对
+应一个真正的值而非一个指向下一级hash表的指针的时候,查询过程结束.这里有一点需要特别注意的,就是names数组中元素的value所对应的
+值（也就是真正的value所在的地址）必须是能被4整除的,或者说是在4的倍数的地址上是对齐的.因为这个value的值的低两位bit是有用的,
+所以必须为0.如果不满足这个条件,这个hash表查询不出正确结果.
+nelts: names数组元素的个数.
 */
 /*
 @hwc  表示支持通配符的哈希表的结构体
 @name 表示实际关键字地址
 @len  表示实际关键字长度
-ngx_hash_find_wc_tail与前置通配符查找差不多，这里value低两位仅有两种标志，更加简单：
+ngx_hash_find_wc_tail与前置通配符查找差不多,这里value低两位仅有两种标志,更加简单:
 00 - value 是指向 用户自定义数据
 11 - value的指向下一个哈希表
 */
@@ -187,7 +187,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
 #endif
 
     key = 0;
-    //从前往后搜索第一个dot，则0 到 i 即为关键字中第一个 子关键字
+    //从前往后搜索第一个dot,则0 到 i 即为关键字中第一个 子关键字
     for (i = 0; i < len; i++) {
         if (name[i] == '.') {
             break;
@@ -196,7 +196,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
         key = ngx_hash(key, name[i]); //计算哈希值
     }
 
-    if (i == len) { //没有通配符，返回NULL
+    if (i == len) { //没有通配符,返回NULL
         return NULL;
     }
 
@@ -210,7 +210,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "value:\"%p\"", value);
 #endif
     /*
-    还记得上节在ngx_hash_wildcard_init中，用value指针低2位来携带信息吗？其是有特殊意义的，如下：
+    还记得上节在ngx_hash_wildcard_init中,用value指针低2位来携带信息吗？其是有特殊意义的,如下:
     * 00 - value 是数据指针
     * 11 - value的指向下一个哈希表
     */
@@ -222,7 +222,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
          *     11 - value is pointer to wildcard hash allowing "example.*".
          */
 
-        if ((uintptr_t) value & 2) { //低2位为11，value的指向下一个哈希表，递归搜索
+        if ((uintptr_t) value & 2) { //低2位为11,value的指向下一个哈希表,递归搜索
 
             i++;
 
@@ -230,17 +230,17 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
 
             value = ngx_hash_find_wc_tail(hwc, &name[i], len - i);
 
-            if (value) { //找到低两位00，返回
+            if (value) { //找到低两位00,返回
                 return value;
             }
 
-            return hwc->value; //找打低两位11，返回hwc->value
+            return hwc->value; //找打低两位11,返回hwc->value
         }
 
         return value;
     }
 
-    return hwc->value; //低2位为00，直接返回数据
+    return hwc->value; //低2位为00,直接返回数据
 }
 
 //从hash表中查找对应的key - name
@@ -281,20 +281,20 @@ ngx_hash_find_combined(ngx_hash_combined_t *hash, ngx_uint_t key, u_char *name,
 }
 
 /*
-NGX_HASH_ELT_SIZE宏用来计算ngx_hash_elt_t结构大小，定义如下。
-在32位平台上，sizeof(void*)=4，(name)->key.len即是ngx_hash_elt_t结构中name数组保存的内容的长度，其中的"+2"是要加上该结构中len字段(u_short类型)的大小。
+NGX_HASH_ELT_SIZE宏用来计算ngx_hash_elt_t结构大小,定义如下.
+在32位平台上,sizeof(void*)=4,(name)->key.len即是ngx_hash_elt_t结构中name数组保存的内容的长度,其中的"+2"是要加上该结构中len字段(u_short类型)的大小.
 */
 #define NGX_HASH_ELT_SIZE(name)                                               \
     (sizeof(void *) + ngx_align((name)->key.len + 2, sizeof(void *)))
 
 /*
-其names参数是ngx_hash_key_t结构的数组，即键-值对<key,value>数组，nelts表示该数组元素的个数
-该函数初始化的结果就是将names数组保存的键-值对<key,value>，通过hash的方式将其存入相应的一个或多个hash桶(即代码中的buckets)中，
-该hash过程用到的hash函数一般为ngx_hash_key_lc等。hash桶里面存放的是ngx_hash_elt_t结构的指针(hash元素指针)，该指针指向一个基本
-连续的数据区。该数据区中存放的是经hash之后的键-值对<key',value'>，即ngx_hash_elt_t结构中的字段<name,value>。每一个这样的数据
-区存放的键-值对<key',value'>可以是一个或多个。
-*/ //ngx_hash_init中names数组存入hash桶前，其结构是ngx_hash_key_t形式，在往hash桶里面存数据的时候，会把ngx_hash_key_t里面的成员拷贝到ngx_hash_elt_t中相应成员
-//源代码，比较长，总的流程即为：预估需要的桶数量 –> 搜索需要的桶数量->分配桶内存->初始化每一个ngx_hash_elt_t
+其names参数是ngx_hash_key_t结构的数组,即键-值对<key,value>数组,nelts表示该数组元素的个数
+该函数初始化的结果就是将names数组保存的键-值对<key,value>,通过hash的方式将其存入相应的一个或多个hash桶(即代码中的buckets)中,
+该hash过程用到的hash函数一般为ngx_hash_key_lc等.hash桶里面存放的是ngx_hash_elt_t结构的指针(hash元素指针),该指针指向一个基本
+连续的数据区.该数据区中存放的是经hash之后的键-值对<key',value'>,即ngx_hash_elt_t结构中的字段<name,value>.每一个这样的数据
+区存放的键-值对<key',value'>可以是一个或多个.
+*/ //ngx_hash_init中names数组存入hash桶前,其结构是ngx_hash_key_t形式,在往hash桶里面存数据的时候,会把ngx_hash_key_t里面的成员拷贝到ngx_hash_elt_t中相应成员
+//源代码,比较长,总的流程即为:预估需要的桶数量 –> 搜索需要的桶数量->分配桶内存->初始化每一个ngx_hash_elt_t
 /* nginx hash结构大致是这样:
 11.           hash结构中有N个桶, 每个桶存放N个元素(即<k,v>),在内存中,
 12.        用一个指针数组记录N个桶的地址,每个桶又是一个 ngx_hash_elt_t 数组
@@ -307,7 +307,7 @@ NGX_HASH_ELT_SIZE宏用来计算ngx_hash_elt_t结构大小，定义如下。
 19.        首先 每个桶的空间大小固定 通过 ngx_hash_init_t.bucket_size 指定;
 20.        然后 根据元素的个数和桶的固定大小计算出需要多少个桶.
 21.        然后 计算哪些元素存放到哪个桶中,方法就是 (元素的hash值 % 桶的个数)
-22.        这时 需要多少个桶,这些桶需要多少内存空间,每个桶存放多少元素，需要多少内存空间就知道,
+22.        这时 需要多少个桶,这些桶需要多少内存空间,每个桶存放多少元素,需要多少内存空间就知道,
 23.        申请所有桶的内存空间,即为 ngx_hash_init_t.hash.buckets 指针数组.
 24.        申请每个桶存放元素的存储空间 = 该桶元素占用的内存空间 + void指针
 25.        为了提高查询效率,申请一个连续内存空间存放 所有桶的元素.
@@ -353,11 +353,11 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
         if (names[n].key.data == NULL) {
             continue;
         }
-        //检查names数组的每一个元素，判断桶的大小是否够分配
+        //检查names数组的每一个元素,判断桶的大小是否够分配
         //names[n]成员空间一定要小于等于bucket_size /* 每个桶至少能存放一个元素 + 一个void指针
-        //要加上sizeof(void *)，因为bucket最后需要k-v对结束标志，是void * value来做的。
+        //要加上sizeof(void *),因为bucket最后需要k-v对结束标志,是void * value来做的.
         if (hinit->bucket_size < NGX_HASH_ELT_SIZE(&names[n]) + sizeof(void *)) {
-            //有任何一个元素，桶的大小不够为该元素分配空间，则退出
+            //有任何一个元素,桶的大小不够为该元素分配空间,则退出
             ngx_log_error(NGX_LOG_EMERG, hinit->pool->log, 0,
                           "could not build %s, you should "
                           "increase %s_bucket_size: %i",
@@ -365,41 +365,41 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
             return NGX_ERROR;
         }
     }
-    //分配2*max_size个字节的空间保存hash数据(该内存分配操作不在nginx的内存池中进行，因为test只是临时的)
+    //分配2*max_size个字节的空间保存hash数据(该内存分配操作不在nginx的内存池中进行,因为test只是临时的)
     /* 用于记录每个桶的临时大小 */
     test = ngx_alloc(hinit->max_size * sizeof(u_short), hinit->pool->log);
     if (test == NULL) {
         return NGX_ERROR;
     }
-    // 实际可用空间为定义的bucket_size减去末尾的void *(结尾标识)，末尾的void* 指向NULL
+    // 实际可用空间为定义的bucket_size减去末尾的void *(结尾标识),末尾的void* 指向NULL
     bucket_size = hinit->bucket_size - sizeof(void *);
-    /* 下面这几行是大改估算一下，桶个数应该从多少个开始算 */
+    /* 下面这几行是大改估算一下,桶个数应该从多少个开始算 */
     start = nelts / (bucket_size / (2 * sizeof(void *)));
     start = start ? start : 1;
 
     if (hinit->max_size > 10000 && nelts && hinit->max_size / nelts < 100) {
         start = hinit->max_size - 1000;
     }
-    //start表示计算桶的个数，桶的个数是算出来的，从start开始到max_size一个一个的试，最终要保证每个桶中的实际空间hinit->bucket_size - sizeof(void *);要能够
-    //存放所有散列到该桶中的ngx_hash_elt_t空间个数和。
-    //其实算这个桶的个数(通过所有元素空间小于hinit->max_size)就是为了保证每个桶中的元素个数别太多，这样可以保证在遍历hash表的时候，能够快速找到具体桶中的元素
+    //start表示计算桶的个数,桶的个数是算出来的,从start开始到max_size一个一个的试,最终要保证每个桶中的实际空间hinit->bucket_size - sizeof(void *);要能够
+    //存放所有散列到该桶中的ngx_hash_elt_t空间个数和.
+    //其实算这个桶的个数(通过所有元素空间小于hinit->max_size)就是为了保证每个桶中的元素个数别太多,这样可以保证在遍历hash表的时候,能够快速找到具体桶中的元素
 
 
     /*  max_size和bucket_size的意义
-    max_size表示最多分配max_size个桶，每个桶中的元素(ngx_hash_elt_t)个数 * NGX_HASH_ELT_SIZE(&names[n])不能超过bucket_size大小
-    实际ngx_hash_init处理的时候并不是直接用max_size个桶，而是从size=1到max_size去试，只要ngx_hash_init参数中的names[]数组数据能全部hash
-    到这size个桶中，并且满足条件:每个桶中的元素(ngx_hash_elt_t)个数 * NGX_HASH_ELT_SIZE(&names[n])不超过bucket_size大小,则说明用size
-    个桶就够用了，然后直接使用x个桶存储。 见ngx_hash_init
+    max_size表示最多分配max_size个桶,每个桶中的元素(ngx_hash_elt_t)个数 * NGX_HASH_ELT_SIZE(&names[n])不能超过bucket_size大小
+    实际ngx_hash_init处理的时候并不是直接用max_size个桶,而是从size=1到max_size去试,只要ngx_hash_init参数中的names[]数组数据能全部hash
+    到这size个桶中,并且满足条件:每个桶中的元素(ngx_hash_elt_t)个数 * NGX_HASH_ELT_SIZE(&names[n])不超过bucket_size大小,则说明用size
+    个桶就够用了,然后直接使用x个桶存储. 见ngx_hash_init
      */
     for (size = start; size <= hinit->max_size; size++) { //size表示实际需要桶的个数
 
         ngx_memzero(test, size * sizeof(u_short));
-        //标记1：此块代码是检查bucket大小是否够分配hash数据
+        //标记1:此块代码是检查bucket大小是否够分配hash数据
         for (n = 0; n < nelts; n++) {
             if (names[n].key.data == NULL) {
                 continue;
             }
-            //计算key和names中所有name长度，并保存在test[key]中
+            //计算key和names中所有name长度,并保存在test[key]中
             key = names[n].key_hash % size;
             //test[i]表示第i个桶中已经使用了的ngx_hash_elt_t空间总大小
             len = test[key] + NGX_HASH_ELT_SIZE(&names[n]);
@@ -409,9 +409,9 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
                           "%ui: %ui %uz \"%V\"",
                           size, key, len, &names[n].key);
 #endif
-            //这里终于用到了bucket_size，大于这个值，则说明这个size不合适啊goto next，调整下桶的数目
+            //这里终于用到了bucket_size,大于这个值,则说明这个size不合适啊goto next,调整下桶的数目
             if (len > bucket_size) {
-                //若超过了桶的大小，则到下一个桶重新计算
+                //若超过了桶的大小,则到下一个桶重新计算
                 goto next;
             }
 
@@ -426,7 +426,7 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
     }
 
     size = hinit->max_size;
-    //走到这里表面，在names中的元素入hash桶的时候，可能会造成某些hash桶的暂用空间会比实际的bucket_size大
+    //走到这里表面,在names中的元素入hash桶的时候,可能会造成某些hash桶的暂用空间会比实际的bucket_size大
     ngx_log_error(NGX_LOG_WARN, hinit->pool->log, 0,
                   "could not build optimal %s, you should increase "
                   "either %s_max_size: %i or %s_bucket_size: %i; "
@@ -435,19 +435,19 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
                   hinit->name, hinit->bucket_size, hinit->name);
 
     found: //找到合适的bucket
-    //到这里后把所有的test[i]数组赋值为4，预留给NULL指针
+    //到这里后把所有的test[i]数组赋值为4,预留给NULL指针
     for (i = 0; i < size; i++) {
-        test[i] = sizeof(void *); //将test数组前size个元素初始化为4，提前赋值4的原因是，hash桶的成员列表尾部会有一个NULL，提前把这4字节空间预留
+        test[i] = sizeof(void *); //将test数组前size个元素初始化为4,提前赋值4的原因是,hash桶的成员列表尾部会有一个NULL,提前把这4字节空间预留
     }
-    /* 标记2：与标记1代码基本相同，但此块代码是再次计算所有hash数据的总长度(标记1的检查已通过)
-     但此处的test[i]已被初始化为4，即相当于后续的计算再加上一个void指针的大小。
+    /* 标记2:与标记1代码基本相同,但此块代码是再次计算所有hash数据的总长度(标记1的检查已通过)
+     但此处的test[i]已被初始化为4,即相当于后续的计算再加上一个void指针的大小.
    */ //计算每个桶中的成员空间大小总和
     for (n = 0; n < nelts; n++) {
         if (names[n].key.data == NULL) {
             continue;
         }
-        //计算key和names中所有name长度，并保存在test[key]中
-        key = names[n].key_hash % size; //若size=1，则key一直为0
+        //计算key和names中所有name长度,并保存在test[key]中
+        key = names[n].key_hash % size; //若size=1,则key一直为0
         len = test[key] + NGX_HASH_ELT_SIZE(&names[n]);
 
         if (len > 65536 - ngx_cacheline_size) {
@@ -461,14 +461,14 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
 
         test[key] = (u_short) len;
     }
-    //计算hash数据的总长度，所有桶的数据空间长度和
+    //计算hash数据的总长度,所有桶的数据空间长度和
     len = 0;
-    //len表示所有names[]数组数据一共需要x个ngx_hash_elt_t结构存储，这x个ngx_hash_elt_t暂用的空间总和，len是实际存储数据元素的空间，也就是存入所有桶中的元素暂用的空间
+    //len表示所有names[]数组数据一共需要x个ngx_hash_elt_t结构存储,这x个ngx_hash_elt_t暂用的空间总和,len是实际存储数据元素的空间,也就是存入所有桶中的元素暂用的空间
     for (i = 0; i < size; i++) {
-        if (test[i] == sizeof(void *)) { //若test[i]仍为初始化的值4，即没有变化，则继续
+        if (test[i] == sizeof(void *)) { //若test[i]仍为初始化的值4,即没有变化,则继续
             continue;
         }
-        //对test[i]按ngx_cacheline_size对齐(32位平台，ngx_cacheline_size=32)
+        //对test[i]按ngx_cacheline_size对齐(32位平台,ngx_cacheline_size=32)
         test[i] = (u_short) (ngx_align(test[i], ngx_cacheline_size));
 
         len += test[i];
@@ -477,7 +477,7 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
     if (hinit->hash == NULL) {
         //在内存池中分配hash头及buckets数组(size个ngx_hash_elt_t*结构)
         hinit->hash = ngx_pcalloc(hinit->pool, sizeof(ngx_hash_wildcard_t)
-                                               + size * sizeof(ngx_hash_elt_t *)); //size表示实际需要桶的个数，这里的空间刚好就是每个桶的头部指针
+                                               + size * sizeof(ngx_hash_elt_t *)); //size表示实际需要桶的个数,这里的空间刚好就是每个桶的头部指针
         if (hinit->hash == NULL) {
             ngx_free(test);
             return NGX_ERROR;
@@ -487,15 +487,15 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
                 ((u_char *) hinit->hash + sizeof(ngx_hash_wildcard_t));
 
     } else { //在内存池中分配buckets数组(size个ngx_hash_elt_t*结构)
-        buckets = ngx_pcalloc(hinit->pool, size * sizeof(ngx_hash_elt_t *)); //size表示实际需要桶的个数，这里的空间刚好就是每个桶的头部指针
+        buckets = ngx_pcalloc(hinit->pool, size * sizeof(ngx_hash_elt_t *)); //size表示实际需要桶的个数,这里的空间刚好就是每个桶的头部指针
         if (buckets == NULL) {
             ngx_free(test);
             return NGX_ERROR;
         }
     }
-    //接着分配elts，大小为len+ngx_cacheline_size，此处为什么+32？——下面要按32字节对齐
+    //接着分配elts,大小为len+ngx_cacheline_size,此处为什么+32？——下面要按32字节对齐
     elts = ngx_palloc(hinit->pool, len + ngx_cacheline_size);
-    //len表示所有names[](假设数组有x个成员)数组数据一共需要x个ngx_hash_elt_t结构存储，这x个ngx_hash_elt_t暂用的空间总和
+    //len表示所有names[](假设数组有x个成员)数组数据一共需要x个ngx_hash_elt_t结构存储,这x个ngx_hash_elt_t暂用的空间总和
     if (elts == NULL) {
         ngx_free(test);
         return NGX_ERROR;
@@ -521,18 +521,18 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
         if (names[n].key.data == NULL) {
             continue;
         }
-        //计算key，即将被hash的数据在第几个bucket，并计算其对应的elts位置，也就是在该buckets[i]桶中的具体位置
+        //计算key,即将被hash的数据在第几个bucket,并计算其对应的elts位置,也就是在该buckets[i]桶中的具体位置
         key = names[n].key_hash % size;
         elt = (ngx_hash_elt_t *) ((u_char *) buckets[key] + test[key]);
         //对ngx_hash_elt_t结构赋值
         elt->value = names[n].value;
         elt->len = (u_short) names[n].key.len;
-        //每次移动test[]的时候，都是移动NGX_HASH_ELT_SIZE(&names[n])，里面有给name预留name字符串长度空间
+        //每次移动test[]的时候,都是移动NGX_HASH_ELT_SIZE(&names[n]),里面有给name预留name字符串长度空间
         ngx_strlow(elt->name, names[n].key.data, names[n].key.len);
-        //计算下一个要被hash的数据的长度偏移，下一次就从该桶的下一个位置存储
+        //计算下一个要被hash的数据的长度偏移,下一次就从该桶的下一个位置存储
         test[key] = (u_short) (test[key] + NGX_HASH_ELT_SIZE(&names[n]));
     }
-    //为每个桶的成员列表最尾部添加一个ngx_hash_elt_t成员，起value=NULL，标识这是该桶中的最后一个ngx_hash_elt_t
+    //为每个桶的成员列表最尾部添加一个ngx_hash_elt_t成员,起value=NULL,标识这是该桶中的最后一个ngx_hash_elt_t
     for (i = 0; i < size; i++) {
         if (buckets[i] == NULL) {
             continue;
@@ -582,19 +582,19 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
 }
 
 /*
-nginx为了处理带有通配符的域名的匹配问题，实现了ngx_hash_wildcard_t这样的hash表。他可以支持两种类型的带有通配符的域名。一种是通配符在前的，
-例如：“*.abc.com”，也可以省略掉星号，直接写成”.abc.com”。这样的key，可以匹配www.abc.com，qqq.www.abc.com之类的。另外一种是通配符在末
-尾的，例如：“mail.xxx.*”，请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉。这样的通配符，可以匹配mail.xxx.com、mail.xxx.com.cn、
-mail.xxx.net之类的域名。
-有一点必须说明，就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key。不能同时包含两种类型的通配符
-的key。ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的，而查询是通过函数ngx_hash_find_wc_head或者
-ngx_hash_find_wc_tail来做的。ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的，而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的。
-特别要注意的是这里的key已经都是被预处理过的。例如：“*.abc.com”或者“.abc.com”被预处理完成以后，变成了“com.abc.”。而“mail.xxx.*”则被预处理为“mail.xxx.”
-首先看一下ngx_hash_wildcard_init 的内存结构，当构造此类型的hash表的时候，实际上是构造了一个hash表的一个“链表”，是通过hash表中的key“链接”
-起来的。比如：对于“*.abc.com”将会构造出2个hash表，第一个hash表中有一个key为com的表项，该表项的value包含有指向第二个hash表的指针，
-而第二个hash表中有一个表项abc，该表项的value包含有指向*.abc.com对应的value的指针。那么查询的时候，比如查询www.abc.com的时候，先查com，
-通过查com可以找到第二级的hash表，在第二级hash表中，再查找abc，依次类推，直到在某一级的hash表中查到的表项对应的value对应一个真正的值而非
-一个指向下一级hash表的指针的时候，查询过程结束。
+nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
+例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+mail.xxx.net之类的域名.
+有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
+的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
+ngx_hash_find_wc_tail来做的.ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的,而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的.
+特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com”或者“.abc.com”被预处理完成以后,变成了“com.abc.”.而“mail.xxx.*”则被预处理为“mail.xxx.”
+首先看一下ngx_hash_wildcard_init 的内存结构,当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”
+起来的.比如:对于“*.abc.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+而第二个hash表中有一个表项abc,该表项的value包含有指向*.abc.com对应的value的指针.那么查询的时候,比如查询www.abc.com的时候,先查com,
+通过查com可以找到第二级的hash表,在第二级hash表中,再查找abc,依次类推,直到在某一级的hash表中查到的表项对应的value对应一个真正的值而非
+一个指向下一级hash表的指针的时候,查询过程结束.
 */
 ngx_int_t
 ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:http://www.bkjia.com/ASPjc/905190.html //使用方法可以参考ngx_http_server_names
@@ -627,7 +627,7 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
 
         dot = 0;
 
-        for (len = 0; len < names[n].key.len; len++) { //查找 dot，len的长度为.前面的字符串长度
+        for (len = 0; len < names[n].key.len; len++) { //查找 dot,len的长度为.前面的字符串长度
             if (names[n].key.data[len] == '.') {
                 dot = 1;
                 break;
@@ -639,13 +639,13 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
             return NGX_ERROR;
         }
         //将关键字dot以前的关键字放入curr_names
-        //names[]字符串放在key中存储，
+        //names[]字符串放在key中存储,
 
-        /* 取值aa.bb.cc中的aa字符串存储到key中，并计算aa对应的key_hash值，后面会进行递归，然后取出bb和cc字符串分别存到name数组中 */
+        /* 取值aa.bb.cc中的aa字符串存储到key中,并计算aa对应的key_hash值,后面会进行递归,然后取出bb和cc字符串分别存到name数组中 */
         name->key.len = len; //len为.dot前面的字符串
         name->key.data = names[n].key.data;
         name->key_hash = hinit->key(name->key.data, name->key.len);
-        name->value = names[n].value; //如果有子hash，则value会在后面指向子hash
+        name->value = names[n].value; //如果有子hash,则value会在后面指向子hash
 
 #if 0
         ngx_log_error(NGX_LOG_ALERT, hinit->pool->log, 0,
@@ -659,8 +659,8 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
         }
 
         next_names.nelts = 0;
-        //如果names[n] dot后还有剩余关键字，将剩余关键字放入next_names中
-        if (names[n].key.len != len) { //取出了aa.bb.cc中的aa字符串存到curr_names[]数组中，剩下的bb.cc字符串存到next_names数组中
+        //如果names[n] dot后还有剩余关键字,将剩余关键字放入next_names中
+        if (names[n].key.len != len) { //取出了aa.bb.cc中的aa字符串存到curr_names[]数组中,剩下的bb.cc字符串存到next_names数组中
             next_name = ngx_array_push(&next_names);
             if (next_name == NULL) {
                 return NGX_ERROR;
@@ -676,10 +676,10 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
                           "wc2: \"%V\"", &next_name->key);
 #endif
         }
-        //如果上面搜索到的关键字没有dot，从n+1遍历names，将关键字比它长的全部放入next_name
+        //如果上面搜索到的关键字没有dot,从n+1遍历names,将关键字比它长的全部放入next_name
 
         /*
-            例如names[0]为aa.bb,names[1]为aa.cc，并且当前处理的是names[0],则aa存到curr_names[]数组中，bb和cc存到next_name数组中，
+            例如names[0]为aa.bb,names[1]为aa.cc,并且当前处理的是names[0],则aa存到curr_names[]数组中,bb和cc存到next_name数组中,
             也就是把aa.bb和aa.cc合并了
           */
         for (i = n + 1; i < nelts; i++) {
@@ -708,7 +708,7 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
                           "wc3: \"%V\"", &next_name->key);
 #endif
         }
-        //例如加上name[i]为aa.bb.cc，前面取出了aa,剩下的bb.cc存到了next_names数组中，则递归该函数从而对bb和cc进行同样的操作
+        //例如加上name[i]为aa.bb.cc,前面取出了aa,剩下的bb.cc存到了next_names数组中,则递归该函数从而对bb和cc进行同样的操作
         if (next_names.nelts) { //如果next_name非空
 
             h = *hinit;
@@ -722,10 +722,10 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
 
             wdc = (ngx_hash_wildcard_t *) h.hash;
             /*
-                由于指针都对void*（大小为4）字节对齐了，低2位肯定为0，这种操作（name->value = (void *) ((uintptr_t) wdc | (dot ? 3 : 2)) ）
-                巧妙的使用了指针的低位携带额外信息，节省了内存，让人不得不佩服ngx设计者的想象力。
+                由于指针都对void*（大小为4）字节对齐了,低2位肯定为0,这种操作（name->value = (void *) ((uintptr_t) wdc | (dot ? 3 : 2)) ）
+                巧妙的使用了指针的低位携带额外信息,节省了内存,让人不得不佩服ngx设计者的想象力.
                 */
-            if (names[n].key.len == len) { //如上图，将用户value值放入新的hash表，也就是hinit中
+            if (names[n].key.len == len) { //如上图,将用户value值放入新的hash表,也就是hinit中
                 wdc->value = names[n].value;
             }
 
@@ -753,12 +753,12 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
 ┣━┻━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_uint_t ngx_hash_key(u_char *data, size_t len)     ┃  使用BKDR算法将任意长度的字符串映射为整型        ┃
 ┣━━━━━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                                      ┃  将字符串全小写后，再使用BKDR算法将任意长度的字  ┃
+┃                                                      ┃  将字符串全小写后,再使用BKDR算法将任意长度的字  ┃
 ┃.gx_uint_t ngx_hash_key_lc(I_char *data, size_t len)  ┃符串映射为整型                                    ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━┛
 */
 /*
-ngx_hash_key函数的计算可表述为下列公式。
+ngx_hash_key函数的计算可表述为下列公式.
 Key[0] = data[0]
 Key[1] = data[0]*31 + data[1]
 Key[2] = (data[0]*31 + data[1])*31 + data[2]
@@ -810,9 +810,9 @@ ngx_hash_strlow(u_char *dst, u_char *src, size_t n) {
     return key;
 }
 
-/*初始化ngx_hash_keys_arrays_t 结构体，type的取值范围只有两个，NGX_HASH_SMALL表示初始化元素较少，NGX_HASH_LARGE表示初始化元素较多，
-在向ha中加入时必须调用此方法。*/
-//ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用，前者表示初始化ngx_hash_keys_arrays_t数组空间，后者用来存储对应的key到数组中的对应hash和数组中
+/*初始化ngx_hash_keys_arrays_t 结构体,type的取值范围只有两个,NGX_HASH_SMALL表示初始化元素较少,NGX_HASH_LARGE表示初始化元素较多,
+在向ha中加入时必须调用此方法.*/
+//ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用,前者表示初始化ngx_hash_keys_arrays_t数组空间,后者用来存储对应的key到数组中的对应hash和数组中
 ngx_int_t
 ngx_hash_keys_array_init(ngx_hash_keys_arrays_t *ha, ngx_uint_t type) { //使用方法可以参考ngx_http_server_names
     ngx_uint_t asize;
@@ -842,25 +842,25 @@ ngx_hash_keys_array_init(ngx_hash_keys_arrays_t *ha, ngx_uint_t type) { //使用
         != NGX_OK) {
         return NGX_ERROR;
     }
-    //下面这几个实际上是hash通的各个桶的头部指针，每个hash有ha->hsize个桶头部指针，在ngx_hash_add_key的时候头部指针指向每个桶中具体的成员列表
+    //下面这几个实际上是hash通的各个桶的头部指针,每个hash有ha->hsize个桶头部指针,在ngx_hash_add_key的时候头部指针指向每个桶中具体的成员列表
 
     /*
-    初始化二位数组，这个数组存放的第一个维度代表的是bucket的编号，那么keys_hash[i]中存放的是所有的key算出来的hash值对hsize取
-    模以后的值为i的key。假设有3个key,分别是key1,key2和key3假设hash值算出来以后对hsize取模的值都是i，那么这三个key的值就顺序存
-    放在keys_hash[i][0],keys_hash[i][1], keys_hash[i][2]。该值在调用的过程中用来保存和检测是否有冲突的key值，也就是是否有重复。
+    初始化二位数组,这个数组存放的第一个维度代表的是bucket的编号,那么keys_hash[i]中存放的是所有的key算出来的hash值对hsize取
+    模以后的值为i的key.假设有3个key,分别是key1,key2和key3假设hash值算出来以后对hsize取模的值都是i,那么这三个key的值就顺序存
+    放在keys_hash[i][0],keys_hash[i][1], keys_hash[i][2].该值在调用的过程中用来保存和检测是否有冲突的key值,也就是是否有重复.
     */
     ha->keys_hash = ngx_pcalloc(ha->temp_pool, sizeof(ngx_array_t) * ha->hsize);
-    //只开辟有多少个桶对应的头，每个桶中用来存储数据的空间在后面的ngx_hash_add_key分片空间
+    //只开辟有多少个桶对应的头,每个桶中用来存储数据的空间在后面的ngx_hash_add_key分片空间
     if (ha->keys_hash == NULL) {
         return NGX_ERROR;
     }
-    // 该数组在调用的过程中用来保存和检测是否有冲突的前向通配符的key值，也就是是否有重复。
+    // 该数组在调用的过程中用来保存和检测是否有冲突的前向通配符的key值,也就是是否有重复.
     ha->dns_wc_head_hash = ngx_pcalloc(ha->temp_pool,
                                        sizeof(ngx_array_t) * ha->hsize);
     if (ha->dns_wc_head_hash == NULL) {
         return NGX_ERROR;
     }
-    // 该数组在调用的过程中用来保存和检测是否有冲突的后向通配符的key值，也就是是否有重复。
+    // 该数组在调用的过程中用来保存和检测是否有冲突的后向通配符的key值,也就是是否有重复.
     ha->dns_wc_tail_hash = ngx_pcalloc(ha->temp_pool,
                                        sizeof(ngx_array_t) * ha->hsize);
     if (ha->dns_wc_tail_hash == NULL) {
@@ -881,11 +881,11 @@ Nginx哈希支持三种类型的通配:
 "*.example.com", 经过预处理后变成了: "com.example.\0"
 ".example.com"  经过预处理后变成了: "com.example\0"
 "www.example.*" 经过预处理后变成了:  "www.example\0"
-通配符hash表的实现原理 ： 当构造此类型的hash表的时候，实际上是构造了一个hash表的一个“链表”，是通过hash表中的key“链接”起来的。
-比如：对于“*.example.com”将会构造出2个hash表，第一个hash表中有一个key为com的表项，该表项的value包含有指向第二个hash表的指针，
-而第二个hash表中有一个表项abc，该表项的value包含有指*.example.com对应的value的指针。那么查询的时候，比如查询www.example.com的时候，
-先查com，通过查com可以找到第二级的hash表，在第二级hash表中，再查找example，依次类推，直到在某一级的hash表中查到的表项对应的value对
-应一个真正的值而非一个指向下一级hash表的指针的时候，查询过程结束。而查找到哪里是由value地址的最低两bit表示: (这也是在申请内存时要
+通配符hash表的实现原理 : 当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”起来的.
+比如:对于“*.example.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+而第二个hash表中有一个表项abc,该表项的value包含有指*.example.com对应的value的指针.那么查询的时候,比如查询www.example.com的时候,
+先查com,通过查com可以找到第二级的hash表,在第二级hash表中,再查找example,依次类推,直到在某一级的hash表中查到的表项对应的value对
+应一个真正的值而非一个指向下一级hash表的指针的时候,查询过程结束.而查找到哪里是由value地址的最低两bit表示: (这也是在申请内存时要
 求4字节对齐的原因, 最后两bit是0, 可以被修改来表示下述情况)
 头部通配情况:
         / *
@@ -906,14 +906,14 @@ Nginx哈希支持三种类型的通配:
          * /
 */
 /*
-ngx_hash_add_key是将带或不带通配符的key转换后存放在上述结构中的，其过程是:
-    先看传入的第三个参数标志标明的key是不是NGX_HASH_WILDCARD_KEY，
-    如果不是，则在ha->keys_hash中检查是否冲突，冲突就返回NGX_BUSY，否则，就将这一项插入到ha->keys中。
-    如果是，就判断通配符类型，支持的统配符有三种”*.example.com”, “.example.com”, and “www.example.*“，
-    然后将第一种转换为"com.example.“并插入到ha->dns_wc_head中，将第三种转换为"www.example"并插入到ha->dns_wc_tail中，
-    对第二种比较特殊，因为它等价于”*.example.com”+“example.com”,所以会一份转换为"com.example.“插入到ha->dns_wc_head，
-    一份为"example.com"插入到ha->keys中。当然插入前都会检查是否冲突。
-*/ //ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用，前者表示初始化ngx_hash_keys_arrays_t数组空间，后者用来存储对应的key到数组中的对应hash和数组中
+ngx_hash_add_key是将带或不带通配符的key转换后存放在上述结构中的,其过程是:
+    先看传入的第三个参数标志标明的key是不是NGX_HASH_WILDCARD_KEY,
+    如果不是,则在ha->keys_hash中检查是否冲突,冲突就返回NGX_BUSY,否则,就将这一项插入到ha->keys中.
+    如果是,就判断通配符类型,支持的统配符有三种”*.example.com”, “.example.com”, and “www.example.*“,
+    然后将第一种转换为"com.example.“并插入到ha->dns_wc_head中,将第三种转换为"www.example"并插入到ha->dns_wc_tail中,
+    对第二种比较特殊,因为它等价于”*.example.com”+“example.com”,所以会一份转换为"com.example.“插入到ha->dns_wc_head,
+    一份为"example.com"插入到ha->keys中.当然插入前都会检查是否冲突.
+*/ //ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用,前者表示初始化ngx_hash_keys_arrays_t数组空间,后者用来存储对应的key到数组中的对应hash和数组中
 
 /*
     赋值见ngx_hash_add_key
@@ -922,7 +922,7 @@ ngx_hash_add_key是将带或不带通配符的key转换后存放在上述结构�
                                     或dns_wc_tail_hash)                                     dns_wc_tail)
 
  www.example.com                 www.example.com(存入keys_hash)                        www.example.com (存入keys数组成员ngx_hash_key_t对应的key中)
-  .example.com             example.com(存到keys_hash，同时存入dns_wc_tail_hash)        com.example  (存入dns_wc_head数组成员ngx_hash_key_t对应的key中)
+  .example.com             example.com(存到keys_hash,同时存入dns_wc_tail_hash)        com.example  (存入dns_wc_head数组成员ngx_hash_key_t对应的key中)
  www.example.*                     www.example. (存入dns_wc_tail_hash)                 www.example  (存入dns_wc_tail数组成员ngx_hash_key_t对应的key中)
  *.example.com                     example.com  (存入dns_wc_head_hash)                 com.example. (存入dns_wc_head数组成员ngx_hash_key_t对应的key中)
 */
@@ -950,12 +950,12 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
         for (i = 0; i < key->len; i++) {
 
             if (key->data[i] == '*') {
-                if (++n > 1) { //通配符*只能出现一次，出现多次说明错误返回
+                if (++n > 1) { //通配符*只能出现一次,出现多次说明错误返回
                     return NGX_DECLINED;
                 }
             }
 
-            if (key->data[i] == '.' && key->data[i + 1] == '.') { //不能出现两个连续的..，便是出错，直接返回
+            if (key->data[i] == '.' && key->data[i + 1] == '.') { //不能出现两个连续的..,便是出错,直接返回
                 return NGX_DECLINED;
             }
 
@@ -964,7 +964,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
             }
         }
 
-        if (key->len > 1 && key->data[0] == '.') { //首字符是.，".example.com"说明是前向通配符
+        if (key->len > 1 && key->data[0] == '.') { //首字符是.,".example.com"说明是前向通配符
             skip = 1;
             goto wildcard;
         }
@@ -989,9 +989,9 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
     }
 
     /* exact hash */
-    /* 说明是精确匹配server_name类型，例如"www.example.com" */
+    /* 说明是精确匹配server_name类型,例如"www.example.com" */
     k = 0;
-    //把字符串key为源来计算hash，一个字符一个字符的算
+    //把字符串key为源来计算hash,一个字符一个字符的算
     for (i = 0; i < last; i++) {
         if (!(flags & NGX_HASH_READONLY_KEY)) {
             key->data[i] = ngx_tolower(key->data[i]);
@@ -1019,7 +1019,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
     } else {
         //每个桶中的元素个数默认
         if (ngx_array_init(&ha->keys_hash[k], ha->temp_pool, 4,
-                           sizeof(ngx_str_t)) //桶的头部指针在ngx_hash_keys_array_init分配，桶中存储数据的空间在这里分配
+                           sizeof(ngx_str_t)) //桶的头部指针在ngx_hash_keys_array_init分配,桶中存储数据的空间在这里分配
             != NGX_OK) {
             return NGX_ERROR;
         }
@@ -1053,7 +1053,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
 
     k %= ha->hsize;
 
-    if (skip == 1) { //".example.com"，".example.com"除了添加到hash桶keys_hash[]外，还会添加到dns_wc_tail_hash[]桶中，
+    if (skip == 1) { //".example.com",".example.com"除了添加到hash桶keys_hash[]外,还会添加到dns_wc_tail_hash[]桶中,
 
         /* check conflicts in exact hash for ".example.com" */
 
@@ -1075,7 +1075,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
         } else {
             if (ngx_array_init(&ha->keys_hash[k], ha->temp_pool, 4,
                                sizeof(ngx_str_t)) //每个槽中的元素个数默认4字节
-                //开辟每个槽中的空间，用来存放对应的节点到该槽中，槽的头节点在ngx_hash_keys_array_init中已经分配好
+                //开辟每个槽中的空间,用来存放对应的节点到该槽中,槽的头节点在ngx_hash_keys_array_init中已经分配好
                 != NGX_OK) {
                 return NGX_ERROR;
             }
@@ -1091,7 +1091,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
         if (name->data == NULL) {
             return NGX_ERROR;
         }
-        //".example.com"去掉开头的.后变为"example.com"存储到name中，但是key还是原来的".example.com"
+        //".example.com"去掉开头的.后变为"example.com"存储到name中,但是key还是原来的".example.com"
         ngx_memcpy(name->data, &key->data[1], name->len); //".example.com"去掉开头的.后变为"example.com"存储到ha->keys_hash[i]桶中
     }
 
@@ -1127,7 +1127,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
             ngx_memcpy(&p[n], &key->data[1], len);
             n += len;
         }
-        /* key中数据"*.example.com"，p中数据"com.example.\0"   key中数据".example.com" p中数据"com.example\0" */
+        /* key中数据"*.example.com",p中数据"com.example.\0"   key中数据".example.com" p中数据"com.example\0" */
         p[n] = '\0';
 
         hwc = &ha->dns_wc_head;
@@ -1143,7 +1143,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
         if (p == NULL) {
             return NGX_ERROR;
         }
-        //key中数据为"www.example.*"， p中数据为"www.example\0"
+        //key中数据为"www.example.*", p中数据为"www.example\0"
         ngx_cpystrn(p, key->data, last);
 
         hwc = &ha->dns_wc_tail;
@@ -1211,7 +1211,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
     //到这里,p中的数据就有源key"*.example.com", ".example.com", and "www.example.*"变为了"com.example.\0" "com.example\0"  "www.example\0"
     hk->key.data = p;
     hk->key_hash = 0;
-    hk->value = value; //以ngx_http_add_referer为例，假设key为，*.example.com/test/xxx,则value为字符串/test/xxx，否则为NGX_HTTP_REFERER_NO_URI_PART
+    hk->value = value; //以ngx_http_add_referer为例,假设key为,*.example.com/test/xxx,则value为字符串/test/xxx,否则为NGX_HTTP_REFERER_NO_URI_PART
     /*
     配置valid_referers none blocked server_names .example.com  www.example.*
     或者配置valid_referers none blocked server_names *.example.com  www.example.*

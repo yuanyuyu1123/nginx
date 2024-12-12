@@ -297,7 +297,7 @@ ngx_regex_compile(ngx_regex_compile_t *rc) {
     ngx_regex_malloc_init(rc->pool);
 
     re = pcre_compile((const char *) rc->pattern.data, (int) options,
-                      &errstr, &erroff, NULL); //正则表达式在使用之前要经过编译。编译的目的是将正则表达式的pattern转换成PCRE引擎能够识别的结构（struct real_pcre）。
+                      &errstr, &erroff, NULL); //正则表达式在使用之前要经过编译.编译的目的是将正则表达式的pattern转换成PCRE引擎能够识别的结构（struct real_pcre）.
 
     /* ensure that there is no current pool */
     ngx_regex_malloc_done();

@@ -1,8 +1,9 @@
 CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
- /usr/local/cdir/nginx/src/os/unix/ngx_process_cycle.c \
- /usr/include/stdc-predef.h /usr/local/cdir/nginx/src/core/ngx_config.h \
- /usr/local/cdir/nginx/objs/ngx_auto_headers.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_linux_config.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_process_cycle.c \
+ /usr/include/stdc-predef.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_config.h \
+ /home/yuan/code/cgit/nginx/objs/ngx_auto_headers.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_linux_config.h \
  /usr/include/x86_64-linux-gnu/sys/types.h /usr/include/features.h \
  /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -18,7 +19,7 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/timer_t.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stddef.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stddef.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h /usr/include/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endian.h \
  /usr/include/x86_64-linux-gnu/bits/endianness.h \
@@ -44,7 +45,7 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/x86_64-linux-gnu/bits/getopt_core.h \
  /usr/include/x86_64-linux-gnu/bits/unistd_ext.h \
  /usr/include/linux/close_range.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stdarg.h /usr/include/stdio.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
@@ -120,11 +121,13 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \
  /usr/include/x86_64-linux-gnu/bits/fcntl-linux.h \
  /usr/include/linux/falloc.h /usr/include/x86_64-linux-gnu/sys/wait.h \
+ /usr/include/x86_64-linux-gnu/bits/types/idtype_t.h \
  /usr/include/x86_64-linux-gnu/sys/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman.h \
  /usr/include/x86_64-linux-gnu/bits/mman-map-flags-generic.h \
  /usr/include/x86_64-linux-gnu/bits/mman-linux.h \
  /usr/include/x86_64-linux-gnu/bits/mman-shared.h \
+ /usr/include/x86_64-linux-gnu/bits/mman_ext.h \
  /usr/include/x86_64-linux-gnu/sys/resource.h \
  /usr/include/x86_64-linux-gnu/bits/resource.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_rusage.h \
@@ -143,17 +146,18 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/netinet/in.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/include/x86_64-linux-gnu/bits/in.h /usr/include/netinet/tcp.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/stdint.h /usr/include/stdint.h \
- /usr/include/x86_64-linux-gnu/bits/wchar.h /usr/include/arpa/inet.h \
- /usr/include/netdb.h /usr/include/rpc/netdb.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
+ /usr/include/arpa/inet.h /usr/include/netdb.h /usr/include/rpc/netdb.h \
  /usr/include/x86_64-linux-gnu/bits/netdb.h \
  /usr/include/x86_64-linux-gnu/sys/un.h /usr/include/time.h \
  /usr/include/x86_64-linux-gnu/bits/time.h \
  /usr/include/x86_64-linux-gnu/bits/timex.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_tm.h \
  /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h \
- /usr/include/malloc.h /usr/lib/gcc/x86_64-linux-gnu/11/include/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/11/include/syslimits.h \
+ /usr/include/malloc.h /usr/lib/gcc/x86_64-linux-gnu/13/include/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/13/include/syslimits.h \
  /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
  /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
  /usr/include/x86_64-linux-gnu/sys/ioctl.h \
@@ -168,8 +172,8 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/x86_64-linux-gnu/bits/utsname.h /usr/include/dlfcn.h \
  /usr/include/x86_64-linux-gnu/bits/dlfcn.h \
  /usr/include/x86_64-linux-gnu/bits/dl_find_object.h \
- /usr/local/cdir/nginx/objs/ngx_auto_config.h /usr/include/semaphore.h \
- /usr/include/x86_64-linux-gnu/bits/semaphore.h \
+ /home/yuan/code/cgit/nginx/objs/ngx_auto_config.h \
+ /usr/include/semaphore.h /usr/include/x86_64-linux-gnu/bits/semaphore.h \
  /usr/include/x86_64-linux-gnu/sys/prctl.h /usr/include/linux/prctl.h \
  /usr/include/x86_64-linux-gnu/sys/sendfile.h \
  /usr/include/x86_64-linux-gnu/sys/epoll.h \
@@ -185,55 +189,56 @@ CMakeFiles/nginx.dir/src/os/unix/ngx_process_cycle.c.o: \
  /usr/include/x86_64-linux-gnu/asm/byteorder.h \
  /usr/include/linux/byteorder/little_endian.h /usr/include/linux/swab.h \
  /usr/include/x86_64-linux-gnu/asm/swab.h /usr/include/linux/capability.h \
- /usr/local/cdir/nginx/src/core/ngx_core.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_errno.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_atomic.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_thread.h \
- /usr/local/cdir/nginx/src/core/ngx_rbtree.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_time.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_socket.h \
- /usr/local/cdir/nginx/src/core/ngx_string.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_files.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_shmem.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_process.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_setaffinity.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_setproctitle.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_user.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_dlopen.h \
- /usr/local/cdir/nginx/src/core/ngx_parse.h \
- /usr/local/cdir/nginx/src/core/ngx_parse_time.h \
- /usr/local/cdir/nginx/src/core/ngx_log.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_alloc.h \
- /usr/local/cdir/nginx/src/core/ngx_palloc.h \
- /usr/local/cdir/nginx/src/core/ngx_buf.h \
- /usr/local/cdir/nginx/src/core/ngx_queue.h \
- /usr/local/cdir/nginx/src/core/ngx_array.h \
- /usr/local/cdir/nginx/src/core/ngx_list.h \
- /usr/local/cdir/nginx/src/core/ngx_hash.h \
- /usr/local/cdir/nginx/src/core/ngx_file.h \
- /usr/local/cdir/nginx/src/core/ngx_crc.h \
- /usr/local/cdir/nginx/src/core/ngx_crc32.h \
- /usr/local/cdir/nginx/src/core/ngx_murmurhash.h \
- /usr/local/cdir/nginx/src/core/ngx_regex.h /usr/include/pcre2.h \
- /usr/include/inttypes.h /usr/local/cdir/nginx/src/core/ngx_radix_tree.h \
- /usr/local/cdir/nginx/src/core/ngx_times.h \
- /usr/local/cdir/nginx/src/core/ngx_rwlock.h \
- /usr/local/cdir/nginx/src/core/ngx_shmtx.h \
- /usr/local/cdir/nginx/src/core/ngx_slab.h \
- /usr/local/cdir/nginx/src/core/ngx_inet.h \
- /usr/local/cdir/nginx/src/core/ngx_cycle.h \
- /usr/local/cdir/nginx/src/core/ngx_resolver.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_process_cycle.h \
- /usr/local/cdir/nginx/src/core/ngx_conf_file.h \
- /usr/local/cdir/nginx/src/core/ngx_module.h \
- /usr/local/cdir/nginx/src/core/nginx.h \
- /usr/local/cdir/nginx/src/core/ngx_open_file_cache.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_os.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_linux.h \
- /usr/local/cdir/nginx/src/core/ngx_connection.h \
- /usr/local/cdir/nginx/src/core/ngx_syslog.h \
- /usr/local/cdir/nginx/src/core/ngx_proxy_protocol.h \
- /usr/local/cdir/nginx/src/event/ngx_event.h \
- /usr/local/cdir/nginx/src/event/ngx_event_timer.h \
- /usr/local/cdir/nginx/src/event/ngx_event_posted.h \
- /usr/local/cdir/nginx/src/os/unix/ngx_channel.h
+ /home/yuan/code/cgit/nginx/src/core/ngx_core.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_errno.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_atomic.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_thread.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_rbtree.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_time.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_socket.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_string.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_files.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_shmem.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_process.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_setaffinity.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_setproctitle.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_user.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_dlopen.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_parse.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_parse_time.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_log.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_alloc.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_palloc.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_buf.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_queue.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_array.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_list.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_hash.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_file.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_crc.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_crc32.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_murmurhash.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_regex.h /usr/include/pcre2.h \
+ /usr/include/inttypes.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_radix_tree.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_times.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_rwlock.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_shmtx.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_slab.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_inet.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_cycle.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_resolver.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_process_cycle.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_conf_file.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_module.h \
+ /home/yuan/code/cgit/nginx/src/core/nginx.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_open_file_cache.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_os.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_linux.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_connection.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_syslog.h \
+ /home/yuan/code/cgit/nginx/src/core/ngx_proxy_protocol.h \
+ /home/yuan/code/cgit/nginx/src/event/ngx_event.h \
+ /home/yuan/code/cgit/nginx/src/event/ngx_event_timer.h \
+ /home/yuan/code/cgit/nginx/src/event/ngx_event_posted.h \
+ /home/yuan/code/cgit/nginx/src/os/unix/ngx_channel.h

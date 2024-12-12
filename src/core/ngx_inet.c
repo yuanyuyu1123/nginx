@@ -179,7 +179,7 @@ ngx_inet6_addr(u_char *p, size_t len, u_char *addr) {
 
 #endif
 
-//将socket绑定的地址转换为文本格式(ipv4和ipv6的不相同) ，把sa中的ip和端口转换为A.B.C.D:port格式字符串存入text中
+//将socket绑定的地址转换为文本格式(ipv4和ipv6的不相同) ,把sa中的ip和端口转换为A.B.C.D:port格式字符串存入text中
 size_t
 ngx_sock_ntop(struct sockaddr *sa, socklen_t socklen, u_char *text, size_t len,
               ngx_uint_t port) {
@@ -779,7 +779,7 @@ ngx_parse_unix_domain_url(ngx_pool_t *pool, ngx_url_t *u) {
 ?gethostbyname()函数就是通过域名获取IP的函数
 */
 static ngx_int_t
-ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) { //解析uri，如果uri是IP:PORT形式则获取他们，如果是域名www.xxx.com形式，则解析域名
+ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) { //解析uri,如果uri是IP:PORT形式则获取他们,如果是域名www.xxx.com形式,则解析域名
     u_char *host, *port, *last, *uri, *args, *dash;
     size_t len;
     ngx_int_t n;
@@ -966,7 +966,7 @@ ngx_parse_inet_url(ngx_pool_t *pool, ngx_url_t *u) { //解析uri，如果uri是I
         return ngx_inet_add_addr(pool, u, &u->sockaddr.sockaddr, u->socklen, 1);
     }
 
-    if (u->no_resolve) { //如果置1了，直接返回，也不会解析域名
+    if (u->no_resolve) { //如果置1了,直接返回,也不会解析域名
         return NGX_OK;
     }
 

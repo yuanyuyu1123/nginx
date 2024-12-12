@@ -105,7 +105,7 @@ ngx_parse_offset(ngx_str_t *line) {
     return offset;
 }
 
-//时间字符串转换为s，如1h=60*60*1s
+//时间字符串转换为s,如1h=60*60*1s
 ngx_int_t
 ngx_parse_time(ngx_str_t *line, ngx_uint_t is_sec) {
     u_char *p, *last;

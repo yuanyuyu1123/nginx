@@ -92,7 +92,7 @@ struct ngx_ssl_s {
     size_t buffer_size;  /* 默认NGX_SSL_BUFSIZE, 赋值见ngx_ssl_create */
 };
 
-/* 创建空间和赋值见ngx_ssl_create_connection，ngx_connection_t.ssl成员属于该结构 */
+/* 创建空间和赋值见ngx_ssl_create_connection,ngx_connection_t.ssl成员属于该结构 */
 struct ngx_ssl_connection_s {
     ngx_ssl_conn_t *connection; //赋值见ngx_ssl_create_connection
     SSL_CTX *session_ctx;
@@ -100,9 +100,9 @@ struct ngx_ssl_connection_s {
     ngx_int_t last;
     ngx_buf_t *buf;
     size_t buffer_size;
-    /* ngx_ssl_handshake握手为完成的时候，在ngx_http_ssl_handshake赋值为ngx_http_ssl_handshake_handler，
-      如果是和后端进行ssl握手处理，则为ngx_http_upstream_ssl_handshake
-      如果是ssl挥手，则为ngx_http_close_connection
+    /* ngx_ssl_handshake握手为完成的时候,在ngx_http_ssl_handshake赋值为ngx_http_ssl_handshake_handler,
+      如果是和后端进行ssl握手处理,则为ngx_http_upstream_ssl_handshake
+      如果是ssl挥手,则为ngx_http_close_connection
    */
     ngx_connection_handler_pt handler; //ssl单向认证四次握手完成后在ngx_ssl_handshake_handler中执行该handler
 

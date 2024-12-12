@@ -1,3 +1,3 @@
-/usr/local/cdir/nginx/CMakeFiles/nginx.dir
-/usr/local/cdir/nginx/CMakeFiles/edit_cache.dir
-/usr/local/cdir/nginx/CMakeFiles/rebuild_cache.dir
+/home/yuan/code/cgit/nginx/CMakeFiles/nginx.dir
+/home/yuan/code/cgit/nginx/CMakeFiles/edit_cache.dir
+/home/yuan/code/cgit/nginx/CMakeFiles/rebuild_cache.dir

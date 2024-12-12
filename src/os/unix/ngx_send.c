@@ -36,9 +36,9 @@ ngx_unix_send(ngx_connection_t *c, u_char *buf, size_t size) {
                        "send: fd:%d %z of %uz", c->fd, n, size);
 
         if (n > 0) {
-            //期待发送1000字节，实际上返回500字节，说明内核缓冲区接收到这500字节后已经满了，不能在写, read为0，只有等epoll写事件触发 read
-            //但是，接收如果期待接收1000字节，返回500字节则说明我内核缓冲区中只有500字节，因此可以继续recv，ready还是为1
-            if (n < (ssize_t) size) { //说明发送了n字节到缓冲区后，缓冲区满了
+            //期待发送1000字节,实际上返回500字节,说明内核缓冲区接收到这500字节后已经满了,不能在写, read为0,只有等epoll写事件触发 read
+            //但是,接收如果期待接收1000字节,返回500字节则说明我内核缓冲区中只有500字节,因此可以继续recv,ready还是为1
+            if (n < (ssize_t) size) { //说明发送了n字节到缓冲区后,缓冲区满了
                 wev->ready = 0;
             }
 
@@ -49,7 +49,7 @@ ngx_unix_send(ngx_connection_t *c, u_char *buf, size_t size) {
 
         err = ngx_socket_errno;
 
-        if (n == 0) {  //recv返回0，表示连接断开，send返回0当作正常情况处理
+        if (n == 0) {  //recv返回0,表示连接断开,send返回0当作正常情况处理
             ngx_log_error(NGX_LOG_ALERT, c->log, err, "send() returned zero");
             wev->ready = 0;
             return n;

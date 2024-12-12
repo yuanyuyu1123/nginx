@@ -14,24 +14,24 @@
 
 
 //stderr (0)>= emerg(1) >= alert(2) >= crit(3) >= err(4)>= warn(5) >= notice(6) >= info(7) >= debug(8)
-//debug级别最低，stderr级别最高；圆括号中的数据是对应日志等级的值。
-//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
+//debug级别最低,stderr级别最高；圆括号中的数据是对应日志等级的值.
+//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图,表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
 //下面这些通过ngx_log_error输出  对应err_levels[]参考ngx_log_set_levels
 #define NGX_LOG_STDERR            0
 #define NGX_LOG_EMERG             1
 #define NGX_LOG_ALERT             2
 #define NGX_LOG_CRIT              3
 #define NGX_LOG_ERR               4
-#define NGX_LOG_WARN              5 //如果level > NGX_LOG_WARN则不会在屏幕前台打印，见ngx_log_error_core
+#define NGX_LOG_WARN              5 //如果level > NGX_LOG_WARN则不会在屏幕前台打印,见ngx_log_error_core
 #define NGX_LOG_NOTICE            6
 #define NGX_LOG_INFO              7
 #define NGX_LOG_DEBUG             8
 
-//下面这些是通过与操作判断是否需要打印，可以参考ngx_log_debug7
-//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志
+//下面这些是通过与操作判断是否需要打印,可以参考ngx_log_debug7
+//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图,表示对应模块的日志
 //另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
-//如果通过加参数debug_http则会打开NGX_LOG_DEBUG_HTTP开关，见debug_levels  ngx_log_set_levels,
-//如果打开下面开关中的一个，则NGX_LOG_STDERR到NGX_LOG_DEBUG会全部打开，因为log_level很大
+//如果通过加参数debug_http则会打开NGX_LOG_DEBUG_HTTP开关,见debug_levels  ngx_log_set_levels,
+//如果打开下面开关中的一个,则NGX_LOG_STDERR到NGX_LOG_DEBUG会全部打开,因为log_level很大
 //下面这些通过ngx_log_debug0 -- ngx_log_debug8输出  对应debug_levels[] 参考ngx_log_set_levels
 #define NGX_LOG_DEBUG_CORE        0x010
 #define NGX_LOG_DEBUG_ALLOC       0x020
@@ -45,7 +45,7 @@
  * do not forget to update debug_levels[] in src/core/ngx_log.c
  * after the adding a new debug level
  */
-//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图，表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
+//log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图,表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
 #define NGX_LOG_DEBUG_FIRST       NGX_LOG_DEBUG_CORE
 #define NGX_LOG_DEBUG_LAST        NGX_LOG_DEBUG_STREAM
 #define NGX_LOG_DEBUG_CONNECTION  0x80000000 // --with-debug) NGX_DEBUG=YES  会打开连接日志
@@ -59,24 +59,24 @@ typedef void (*ngx_log_writer_pt)(ngx_log_t *log, ngx_uint_t level,
 
 
 struct ngx_log_s {
-    //如果设置的log级别为debug，则会在ngx_log_set_levels把level设置为NGX_LOG_DEBUG_ALL
+    //如果设置的log级别为debug,则会在ngx_log_set_levels把level设置为NGX_LOG_DEBUG_ALL
     //赋值见ngx_log_set_levels
     ngx_uint_t log_level; //日志级别或者日志类型  默认为NGX_LOG_ERR  如果通过error_log  logs/error.log  info;则为设置的等级  比该级别下的日志可以打印
     ngx_open_file_t *file; //日志文件
 
-    ngx_atomic_uint_t connection; //连接数，不为O时会输出到日志中
+    ngx_atomic_uint_t connection; //连接数,不为O时会输出到日志中
 
     time_t disk_full_time;
 
-    /* 记录日志时的回调方法。当handler已经实现（不为NULL），并且不是DEBUG调试级别时，才会调用handler钩子方法 */
-    ngx_log_handler_pt   handler; //从连接池获取ngx_connection_t后，c->log->handler = ngx_http_log_error;
+    /* 记录日志时的回调方法.当handler已经实现（不为NULL）,并且不是DEBUG调试级别时,才会调用handler钩子方法 */
+    ngx_log_handler_pt   handler; //从连接池获取ngx_connection_t后,c->log->handler = ngx_http_log_error;
 
     /*
-    每个模块都可以自定义data的使用方法。通常，data参数都是在实现了上面的handler回调方法后
-    才使用的。例如，HTTP框架就定义了handler方法，并在data中放入了这个请求的上下文信息，这样每次输出日
+    每个模块都可以自定义data的使用方法.通常,data参数都是在实现了上面的handler回调方法后
+    才使用的.例如,HTTP框架就定义了handler方法,并在data中放入了这个请求的上下文信息,这样每次输出日
     志时都会把这个请求URI输出到日志的尾部
     */
-    void                *data; //指向ngx_http_log_ctx_t，见ngx_http_init_connection
+    void                *data; //指向ngx_http_log_ctx_t,见ngx_http_init_connection
 
     ngx_log_writer_pt writer;
     void *wdata;
@@ -86,11 +86,11 @@ struct ngx_log_s {
      * the static strings and in the "u_char *" case we have to override
      * their types all the time
      */
-    /* 表示当前的动作。实际上，action与data是一样的，只有在实现了handler回调方法后才会使用。
-     * 例如，HTTP框架就在handler方法中检查action是否为NULL，如果不为NULL，就会在日志后加入“while”+action，
-     * 以此表示当前日志是在进行什么操作，帮助定位问题*/
+    /* 表示当前的动作.实际上,action与data是一样的,只有在实现了handler回调方法后才会使用.
+     * 例如,HTTP框架就在handler方法中检查action是否为NULL,如果不为NULL,就会在日志后加入“while”+action,
+     * 以此表示当前日志是在进行什么操作,帮助定位问题*/
     char *action;
-    //ngx_log_insert插入，在ngx_log_error_core找到对应级别的日志配置进行输出，因为可以配置error_log不同级别的日志存储在不同的日志文件中
+    //ngx_log_insert插入,在ngx_log_error_core找到对应级别的日志配置进行输出,因为可以配置error_log不同级别的日志存储在不同的日志文件中
     ngx_log_t *next;
 };
 
@@ -233,7 +233,7 @@ void ngx_cdecl ngx_log_debug_core(ngx_log_t *log, ngx_err_t err,
 #endif
 
 #else /* !NGX_DEBUG */
-/* 注意不能用%V输出，否则会出现段错误 */
+/* 注意不能用%V输出,否则会出现段错误 */
 #define ngx_log_debug0(level, log, err, fmt)
 #define ngx_log_debug1(level, log, err, fmt, arg1)
 #define ngx_log_debug2(level, log, err, fmt, arg1, arg2)

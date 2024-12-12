@@ -67,7 +67,7 @@ ngx_cpuid(uint32_t i, uint32_t *buf) {
 
 
 /* auto detect the L2 cache line size of modern and widespread CPUs */
-//这个函数便是在获取CPU的信息，根据CPU的型号对ngx_cacheline_size进行设置
+//这个函数便是在获取CPU的信息,根据CPU的型号对ngx_cacheline_size进行设置
 void
 ngx_cpuinfo(void) {
     u_char *vendor;

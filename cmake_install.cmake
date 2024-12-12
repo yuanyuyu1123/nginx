@@ -1,4 +1,4 @@
-# Install script for directory: /usr/local/cdir/nginx
+# Install script for directory: /home/yuan/code/cgit/nginx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/usr/local/cdir/nginx/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/yuan/code/cgit/nginx/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

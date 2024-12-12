@@ -94,19 +94,19 @@ location /{
 root   /var/www/html;
 autoindex on;
 }
-这段代码的意思就是把 /var/www/html目录作为根目录来直接列出来。
+这段代码的意思就是把 /var/www/html目录作为根目录来直接列出来.
 */
 
 /*
-ngx_http_autoindex_module 模块可以列出目录中的文件。 一般当ngx_http_index_module模块找不到默认主页的时候，会把请求
-转给 ngx_http_autoindex_module模块去处理。
+ngx_http_autoindex_module 模块可以列出目录中的文件. 一般当ngx_http_index_module模块找不到默认主页的时候,会把请求
+转给 ngx_http_autoindex_module模块去处理.
 */
 static ngx_command_t ngx_http_autoindex_commands[] = {
         /*
   语法:  autoindex on | off;
   默认值:  autoindex off;
   上下文:  http, server, location
-  开启或者关闭列出目录中文件的功能。
+  开启或者关闭列出目录中文件的功能.
   */
         {ngx_string("autoindex"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
@@ -121,14 +121,14 @@ static ngx_command_t ngx_http_autoindex_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_autoindex_loc_conf_t, format),
          &ngx_http_autoindex_format},
-        //设置目录中列出文件的时间是本地时间还是UTC时间。
+        //设置目录中列出文件的时间是本地时间还是UTC时间.
         {ngx_string("autoindex_localtime"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_autoindex_loc_conf_t, localtime),
          NULL},
-        //设置目录中列出的文件是显示精确大小，还是对KB，MB，GB进行四舍五入。
+        //设置目录中列出的文件是显示精确大小,还是对KB,MB,GB进行四舍五入.
         {ngx_string("autoindex_exact_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -141,13 +141,13 @@ static ngx_command_t ngx_http_autoindex_commands[] = {
 
 /*
 location / {
-    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html，autoindex对应的ngx_http_autoindex_handler才会生效
+    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html,autoindex对应的ngx_http_autoindex_handler才会生效
     autoindex on;
 }
-只有在index11.html文件不存在的时候才会执行autoindex，如果没有设置index则默认打开index.html，必须保证index.html的uri目录存在，如果不存在，是一个不存在的目录也不会执行autoindex
-Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块， ngx_autoindex 模块、ngx_static 模块
-ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求，例如请求 GET /cats/，而对于不以 / 结尾的请求则会直接忽略，
-同时把处理权移交给 content 阶段的下一个模块。而 ngx_static 模块则刚好相反，直接忽略那些 URI 以 / 结尾的请求。
+只有在index11.html文件不存在的时候才会执行autoindex,如果没有设置index则默认打开index.html,必须保证index.html的uri目录存在,如果不存在,是一个不存在的目录也不会执行autoindex
+Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块, ngx_autoindex 模块、ngx_static 模块
+ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求,例如请求 GET /cats/,而对于不以 / 结尾的请求则会直接忽略,
+同时把处理权移交给 content 阶段的下一个模块.而 ngx_static 模块则刚好相反,直接忽略那些 URI 以 / 结尾的请求.
 */
 static ngx_http_module_t ngx_http_autoindex_module_ctx = {
         NULL,                                  /* preconfiguration */
@@ -165,13 +165,13 @@ static ngx_http_module_t ngx_http_autoindex_module_ctx = {
 
 /*
 location / {
-    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html，autoindex对应的ngx_http_autoindex_handler才会生效
+    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html,autoindex对应的ngx_http_autoindex_handler才会生效
     autoindex on;
 }
-只有在index11.html文件不存在的时候才会执行autoindex，如果没有设置index则默认打开index.html，必须保证index.html的uri目录存在，如果不存在，是一个不存在的目录也不会执行autoindex
-Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块， ngx_autoindex 模块、ngx_static 模块
-ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求，例如请求 GET /cats/，而对于不以 / 结尾的请求则会直接忽略，
-同时把处理权移交给 content 阶段的下一个模块。而 ngx_static 模块则刚好相反，直接忽略那些 URI 以 / 结尾的请求。
+只有在index11.html文件不存在的时候才会执行autoindex,如果没有设置index则默认打开index.html,必须保证index.html的uri目录存在,如果不存在,是一个不存在的目录也不会执行autoindex
+Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块, ngx_autoindex 模块、ngx_static 模块
+ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求,例如请求 GET /cats/,而对于不以 / 结尾的请求则会直接忽略,
+同时把处理权移交给 content 阶段的下一个模块.而 ngx_static 模块则刚好相反,直接忽略那些 URI 以 / 结尾的请求.
 */
 
 /*
@@ -249,13 +249,13 @@ xiazai.php                                         07-Jan-2016 01:41            
 
 /*
 location / {
-    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html，autoindex对应的ngx_http_autoindex_handler才会生效
+    index index11.html	#必须保证新uri所在目录存在并且该目录下面没有index11.html,autoindex对应的ngx_http_autoindex_handler才会生效
     autoindex on;
 }
-只有在index11.html文件不存在的时候才会执行autoindex，如果没有设置index则默认打开index.html，必须保证index.html的uri目录存在，如果不存在，是一个不存在的目录也不会执行autoindex
-Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块， ngx_autoindex 模块、ngx_static 模块
-ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求，例如请求 GET /cats/，而对于不以 / 结尾的请求则会直接忽略，
-同时把处理权移交给 content 阶段的下一个模块。而 ngx_static 模块则刚好相反，直接忽略那些 URI 以 / 结尾的请求。
+只有在index11.html文件不存在的时候才会执行autoindex,如果没有设置index则默认打开index.html,必须保证index.html的uri目录存在,如果不存在,是一个不存在的目录也不会执行autoindex
+Nginx 一般会在 content 阶段安排三个这样的静态资源服务模块:ngx_index 模块, ngx_autoindex 模块、ngx_static 模块
+ngx_index 和 ngx_autoindex 模块都只会作用于那些 URI 以 / 结尾的请求,例如请求 GET /cats/,而对于不以 / 结尾的请求则会直接忽略,
+同时把处理权移交给 content 阶段的下一个模块.而 ngx_static 模块则刚好相反,直接忽略那些 URI 以 / 结尾的请求.
 */
 static ngx_int_t
 ngx_http_autoindex_handler(ngx_http_request_t *r) { //获取uri目录中的所有文件信息组包发送给客户端浏览器
@@ -273,10 +273,10 @@ ngx_http_autoindex_handler(ngx_http_request_t *r) { //获取uri目录中的所�
     ngx_http_autoindex_entry_t *entry;
     ngx_http_autoindex_loc_conf_t *alcf;
 
-    if (r->uri.data[r->uri.len - 1] != '/') { //autoindex的uri必须是目录形式，最末尾字符/
+    if (r->uri.data[r->uri.len - 1] != '/') { //autoindex的uri必须是目录形式,最末尾字符/
         return NGX_DECLINED;
     }
-    //如果没有配置index或者try_files，则匹配location / {}到后会默认使用html/index.html
+    //如果没有配置index或者try_files,则匹配location / {}到后会默认使用html/index.html
     if (!(r->method & (NGX_HTTP_GET | NGX_HTTP_HEAD))) {
         return NGX_DECLINED;
     }

@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "nginx::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-nginx-Debug-2bab926edd66f146f3f5.json",
+					"jsonFile" : "target-nginx-Debug-caa0297ea157450d9408.json",
 					"name" : "nginx",
 					"projectIndex" : 0
 				}
@@ -49,12 +49,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "/usr/local/cdir/nginx",
-		"source" : "/usr/local/cdir/nginx"
+		"build" : "/home/yuan/code/cgit/nginx",
+		"source" : "/home/yuan/code/cgit/nginx"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 3
+		"minor" : 6
 	}
 }

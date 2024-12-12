@@ -29,7 +29,7 @@ static ngx_os_io_t ngx_linux_io = {
         ngx_udp_unix_sendmsg_chain,
 #if (NGX_HAVE_SENDFILE)
         ngx_linux_sendfile_chain,
-        NGX_IO_SENDFILE //./configure配置了sendfile，编译的时候加上sendfile选项,，就会在ngx_linux_io把flag置为该值
+        NGX_IO_SENDFILE //./configure配置了sendfile,编译的时候加上sendfile选项,,就会在ngx_linux_io把flag置为该值
 #else
         ngx_writev_chain,
         0

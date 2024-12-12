@@ -165,8 +165,8 @@ default_type    application/octet-stream;
 sendfile        on;
 keepalive_timeout 65;
 geo $cmccip {
-    default 1;　　　#　未定义ip的值为1  没有匹配到IP，则变量$cmccip置为1
-    include cmcc.conf; 加载geo.conf文件，这个文件定义移动网关ip  也就是满足cmcc.conf文件中IP地址段的客户端IP默认值为cmcc.conf中的取值0
+    default 1;　　　#　未定义ip的值为1  没有匹配到IP,则变量$cmccip置为1
+    include cmcc.conf; 加载geo.conf文件,这个文件定义移动网关ip  也就是满足cmcc.conf文件中IP地址段的客户端IP默认值为cmcc.conf中的取值0
 }
 server {
 listen 801;
@@ -186,12 +186,12 @@ index index.wml index.html;
 */
 
 /*
-Nginx的geo模块可以做全局负载均衡，可以要根据客户端ip访问到不同的server。比如，可以将电信的用户访问定向到电信服务器，网通的用户重定向到网通服务器
+Nginx的geo模块可以做全局负载均衡,可以要根据客户端ip访问到不同的server.比如,可以将电信的用户访问定向到电信服务器,网通的用户重定向到网通服务器
 */
 
 /*
-ngx_http_geo_module:geo [$address] $variable { ... }  对地址$address与{}中的key-value对进行匹配，匹配结构存储到$variable中
-ngx_http_map_module: map String $variable { ... } 对字符串String与{}中的key-value对进行匹配，匹配结构存储到$variable中
+ngx_http_geo_module:geo [$address] $variable { ... }  对地址$address与{}中的key-value对进行匹配,匹配结构存储到$variable中
+ngx_http_map_module: map String $variable { ... } 对字符串String与{}中的key-value对进行匹配,匹配结构存储到$variable中
 */
 ngx_module_t ngx_http_geo_module = {
         NGX_MODULE_V1,

@@ -21,7 +21,7 @@ static void ngx_clean_old_cycles(ngx_event_t *ev);
 
 static void ngx_shutdown_timer_handler(ngx_event_t *ev);
 
-//初始化参考ngx_init_cycle，最终有一个全局类型的ngx_cycle_s，即ngx_cycle
+//初始化参考ngx_init_cycle,最终有一个全局类型的ngx_cycle_s,即ngx_cycle
 volatile ngx_cycle_t *ngx_cycle; //ngx_cycle = cycle;  赋值见main
 ngx_array_t ngx_old_cycles;
 
@@ -45,23 +45,23 @@ static ngx_connection_t dumb;
 ┃    方法名                        ┃    参数含义                          ┃    执行意义                          ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                  ┃                                      ┃  返回初始化成功的完整的ngx_cycle_    ┃
-┃  ngx_cycle_t *ngx_init_cycle     ┃  old_cycle表示临时的ngx_cycle_t      ┃t结构体，该函数将会负责初始化ngx_     ┃
-┃                                  ┃指针，一般仅用来传递ngx_cycle_t结     ┃cycle_t中的数据结构、解析配置文件、   ┃
+┃  ngx_cycle_t *ngx_init_cycle     ┃  old_cycle表示临时的ngx_cycle_t      ┃t结构体,该函数将会负责初始化ngx_     ┃
+┃                                  ┃指针,一般仅用来传递ngx_cycle_t结     ┃cycle_t中的数据结构、解析配置文件、   ┃
 ┃(ngx_cycle_t *old_cycle)          ┃                                      ┃加载所有模块、打开监听端口、初始化    ┃
 ┃                                  ┃构体中的配置文件路径等参数            ┃                                      ┃
-┃                                  ┃                                      ┃进程间通信方式等工作。如果失败，则    ┃
+┃                                  ┃                                      ┃进程间通信方式等工作.如果失败,则    ┃
 ┃                                  ┃                                      ┃返回NULL空指针                        ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃  ngx_int_t ngx_process_          ┃  cycle通常是刚刚分配的ngx_cycle_t    ┃  用运行Nginx时可能携带的目录参数     ┃
-┃                                  ┃结构体指针，仅用于传递配置文件路      ┃来初始化cycle，包括初始化运行目录、   ┃
-┃options (ngx_cycle_t *cycle)      ┃                                      ┃配置目录，并生成完整的nginx．conf配   ┃
+┃                                  ┃结构体指针,仅用于传递配置文件路      ┃来初始化cycle,包括初始化运行目录、   ┃
+┃options (ngx_cycle_t *cycle)      ┃                                      ┃配置目录,并生成完整的nginx．conf配   ┃
 ┃                                  ┃径信息                                ┃                                      ┃
 ┃                                  ┃                                      ┃置文件路径                            ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                  ┃                                      ┃  在扰行不重启服务升级Nginx的操       ┃
-┃                                  ┃                                      ┃作时，老的Nginx进程会通过环境变量     ┃
+┃                                  ┃                                      ┃作时,老的Nginx进程会通过环境变量     ┃
 ┃  ngx_int_t ngx_add_inherited     ┃  cycle是当前进程的ngx_cycle_t结      ┃“NGINX”来传递需要打开的监听端       ┃
-┃sockets(ngx_cycle_t幸cycle)       ┃构体指针                              ┃口，新的Nginx进程会通过ngx_add_       ┃
+┃sockets(ngx_cycle_t幸cycle)       ┃构体指针                              ┃口,新的Nginx进程会通过ngx_add_       ┃
 ┃                                  ┃                                      ┃inherited- sockets方法来使用已经打开  ┃
 ┃                                  ┃                                      ┃的TCP监听端口                         ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
@@ -81,10 +81,10 @@ static ngx_connection_t dumb;
 ┃cycle (ngx_cycle_t *cycle)        ┃构体指针                              ┃进程工作模式）的工作循环              ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                  ┃  cycle是当前进程的ngx_cycle_t结      ┃                                      ┃
-┃                                  ┃构体指针，n是启动子进程的个数，       ┃                                      ┃
-┃                                  ┃type是启动方式，它的取值范围有以      ┃                                      ┃
-┃                                  ┃下5个：                               ┃                                      ┃
-┃   void ngx_start_worker_         ┃    1)  NGX_PROCESS_RESPAWN;          ┃  启动n个worker子进程，并设置好       ┃
+┃                                  ┃构体指针,n是启动子进程的个数,       ┃                                      ┃
+┃                                  ┃type是启动方式,它的取值范围有以      ┃                                      ┃
+┃                                  ┃下5个:                               ┃                                      ┃
+┃   void ngx_start_worker_         ┃    1)  NGX_PROCESS_RESPAWN;          ┃  启动n个worker子进程,并设置好       ┃
 ┃processes (ngx_cycle_t *cycle,    ┃    2) NGX__ PROCESS NORESPAWN;       ┃每个子进程与master父进程之间使用      ┃
 ┃                                  ┃    3) NGX—PROCESS_JUST_SPAWN;       ┃socketpair系统调用建立超来的socket    ┃
 ┃ngx_int_t n, ngx_int_t type)      ┃                                      ┃                                      ┃
@@ -94,16 +94,16 @@ static ngx_connection_t dumb;
 ┃                                  ┃结构体的respawn. detached. just_spawn ┃                                      ┃
 ┃                                  ┃标志位的值                            ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃                                  ┃                                      ┃  根据是否使用文件缓存模块，也就是    ┃
+┃                                  ┃                                      ┃  根据是否使用文件缓存模块,也就是    ┃
 ┃   void ngx_start_cache_          ┃  cycle是当前进程的ngx_cycle_t结      ┃cycle中存储路径的动态数组中是否有     ┃
-┃manager_processes(ngx_cycle_t     ┃构体指针，respawn是启动子进程的方     ┃路径的manage标志打开，来决定是否      ┃
-┃                                  ┃式，  它与ngx_start_worker_processes  ┃启动cache manage子进程，同样根据      ┃
+┃manager_processes(ngx_cycle_t     ┃构体指针,respawn是启动子进程的方     ┃路径的manage标志打开,来决定是否      ┃
+┃                                  ┃式,  它与ngx_start_worker_processes  ┃启动cache manage子进程,同样根据      ┃
 ┃*cycle, ngx_uint_t respawn)       ┃                                      ┃                                      ┃
 ┃                                  ┃方法中的type参数意义完全相同          ┃loader标志决定是否启动cache loader    ┃
 ┃                                  ┃                                      ┃子进程                                ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃   void ngx_pass_open_channel     ┃  cycle是当前进程的ngx_cycle_t结      ┃  向所有已经打开的channel（通过       ┃
-┃(ngx_cycle_t *cycle, ngx_         ┃构体指针，ch是将要向子进程发送的      ┃socketpair生成的句柄进行通信）发送    ┃
+┃(ngx_cycle_t *cycle, ngx_         ┃构体指针,ch是将要向子进程发送的      ┃socketpair生成的句柄进行通信）发送    ┃
 ┃channel_t *ch)                    ┃信息                                  ┃ch信息                                ┃
 ┗━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛
 ┏━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
@@ -111,10 +111,10 @@ static ngx_connection_t dumb;
 ┣━━━━━━━━━┻━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃   void ngx_signal_worker_          ┃                                  ┃                                    ┃
 ┃processes (ngx_cycle_t *cycle,      ┃  cycle是当前进程的ngx_cycle_t结  ┃  处理worker进程接收到的信号        ┃
-┃                                    ┃构体指针，signo是信号             ┃                                    ┃
+┃                                    ┃构体指针,signo是信号             ┃                                    ┃
 ┃int signo)                          ┃                                  ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃                                  ┃  检查master进程的所有子进程，根    ┃
+┃                                    ┃                                  ┃  检查master进程的所有子进程,根    ┃
 ┃  ngx_uint_t ngx_reap_children      ┃  cycle是当前进程的ngx_cycle_t结  ┃据每个子进程的状态（ngx_process_t结 ┃
 ┃(ngx_cycle_t *cycle)                ┃构体指针                          ┃构体中的标志位）判断是否要启动子进  ┃
 ┃                                    ┃                                  ┃程、更改pid文件等                   ┃
@@ -123,30 +123,30 @@ static ngx_connection_t dumb;
 ┃(ngx_cycle_t *cyc, le)              ┃构体指针                          ┃  退出master进程工作的循环          ┃
 ┣━━━━━━━━━┳━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃  void ngx_wo?    ┃Lker_process_   ┃  cycle是当前进程的ngx_cycle_t结  ┃                                    ┃
-┃cycle (ngx_cycle  ┃-t *cycle, void ┃构体指针，这里还未开始使用data参  ┃  进入worker进程工作的循环          ┃
-┃*data)            ┃                ┃数，所以data -般为NULL            ┃                                    ┃
+┃cycle (ngx_cycle  ┃-t *cycle, void ┃构体指针,这里还未开始使用data参  ┃  进入worker进程工作的循环          ┃
+┃*data)            ┃                ┃数,所以data -般为NULL            ┃                                    ┃
 ┣━━━━━━━━━┻━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃   void ngx_worker_process_         ┃  cycle悬当前进程的ngx_cycle_t结  ┃  进入worker进程工作循环之前的初    ┃
-┃init (ngx_cycle_t *cycle, ngx_      ┃构体指针，priority是worker进程的  ┃始化工作                            ┃
+┃init (ngx_cycle_t *cycle, ngx_      ┃构体指针,priority是worker进程的  ┃始化工作                            ┃
 ┃uint_t priority)                    ┃系统优先级                        ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃  void ngx_woriker_process_         ┃  cycle是当前进程的ngx_cycle_t结  ┃                                    ┃
 ┃exit (ngx_cycle_t, *cycle)          ┃构体指针                          ┃  退出worker进程工作的循环          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃  void ngx_cac:he_manager_          ┃  cycle是当前进程的ngx_cycle_t结  ┃  执行缓存管理工作的循环方法。这与  ┃
-┃process_cycle(ngx_cycle_t           ┃构体指针，data是传人的ngx_cache_  ┃文件缓存模块密切相关，在本章中不做  ┃
+┃  void ngx_cac:he_manager_          ┃  cycle是当前进程的ngx_cycle_t结  ┃  执行缓存管理工作的循环方法.这与  ┃
+┃process_cycle(ngx_cycle_t           ┃构体指针,data是传人的ngx_cache_  ┃文件缓存模块密切相关,在本章中不做  ┃
 ┃*cycle, void *data)                 ┃manager_ctx_t结构体指针           ┃详细探讨                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃   void ngx_process_events_         ┃  cycle是当前进程的ngx_cycle_t结  ┃  使用事件模块处理截止到现在已经收  ┃
-┃                                    ┃                                  ┃集到的事件。该函数由事伴模块实现，  ┃
+┃                                    ┃                                  ┃集到的事件.该函数由事伴模块实现,  ┃
 ┃and_timers (ngx_cycle_t *cycle)     ┃构体指针                          ┃                                    ┃
 ┃                                    ┃                                  ┃                                    ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
 */
 
 /*为什么这里需要有old_cycle???
-    旧的ngx_cycle_t对象用于引用上一个ngx_cycle_t对象中的成员。例如ngx_init_cycle方法，在启动初期，需要建
-立一个临时的ngx_cycle_t对象保存一些变量(如ngx_process_options中的安装路径，新cycle建立起来前提前写日志的log),
+    旧的ngx_cycle_t对象用于引用上一个ngx_cycle_t对象中的成员.例如ngx_init_cycle方法,在启动初期,需要建
+立一个临时的ngx_cycle_t对象保存一些变量(如ngx_process_options中的安装路径,新cycle建立起来前提前写日志的log),
 再调用ngx_init_cycle 方法时就可以把旧的ngx_cycle_t对象传进去*/
 ngx_cycle_t *
 ngx_init_cycle(ngx_cycle_t *old_cycle) {
@@ -175,7 +175,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
     ngx_time_update();
 
-    //在解析配置文件的error_log前，使用这个旧的默认log,后面解析完配置文件后，会重新按照error_log配置文件来写日志
+    //在解析配置文件的error_log前,使用这个旧的默认log,后面解析完配置文件后,会重新按照error_log配置文件来写日志
     log = old_cycle->log;
 
     pool = ngx_create_pool(NGX_CYCLE_POOL_SIZE, log);
@@ -332,12 +332,12 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
         return NULL;
     }
 
-    /*在初始化ngx_cycle_t中的所有容器后，会为读取、解析配置文件做准备工作。因为每个模块都必须有相应的数据
-      结构来存储配置文件中的各配置项，创建这些数据结构的工作都需要在这一步进行。Nginx框架只关心NGX_CORE_MODULE核
-      心模块，这也是为了降低框架的复杂度。这里将会调用所有核心模块的create conf方法（也只有核心模块才有这个方法），
-      这意味着需要所有的核心模块开始构造用于存储配置项的结构体。其他非核心模块怎么办呢？其实很简单。这些模块大都
-      从属于一个核心模块，如每个HTTP模块都由ngx_http_module管理（如图8-2所示），这样ngx_http_module在解析自己感兴
-      趣的“http”配置项时，将会调用所有HTTP模块约定的方法来创建存储配置项的结构体（xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法）*/
+    /*在初始化ngx_cycle_t中的所有容器后,会为读取、解析配置文件做准备工作.因为每个模块都必须有相应的数据
+      结构来存储配置文件中的各配置项,创建这些数据结构的工作都需要在这一步进行.Nginx框架只关心NGX_CORE_MODULE核
+      心模块,这也是为了降低框架的复杂度.这里将会调用所有核心模块的create conf方法（也只有核心模块才有这个方法）,
+      这意味着需要所有的核心模块开始构造用于存储配置项的结构体.其他非核心模块怎么办呢？其实很简单.这些模块大都
+      从属于一个核心模块,如每个HTTP模块都由ngx_http_module管理（如图8-2所示）,这样ngx_http_module在解析自己感兴
+      趣的“http”配置项时,将会调用所有HTTP模块约定的方法来创建存储配置项的结构体（xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法）*/
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -374,7 +374,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
     }
 
 
-    conf.ctx = cycle->conf_ctx; //这样下面的ngx_conf_param解析配置的时候，里面对conf.ctx赋值操作，实际上就是对cycle->conf_ctx[i]赋值
+    conf.ctx = cycle->conf_ctx; //这样下面的ngx_conf_param解析配置的时候,里面对conf.ctx赋值操作,实际上就是对cycle->conf_ctx[i]赋值
     conf.cycle = cycle;
     conf.pool = pool;
     conf.log = log;
@@ -402,7 +402,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
                        cycle->conf_file.data);
     }
     /*
-    调用所有NGX_CORE_MODULE核心模块的init_conf方法。这一步骤的目的在于让所有核心模块在解析完配置项后可以做综合性处理，
+    调用所有NGX_CORE_MODULE核心模块的init_conf方法.这一步骤的目的在于让所有核心模块在解析完配置项后可以做综合性处理,
     */
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
@@ -515,20 +515,20 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
         }
 #endif
     }
-    //在解析配置文件的error_log前，使用这个旧的默认log,解析完配置文件后，会重新按照error_log配置文件来写日志
-    //new_log信息通过前面的ngx_log_open_default设置new_log信息，并在上面的part = &cycle->open_files.part;中打开了这个文件获得了fd
+    //在解析配置文件的error_log前,使用这个旧的默认log,解析完配置文件后,会重新按照error_log配置文件来写日志
+    //new_log信息通过前面的ngx_log_open_default设置new_log信息,并在上面的part = &cycle->open_files.part;中打开了这个文件获得了fd
     cycle->log = &cycle->new_log;
     pool->log = &cycle->new_log;
 
-    /*  走到这里的时候，所有的配置已经解析完毕，如果配置"zone" proxy_cache_path fastcgi_cache_path等需要创建共享内存，则在下面依次创建对应的共享内存  */
+    /*  走到这里的时候,所有的配置已经解析完毕,如果配置"zone" proxy_cache_path fastcgi_cache_path等需要创建共享内存,则在下面依次创建对应的共享内存  */
     /* create shared memory */
 
     part = &cycle->shared_memory.part;
     shm_zone = part->elts;
-    //ngx_cycle_t结构体的shared_mem ory链表中将会开始初始化用于进程间通信的共享内存。
+    //ngx_cycle_t结构体的shared_mem ory链表中将会开始初始化用于进程间通信的共享内存.
     for (i = 0; /* void */ ; i++) {
 
-        if (i >= part->nelts) { //在热启动nginx的时候才会执行下面的相关代码，默认i和part->nelts都等于0
+        if (i >= part->nelts) { //在热启动nginx的时候才会执行下面的相关代码,默认i和part->nelts都等于0
             if (part->next == NULL) {
                 break;
             }
@@ -610,9 +610,9 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
     /* handle the listening sockets */
     /*
-所有的模块都已经解析出自己需要监听的端口，如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口，并添加到
-listening数组中了。这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口（实际上，这一步骤的主要工作就是调
-用表8-2中的ngx_open_listening_sockets方法）。
+所有的模块都已经解析出自己需要监听的端口,如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口,并添加到
+listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口（实际上,这一步骤的主要工作就是调
+用表8-2中的ngx_open_listening_sockets方法）.
 */
     if (old_cycle->listening.nelts) {
         ls = old_cycle->listening.elts; //旧的listen,如热启动继承过来的sock,见ngx_add_inherited_sockets
@@ -871,7 +871,7 @@ listening数组中了。这一步骤就是按照listening数组中的每一个ng
                           file[i].name.data);
         }
     }
-    //如果是第一次加载，则满足ngx_is_init_cycle。如果是reload热启动，则原来的nginx进程的ngx_process == NGX_PROCESS_MASTER
+    //如果是第一次加载,则满足ngx_is_init_cycle.如果是reload热启动,则原来的nginx进程的ngx_process == NGX_PROCESS_MASTER
     ngx_destroy_pool(conf.temp_pool);
 
     if (ngx_process == NGX_PROCESS_MASTER || ngx_is_init_cycle(old_cycle)) {
@@ -1179,10 +1179,10 @@ ngx_delete_pidfile(ngx_cycle_t *cycle) {
 }
 
 /*
-该函数作用：
+该函数作用:
 读取ngx_core_module模块的配置结构ngx_core_conf_t；
-根据配置结构找到其工作进程文件，如"/usr/local/nginx/logs/nginx.pid"(该文件保存nginx进程ID，即pid)；
-打开该文件，读取pid；
+根据配置结构找到其工作进程文件,如"/usr/local/nginx/logs/nginx.pid"(该文件保存nginx进程ID,即pid)；
+打开该文件,读取pid；
 调用ngx_os_signal_process()发送信号；
 */
 ngx_int_t
@@ -1267,7 +1267,7 @@ ngx_test_lockfile(u_char *file, ngx_log_t *log) {
     return NGX_OK;
 }
 
-//ngx_reopen标志位，如果为1，则表示需要重新打开所有文件
+//ngx_reopen标志位,如果为1,则表示需要重新打开所有文件
 void
 ngx_reopen_files(ngx_cycle_t *cycle, ngx_uid_t user) {
     ngx_fd_t fd;
@@ -1390,8 +1390,8 @@ ngx_reopen_files(ngx_cycle_t *cycle, ngx_uid_t user) {
     (void) ngx_log_redirect_stderr(cycle);
 }
 
-//先创建链表结构，用来存储配置文件中指定的需要的共享内存空间信息到cycle->shared_memory，然后在ngx_init_cycle中解析完配置文件后，把配置文件中
-//指定的需要共享内存信息从cycle->shared_memory链表取出来，在ngx_init_cycle解析完配置文件后统一进行共享内存分配创建
+//先创建链表结构,用来存储配置文件中指定的需要的共享内存空间信息到cycle->shared_memory,然后在ngx_init_cycle中解析完配置文件后,把配置文件中
+//指定的需要共享内存信息从cycle->shared_memory链表取出来,在ngx_init_cycle解析完配置文件后统一进行共享内存分配创建
 ngx_shm_zone_t *
 ngx_shared_memory_add(ngx_conf_t *cf, ngx_str_t *name, size_t size, void *tag) {
     ngx_uint_t i;
@@ -1421,7 +1421,7 @@ ngx_shared_memory_add(ngx_conf_t *cf, ngx_str_t *name, size_t size, void *tag) {
             continue;
         }
 
-        if (tag != shm_zone[i].tag) { //例如proxy_cache abc, fastcgi abc；同时配置，就会报错
+        if (tag != shm_zone[i].tag) { //例如proxy_cache abc, fastcgi abc；同时配置,就会报错
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                "the shared memory zone \"%V\" is "
                                "already declared for a different use",
@@ -1429,18 +1429,18 @@ ngx_shared_memory_add(ngx_conf_t *cf, ngx_str_t *name, size_t size, void *tag) {
             return NULL;
         }
 
-        if (shm_zone[i].shm.size == 0) { //名字相同，大小不一致，错误。  例如在该配置之前有配置proxy_cache xxx，则xxx共享内存的大小就是0
+        if (shm_zone[i].shm.size == 0) { //名字相同,大小不一致,错误.  例如在该配置之前有配置proxy_cache xxx,则xxx共享内存的大小就是0
             shm_zone[i].shm.size = size;
         }
 
-        if (size && size != shm_zone[i].shm.size) { //之前已经有了name共享内存，但是新来的name需要创建的共享内存大小与之前的不相等，冲突了
+        if (size && size != shm_zone[i].shm.size) { //之前已经有了name共享内存,但是新来的name需要创建的共享内存大小与之前的不相等,冲突了
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                "the size %uz of shared memory zone \"%V\" "
                                "conflicts with already declared size %uz",
                                size, &shm_zone[i].shm.name, shm_zone[i].shm.size);
             return NULL;
         }
-        //找到了一个相同名字的，并且现在知道的共享内存大小与之前的一样，则直接使用该共享内存，返回其在cf->cycle->shared_memory.part中的下标。
+        //找到了一个相同名字的,并且现在知道的共享内存大小与之前的一样,则直接使用该共享内存,返回其在cf->cycle->shared_memory.part中的下标.
         return &shm_zone[i];
     }
     /* 需要创建一个新的ngx_shm_zone_t来在ngx_init_cycle来真正创建共享内存 */

@@ -66,43 +66,43 @@ static ngx_http_module_t ngx_http_copy_filter_module_ctx = {
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃默认即编译进Nginx的HTTP过滤模块     ┃    功能                                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP头部做处理。在返回200成功时，根据请求中If-              ┃
+┃                                    ┃  仅对HTTP头部做处理.在返回200成功时,根据请求中If-              ┃
 ┃                                    ┃Modified-Since或者If-Unmodified-Since头部取得浏览器缓存文件的时   ┃
 ┃ngx_http_not_modified_filter_module ┃                                                                  ┃
-┃                                    ┃间，再分析返回用户文件的最后修改时间，以此决定是否直接发送304     ┃
+┃                                    ┃间,再分析返回用户文件的最后修改时间,以此决定是否直接发送304     ┃
 ┃                                    ┃ Not Modified响应给用户                                           ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  处理请求中的Range信息，根据Range中的要求返回文件的一部分给      ┃
+┃                                    ┃  处理请求中的Range信息,根据Range中的要求返回文件的一部分给      ┃
 ┃ngx_http_range_body_filter_module   ┃                                                                  ┃
 ┃                                    ┃用户                                                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP包体做处理。将用户发送的ngx_chain_t结构的HTTP包         ┃
-┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制，不包括实际     ┃
+┃                                    ┃  仅对HTTP包体做处理.将用户发送的ngx_chain_t结构的HTTP包         ┃
+┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制,不包括实际     ┃
 ┃ngx_http_copy_filter_module         ┃                                                                  ┃
-┃                                    ┃HTTP响应内容），后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
+┃                                    ┃HTTP响应内容）,后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
 ┃                                    ┃员都是ngx_http_copy_filter_module模块处理后的变量                 ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP头部做处理。允许通过修改nginx.conf配置文件，在返回      ┃
+┃                                    ┃  仅对HTTP头部做处理.允许通过修改nginx.conf配置文件,在返回      ┃
 ┃ngx_http_headers_filter_module      ┃                                                                  ┃
 ┃                                    ┃给用户的响应中添加任意的HTTP头部                                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP头部做处理。这就是执行configure命令时提到的http_        ┃
+┃                                    ┃  仅对HTTP头部做处理.这就是执行configure命令时提到的http_        ┃
 ┃ngx_http_userid_filter_module       ┃                                                                  ┃
-┃                                    ┃userid module模块，它基于cookie提供了简单的认证管理功能           ┃
+┃                                    ┃userid module模块,它基于cookie提供了简单的认证管理功能           ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  可以将文本类型返回给用户的响应包，按照nginx．conf中的配置重新   ┃
+┃                                    ┃  可以将文本类型返回给用户的响应包,按照nginx．conf中的配置重新   ┃
 ┃ngx_http_charset_filter_module      ┃                                                                  ┃
-┃                                    ┃进行编码，再返回给用户                                            ┃
+┃                                    ┃进行编码,再返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  支持SSI（Server Side Include，服务器端嵌入）功能，将文件内容包  ┃
+┃                                    ┃  支持SSI（Server Side Include,服务器端嵌入）功能,将文件内容包  ┃
 ┃ngx_http_ssi_filter_module          ┃                                                                  ┃
 ┃                                    ┃含到网页中并返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP包体做处理。5.5.2节详细介绍过该过滤模块。它仅应用于     ┃
-┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求。它使得多个子请求同时向客户端发送响应时    ┃
-┃                                    ┃能够有序，所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
+┃                                    ┃  仅对HTTP包体做处理.5.5.2节详细介绍过该过滤模块.它仅应用于     ┃
+┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
+┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩，再      ┃
+┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
 ┃                                    ┃把压缩后的内容返回给用户                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -110,13 +110,13 @@ static ngx_http_module_t ngx_http_copy_filter_module_ctx = {
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_http_chunked_filter_module      ┃  支持chunk编码                                                   ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  仅对HTTP头部做处理。该过滤模块将会把r->headers out结构体        ┃
-┃                                    ┃中的成员序列化为返回给用户的HTTP响应字符流，包括响应行(如         ┃
+┃                                    ┃  仅对HTTP头部做处理.该过滤模块将会把r->headers out结构体        ┃
+┃                                    ┃中的成员序列化为返回给用户的HTTP响应字符流,包括响应行(如         ┃
 ┃ngx_http_header_filter_module       ┃                                                                  ┃
-┃                                    ┃HTTP/I.1 200 0K)和响应头部，并通过调用ngx_http_write filter       ┃
+┃                                    ┃HTTP/I.1 200 0K)和响应头部,并通过调用ngx_http_write filter       ┃
 ┃                                    ┃ module过滤模块中的过滤方法直接将HTTP包头发送到客户端             ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃ngx_http_write_filter_module        ┃  仅对HTTP包体做处理。该模块负责向客户端发送HTTP响应              ┃
+┃ngx_http_write_filter_module        ┃  仅对HTTP包体做处理.该模块负责向客户端发送HTTP响应              ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 */
 ngx_module_t ngx_http_copy_filter_module = {
@@ -174,7 +174,7 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 */
 
 /*
-如果是aio on | thread_pool方式，则会两次执行该函数，并且所有参数几乎一样，只是aio标记取值会变化，日志如下:
+如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数几乎一样,只是aio标记取值会变化,日志如下:
 2016/01/07 18:47:27[ ngx_event_pipe_write_to_downstream,   604]  [debug] 20923#20923: *1 pipe write downstream, write ready: 1
 2016/01/07 18:47:27[ ngx_event_pipe_write_to_downstream,   649]  [debug] 20923#20923: *1 pipe write downstream flush out
 2016/01/07 18:47:27[             ngx_http_output_filter,  3377]  [debug] 20923#20923: *1 http output filter "/test2.php?"
@@ -182,7 +182,7 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 2016/01/07 18:47:27[                   ngx_output_chain,    67][yangya  [debug] 20923#20923: *1 ctx->sendfile:0, ctx->aio:0, ctx->directio:0
 2016/01/07 18:47:27[             ngx_output_chain_as_is,   309][yangya  [debug] 20923#20923: ngx_output_chain_as_is--- buf_special:0, in_file:1, directio:0, buf_in_mem:0,need_in_memory:0, need_in_temp:0, memory:0, mmap:0
 2016/01/07 18:47:27[             ngx_output_chain_as_is,   309][yangya  [debug] 20923#20923: ngx_output_chain_as_is--- buf_special:0, in_file:1, directio:0, buf_in_mem:0,need_in_memory:0, need_in_temp:0, memory:0, mmap:0
-注意第一次走ngx_thread_read，打印信息和第一次完全一样
+注意第一次走ngx_thread_read,打印信息和第一次完全一样
 2016/01/07 18:47:27[                    ngx_thread_read,   147]  [debug] 20923#20923: *1 thread read: fd:14, buf:08115A90, size:1220, offset:206
 2016/01/07 18:47:27[              ngx_thread_mutex_lock,   145]  [debug] 20923#20923: pthread_mutex_lock(080F0458) enter
 2016/01/07 18:47:27[               ngx_thread_task_post,   280][yangya  [debug] 20923#20923: ngx add task to thread, task id:158
@@ -236,7 +236,7 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 2016/01/07 18:47:27[               ngx_http_copy_filter,   206]  [debug] 20923#20923: *1 http copy filter: "/test2.php?", r->aio:0
 2016/01/07 18:47:27[                   ngx_output_chain,    67][yangya  [debug] 20923#20923: *1 ctx->sendfile:0, ctx->aio:0, ctx->directio:0
 2016/01/07 18:47:27[             ngx_output_chain_as_is,   309][yangya  [debug] 20923#20923: ngx_output_chain_as_is--- buf_special:0, in_file:1, directio:0, buf_in_mem:0,need_in_memory:0, need_in_temp:0, memory:0, mmap:0
-注意第二次走ngx_thread_read，打印信息和第一次完全一样
+注意第二次走ngx_thread_read,打印信息和第一次完全一样
 2016/01/07 18:47:27[                    ngx_thread_read,   147]  [debug] 20923#20923: *1 thread read: fd:14, buf:08115A90, size:1220, offset:206
 2016/01/07 18:47:27[             ngx_output_chain_as_is,   314][yangya  [debug] 20923#20923: ngx_output_chain_as_is--- buf_special:1, in_file:0, buf_in_mem:0,need_in_memory:0, need_in_temp:0, memory:0, mmap:0
 2016/01/07 18:47:27[           ngx_http_postpone_filter,   176]  [debug] 20923#20923: *1 http postpone filter "/test2.php?" 080F3E94
@@ -257,23 +257,23 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 2016/01/07 18:47:27[                    ngx_http_writer,  3156]  [debug] 20923#20923: *1 http writer done: "/test2.php?"
 2016/01/07 18:47:27[          ngx_http_finalize_request,  2598]  [debug] 20923#20923: *1 http finalize request rc: 0, "/test2.php?" a:1, c:1
 */
-//如果是aio on | thread_pool方式，则会两次执行该函数，并且所有参数机会一样，参考上面日志。大文件下载和下文件获取过程机会一样，只是在ngx_http_writer后面有判断
-//是否写完成，通过r->buffered是否为0来区分
+//如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数机会一样,参考上面日志.大文件下载和下文件获取过程机会一样,只是在ngx_http_writer后面有判断
+//是否写完成,通过r->buffered是否为0来区分
 
 
 /*
-通过这里发送触发在ngx_http_write_filter->ngx_linux_sendfile_chain(如果文件通过sendfile发送)，
-如果是普通写发送，则在ngx_http_write_filter->ngx_writev(一般chain->buf在内存中的情况下用该方式)，
-或者ngx_http_copy_filter->ngx_output_chain中的if (ctx->aio) { return NGX_AGAIN;}(如果文件通过aio发送)，然后由aio异步事件epoll触发
-读取文件内容超过，然后在继续发送文件
+通过这里发送触发在ngx_http_write_filter->ngx_linux_sendfile_chain(如果文件通过sendfile发送),
+如果是普通写发送,则在ngx_http_write_filter->ngx_writev(一般chain->buf在内存中的情况下用该方式),
+或者ngx_http_copy_filter->ngx_output_chain中的if (ctx->aio) { return NGX_AGAIN;}(如果文件通过aio发送),然后由aio异步事件epoll触发
+读取文件内容超过,然后在继续发送文件
 */
 
-/* 注意:到这里的in实际上是已经指向数据内容部分，或者如果发送的数据需要从文件中读取，in中也会指定文件file_pos和file_last已经文件fd等,
+/* 注意:到这里的in实际上是已经指向数据内容部分,或者如果发送的数据需要从文件中读取,in中也会指定文件file_pos和file_last已经文件fd等,
    可以参考ngx_http_cache_send ngx_http_send_header ngx_http_output_filter */
-//in为需要发送的chain链，上面存储的是实际要发送的数据
+//in为需要发送的chain链,上面存储的是实际要发送的数据
 static ngx_int_t
 ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
-    ngx_int_t rc;//实际上在接受完后端数据后，在想客户端发送包体部分的时候，会两次调用该函数，一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
+    ngx_int_t rc;//实际上在接受完后端数据后,在想客户端发送包体部分的时候,会两次调用该函数,一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
     //另一次是ngx_http_upstream_finalize_request->ngx_http_send_special,可以参考上面的日志打印注释
     ngx_connection_t *c;
     ngx_output_chain_ctx_t *ctx;
@@ -298,8 +298,8 @@ ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
         conf = ngx_http_get_module_loc_conf(r, ngx_http_copy_filter_module);
         clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
         /*
-        和后端的ngx_connection_t在ngx_event_connect_peer这里置为1，但在ngx_http_upstream_connect中c->sendfile &= r->connection->sendfile;，
-        和客户端浏览器的ngx_connextion_t的sendfile需要在ngx_http_update_location_config中判断，因此最终是由是否在configure的时候是否有加
+        和后端的ngx_connection_t在ngx_event_connect_peer这里置为1,但在ngx_http_upstream_connect中c->sendfile &= r->connection->sendfile;,
+        和客户端浏览器的ngx_connextion_t的sendfile需要在ngx_http_update_location_config中判断,因此最终是由是否在configure的时候是否有加
         sendfile选项来决定是置1还是置0
      */
         ctx->sendfile = c->sendfile;
@@ -329,31 +329,31 @@ ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
             ctx->thread_handler = ngx_http_copy_thread_handler;
         }
 #endif
-        //一般在调用filter函数的源头，会在in中指定需要发送的数据长度，可以参考ngx_http_cache_send
+        //一般在调用filter函数的源头,会在in中指定需要发送的数据长度,可以参考ngx_http_cache_send
         if (in && in->buf && ngx_buf_size(in->buf)) { //判断in链中是否有数据
             r->request_output = 1;
         }
     }
 
 #if (NGX_HAVE_FILE_AIO || NGX_THREADS)
-    //实际上在接受完后端数据后，在想客户端发送包体部分的时候，会两次调用该函数，一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
+    //实际上在接受完后端数据后,在想客户端发送包体部分的时候,会两次调用该函数,一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
     //另一次是ngx_http_upstream_finalize_request->ngx_http_send_special,
-    //如果是aio方式，则第一次该值为0，但是第二次从ngx_http_send_special走到这里的时候已经在ngx_output_chain->ngx_file_aio_read->ngx_http_copy_aio_handler置1
-    //aio方式，当aio读事件完成，会通过ngx_http_copy_aio_event_handler->ngx_http_writer再次走到这里，这时候ngx_http_copy_aio_event_handler已经把r->aio置0
+    //如果是aio方式,则第一次该值为0,但是第二次从ngx_http_send_special走到这里的时候已经在ngx_output_chain->ngx_file_aio_read->ngx_http_copy_aio_handler置1
+    //aio方式,当aio读事件完成,会通过ngx_http_copy_aio_event_handler->ngx_http_writer再次走到这里,这时候ngx_http_copy_aio_event_handler已经把r->aio置0
     //可以参考上面的日志备注信息
     ctx->aio = r->aio;
 #endif
 
-    rc = ngx_output_chain(ctx, in);//aio on | thread_pool，这里肯定返回NGX_AGAIN,因为他们是由对应的epoll触发读取数据完毕，然后发送。
-    //sendfile或者内存数据这里返回NGX_OK，通过后面的ngx_linux_sendfile_chain->(ngx_linux_sendfile,ngx_writev)把数据发送出去
+    rc = ngx_output_chain(ctx, in);//aio on | thread_pool,这里肯定返回NGX_AGAIN,因为他们是由对应的epoll触发读取数据完毕,然后发送.
+    //sendfile或者内存数据这里返回NGX_OK,通过后面的ngx_linux_sendfile_chain->(ngx_linux_sendfile,ngx_writev)把数据发送出去
 
 
-    if (ctx->in == NULL) { //ctx->in链中的数据，没发送一部分就会从ctx->in链中摘除，见ngx_output_chain，当in链中数据发送完毕，则为NULL
+    if (ctx->in == NULL) { //ctx->in链中的数据,没发送一部分就会从ctx->in链中摘除,见ngx_output_chain,当in链中数据发送完毕,则为NULL
         r->buffered &= ~NGX_HTTP_COPY_BUFFERED;
 
     } else { //说明还有数据未发送到客户端r
         //ngx_http_finalize_request->ngx_http_set_write_handler->ngx_http_writer通过这种方式把未发送完毕的响应报文发送出去
-        r->buffered |= NGX_HTTP_COPY_BUFFERED; //说明ctx->in上还有未发送的数据，函数参数in中指向在ngx_output_chain中已经赋值给了ctx->in
+        r->buffered |= NGX_HTTP_COPY_BUFFERED; //说明ctx->in上还有未发送的数据,函数参数in中指向在ngx_output_chain中已经赋值给了ctx->in
     }
 
     ngx_log_debug3(NGX_LOG_DEBUG_HTTP, c->log, 0,
@@ -367,7 +367,7 @@ ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
 //执行在ngx_output_chain_copy_buf->ngx_http_copy_aio_handler
 static void
 ngx_http_copy_aio_handler(ngx_output_chain_ctx_t *ctx, ngx_file_t *file)
-{   //注意aio内核读取完毕后，是放在ngx_output_chain_ctx_t->buf中的，见ngx_output_chain_copy_buf->ngx_file_aio_read
+{   //注意aio内核读取完毕后,是放在ngx_output_chain_ctx_t->buf中的,见ngx_output_chain_copy_buf->ngx_file_aio_read
     ngx_http_request_t *r;
 
     r = ctx->filter_ctx;
@@ -380,7 +380,7 @@ ngx_http_copy_aio_handler(ngx_output_chain_ctx_t *ctx, ngx_file_t *file)
     ctx->aio = 1;
 }
 
-//注意aio内核读取完毕后，是放在ngx_output_chain_ctx_t->buf中的，见ngx_output_chain_copy_buf->ngx_file_aio_read
+//注意aio内核读取完毕后,是放在ngx_output_chain_ctx_t->buf中的,见ngx_output_chain_copy_buf->ngx_file_aio_read
 
 //ngx_file_aio_event_handler中执行
 static void
@@ -400,9 +400,9 @@ ngx_http_copy_aio_event_handler(ngx_event_t *ev)
                    "http aio: \"%V?%V\"", &r->uri, &r->args);
 
     r->main->blocked--;
-    r->aio = 0; //aio on方式下，异步读取数据读取完毕，则置0
+    r->aio = 0; //aio on方式下,异步读取数据读取完毕,则置0
      //ngx_http_request_handler -> ngx_http_writer   ngx_http_set_write_handler中设置为ngx_http_writer
-    r->write_event_handler(r); //触发一次write->handler，从而可以把从ngx_file_aio_read读到的数据发送出去
+    r->write_event_handler(r); //触发一次write->handler,从而可以把从ngx_file_aio_read读到的数据发送出去
 
     ngx_http_run_posted_requests(c);
 }

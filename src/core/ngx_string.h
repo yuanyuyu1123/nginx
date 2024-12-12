@@ -13,24 +13,24 @@
 #include <ngx_core.h>
 
 /*
-在Nginx的领域中，ngx_str_t结构就是字符串。ngx_str_t的定义如下：
+在Nginx的领域中,ngx_str_t结构就是字符串.ngx_str_t的定义如下:
 typedef struct {
     size_t      len;
     u_char     *data;
 } ngx_str_t;
-ngx_str_t只有两个成员，其中data指针指向字符串起始地址，len表示字符串的有效长度。注意，ngx_str_t的data成员指向的并不是普通的字符串，
-因为这段字符串未必会以'\0'作为结尾，所以使用时必须根据长度len来使用data成员。
+ngx_str_t只有两个成员,其中data指针指向字符串起始地址,len表示字符串的有效长度.注意,ngx_str_t的data成员指向的并不是普通的字符串,
+因为这段字符串未必会以'\0'作为结尾,所以使用时必须根据长度len来使用data成员.
  if (0 == ngx_strncmp(
    r->method_name.data,
    "PUT",
    r->method_name.len)
   )
  {...}
-这里，ngx_strncmp其实就是strncmp函数，为了跨平台Nginx习惯性地对其进行了名称上的封装，下面看一下它的定义：
+这里,ngx_strncmp其实就是strncmp函数,为了跨平台Nginx习惯性地对其进行了名称上的封装,下面看一下它的定义:
 #define ngx_strncmp(s1, s2, n)  strncmp((const char *) s1, (const char *) s2, n)
-任何试图将ngx_str_t的data成员当做字符串来使用的情况，都可能导致内存越界！Nginx使用ngx_str_t可以有效地降低内存使用量。例如，
-用户请求“GET /test?a=1 http/1.1\r\n”存储到内存地址0x1d0b0110上，这时只需要把r->method_name设置为{len = 3, data = 0x1d0b0110}
-就可以表示方法名“GET”，而不需要单独为method_name再分配内存冗余的存储字符串。
+任何试图将ngx_str_t的data成员当做字符串来使用的情况,都可能导致内存越界！Nginx使用ngx_str_t可以有效地降低内存使用量.例如,
+用户请求“GET /test?a=1 http/1.1\r\n”存储到内存地址0x1d0b0110上,这时只需要把r->method_name设置为{len = 3, data = 0x1d0b0110}
+就可以表示方法名“GET”,而不需要单独为method_name再分配内存冗余的存储字符串.
 */
 typedef struct {
     size_t len;
@@ -44,21 +44,21 @@ typedef struct {
 } ngx_keyval_t;
 
 /*
-    ngx_http_core_main_conf_t->variabels数组成员的结构式ngx_http_variable_s， ngx_http_request_s->variabels数组成员结构是
-ngx_variable_value_t这两个结构的关系很密切，一个所谓变量，一个所谓变量值
-    r->variables这个变量和cmcf->variables是一一对应的，形成var_ name与var_value对，所以两个数组里的同一个下标位置元素刚好就是
-相互对应的变量名和变量值，而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标，也就是变
-量名里的index字段值，然后利用这个index下标进而去变量值数组里取对应的值
+    ngx_http_core_main_conf_t->variabels数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variabels数组成员结构是
+ngx_variable_value_t这两个结构的关系很密切,一个所谓变量,一个所谓变量值
+    r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
+相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
+量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值
 */ //参考<输入剖析nginx-变量>
 typedef struct {
     unsigned len: 28;  /* 变量值的长度 */
 
     unsigned valid: 1; /* 变量是否有效 */
     /*
-      变量是否是可缓存的，一般来说，某些变量在第一次得到变量值后，后面再次用到时，可以直接使用上
-      而对于一些所谓的no_cacheable的变量，则需要在每次使用的时候，都要通过get_handler之类操作，再次获取*/
+      变量是否是可缓存的,一般来说,某些变量在第一次得到变量值后,后面再次用到时,可以直接使用上
+      而对于一些所谓的no_cacheable的变量,则需要在每次使用的时候,都要通过get_handler之类操作,再次获取*/
     unsigned no_cacheable: 1;
-    unsigned not_found: 1;  /* 变量没有找到，一般是指某个变量没用能够通过get获取到其变量值，见ngx_http_variable_not_found */
+    unsigned not_found: 1;  /* 变量没有找到,一般是指某个变量没用能够通过get获取到其变量值,见ngx_http_variable_not_found */
     unsigned escape: 1;  /* 变量值是否需要作转义处理*/
 
     u_char *data; /* 变量值 */
@@ -283,13 +283,13 @@ ngx_str_node_t *ngx_str_rbtree_lookup(ngx_rbtree_t *rbtree, ngx_str_t *name,
 void ngx_sort(void *base, size_t n, size_t size,
               ngx_int_t (*cmp)(const void *, const void *));
 /*
-功 能： 使用快速排序例程进行排序
-头文件：stdlib.h
-用 法：void qsort(void *base,int nelem,int width,int (*fcmp)(const void *,const void *));
-参数： 1 待排序数组首地址
+功 能: 使用快速排序例程进行排序
+头文件:stdlib.h
+用 法:void qsort(void *base,int nelem,int width,int (*fcmp)(const void *,const void *));
+参数: 1 待排序数组首地址
 2 数组中待排序元素数量
 3 各元素的占用空间大小
-4 指向函数的指针，用于确定排序的顺序
+4 指向函数的指针,用于确定排序的顺序
 */
 #define ngx_qsort             qsort
 

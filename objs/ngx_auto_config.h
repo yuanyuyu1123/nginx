@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE " --prefix=/usr/local/cdir/nginx --conf-path=/usr/local/cdir/nginx/conf/nginx.conf --with-file-aio --with-pcre --with-debug --add-module=src/ext/http_mytest_module"
+#define NGX_CONFIGURE " --prefix=/home/yuan/code/cgit/nginx --conf-path=/home/yuan/code/cgit/nginx/conf/nginx.conf --with-file-aio --with-pcre --with-debug"
 
 #ifndef NGX_DEBUG
 #define NGX_DEBUG  1
@@ -6,7 +6,7 @@
 
 
 #ifndef NGX_COMPILER
-#define NGX_COMPILER  "gcc 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04) "
+#define NGX_COMPILER  "gcc 13.2.0 (Ubuntu 13.2.0-23ubuntu4) "
 #endif
 
 
@@ -429,12 +429,12 @@
 
 
 #ifndef NGX_PREFIX
-#define NGX_PREFIX  "/usr/local/cdir/nginx/"
+#define NGX_PREFIX  "/home/yuan/code/cgit/nginx/"
 #endif
 
 
 #ifndef NGX_CONF_PREFIX
-#define NGX_CONF_PREFIX  "/usr/local/cdir/nginx/conf/"
+#define NGX_CONF_PREFIX  "/home/yuan/code/cgit/nginx/conf/"
 #endif
 
 
@@ -444,7 +444,7 @@
 
 
 #ifndef NGX_CONF_PATH
-#define NGX_CONF_PATH  "/usr/local/cdir/nginx/conf/nginx.conf"
+#define NGX_CONF_PATH  "/home/yuan/code/cgit/nginx/conf/nginx.conf"
 #endif
 
 

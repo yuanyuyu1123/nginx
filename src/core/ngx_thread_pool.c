@@ -12,9 +12,9 @@
 
 
 typedef struct {
-    //数组中的每个成员在ngx_thread_pool_init中初始化，
+    //数组中的每个成员在ngx_thread_pool_init中初始化,
     //数组成员结构式ngx_thread_pool_t
-    ngx_array_t pools; //所有的thread_pool name配置信息ngx_thread_pool_t存放在该数组中，见ngx_thread_pool_add
+    ngx_array_t pools; //所有的thread_pool name配置信息ngx_thread_pool_t存放在该数组中,见ngx_thread_pool_add
 } ngx_thread_pool_conf_t; //创建空间在ngx_thread_pool_create_conf
 
 
@@ -32,22 +32,22 @@ typedef struct { //见ngx_thread_pool_done
     (q)->last = &(q)->first
 
 //一个该结构对应一个threads_pool配置
-struct ngx_thread_pool_s { //该结构式存放在ngx_thread_pool_conf_t->pool数组中的，见ngx_thread_pool_init_worker
+struct ngx_thread_pool_s { //该结构式存放在ngx_thread_pool_conf_t->pool数组中的,见ngx_thread_pool_init_worker
     ngx_thread_mutex_t mtx; //线程锁  ngx_thread_pool_init中初始化
     //ngx_thread_task_post中添加的任务被添加到该队列中
     ngx_thread_pool_queue_t queue; //ngx_thread_pool_init  ngx_thread_pool_queue_init中初始化
-    //在该线程池poll中每添加一个线程，waiting子减，当线程全部正在执行任务后，waiting会恢复到0
-    //如果所有线程都已经在执行任务(也就是waiting>-0)，又来了任务，那么任务就只能等待。所以waiting表示等待被执行的任务数
+    //在该线程池poll中每添加一个线程,waiting子减,当线程全部正在执行任务后,waiting会恢复到0
+    //如果所有线程都已经在执行任务(也就是waiting>-0),又来了任务,那么任务就只能等待.所以waiting表示等待被执行的任务数
     ngx_int_t waiting; //等待的任务数   ngx_thread_task_post加1   ngx_thread_pool_cycle减1
     ngx_thread_cond_t cond; //条件变量  ngx_thread_pool_init中初始化
 
     ngx_log_t *log; //ngx_thread_pool_init中初始化
 
     ngx_str_t name; //thread_pool name threads=number [max_queue=number];中的name  ngx_thread_pool
-    //如果没有配置，在ngx_thread_pool_init_conf默认赋值为32
+    //如果没有配置,在ngx_thread_pool_init_conf默认赋值为32
     ngx_uint_t threads; //thread_pool name threads=number [max_queue=number];中的number  ngx_thread_pool
-    //如果没有配置，在ngx_thread_pool_init_conf默认赋值为65535
-    //指的是线程已经全部用完的情况下，还可以添加多少个任务到等待队列
+    //如果没有配置,在ngx_thread_pool_init_conf默认赋值为65535
+    //指的是线程已经全部用完的情况下,还可以添加多少个任务到等待队列
     ngx_int_t max_queue; //thread_pool name threads=number [max_queue=number];中的max_queue  ngx_thread_pool
 
     u_char *file; //配置文件名
@@ -80,7 +80,7 @@ static void ngx_thread_pool_exit_worker(ngx_cycle_t *cycle);
 static ngx_command_t ngx_thread_pool_commands[] = {
         /*
    Syntax: thread_pool name threads=number [max_queue=number];
-   Default: thread_pool default threads=32 max_queue=65536; threads参数为该pool中线程个数，max_queue表示等待被线程调度的任务数
+   Default: thread_pool default threads=32 max_queue=65536; threads参数为该pool中线程个数,max_queue表示等待被线程调度的任务数
 
    Defines named thread pools used for multi-threaded reading and sending of files without blocking worker processes.
    The threads parameter defines the number of threads in the pool.
@@ -125,7 +125,7 @@ ngx_module_t ngx_thread_pool_module = {
 static ngx_str_t ngx_thread_pool_default = ngx_string("default");
 
 static ngx_uint_t ngx_thread_pool_task_id;
-static ngx_atomic_t ngx_thread_pool_done_lock; //为0，可以获取锁，不为0，则不能获取到该锁
+static ngx_atomic_t ngx_thread_pool_done_lock; //为0,可以获取锁,不为0,则不能获取到该锁
 static ngx_thread_pool_queue_t ngx_thread_pool_done; //所有的
 
 //根据thread_pool name threads=number [max_queue=number];中的number来创建这么多个线程
@@ -180,8 +180,8 @@ ngx_thread_pool_init(ngx_thread_pool_t *tp, ngx_log_t *log, ngx_pool_t *pool) {
 
     for (n = 0; n < tp->threads; n++) {
         /*
-       线程原语：pthread_create()，pthread_self()，pthread_exit(),pthread_join(),pthread_cancel(),pthread_detach( .
-       好的线程理解大全参考(有图解例子，很好):http://blog.csdn.net/tototuzuoquan/article/details/39553427
+       线程原语:pthread_create(),pthread_self(),pthread_exit(),pthread_join(),pthread_cancel(),pthread_detach( .
+       好的线程理解大全参考(有图解例子,很好):http://blog.csdn.net/tototuzuoquan/article/details/39553427
         */
         err = pthread_create(&tid, &attr, ngx_thread_pool_cycle, tp);
         if (err) {
@@ -215,13 +215,13 @@ ngx_thread_pool_destroy(ngx_thread_pool_t *tp) {
             return;
         }
 
-        while (lock) { //主进程判断如果lock没有改变，就让CPU给其他线程执行，以此等待，相当于pthread_join
+        while (lock) { //主进程判断如果lock没有改变,就让CPU给其他线程执行,以此等待,相当于pthread_join
             ngx_sched_yield();
         }
         //只有线程池中的一个线程执行了exit_handler后才能会继续for循环
         task.event.active = 0;
     }
-    //此时到这边，所有的线程都已经退出   //条件变量销毁   互斥锁
+    //此时到这边,所有的线程都已经退出   //条件变量销毁   互斥锁
     (void) ngx_thread_cond_destroy(&tp->cond, tp->log);
 
     (void) ngx_thread_mutex_destroy(&tp->mtx, tp->log);
@@ -253,9 +253,9 @@ ngx_thread_task_alloc(ngx_pool_t *pool, size_t size) {
 }
 
 /*
-一般主线程通过ngx_thread_task_post添加任务，线程队列中的线程执行任务，主线程号和进程号一样，线程队列中的线程和进程号不一样，例如
+一般主线程通过ngx_thread_task_post添加任务,线程队列中的线程执行任务,主线程号和进程号一样,线程队列中的线程和进程号不一样,例如
 2016/01/07 12:38:01[               ngx_thread_task_post,   280][yangya  [debug] 20090#20090: ngx add task to thread, task id:183
-20090#20090前面是进程号，后面是主线程号，他们相同
+20090#20090前面是进程号,后面是主线程号,他们相同
 */
 //任务添加到对应的线程池任务队列中
 ngx_int_t
@@ -332,19 +332,19 @@ ngx_thread_pool_cycle(void *data) {
         return NULL;
     }
     /*
-    一般主线程通过ngx_thread_task_post添加任务，线程队列中的线程执行任务，主线程号和进程号一样，线程队列中的线程和进程号不一样，例如
+    一般主线程通过ngx_thread_task_post添加任务,线程队列中的线程执行任务,主线程号和进程号一样,线程队列中的线程和进程号不一样,例如
     2016/01/07 12:38:01[               ngx_thread_task_post,   280][yangya  [debug] 20090#20090: ngx add task to thread, task id:183
-    20090#20090前面是进程号，后面是主线程号，他们相同
+    20090#20090前面是进程号,后面是主线程号,他们相同
     */
-    for (;;) { //一次任务执行完后又会走到这里，循环
+    for (;;) { //一次任务执行完后又会走到这里,循环
         if (ngx_thread_mutex_lock(&tp->mtx, tp->log) != NGX_OK) {
             return NULL;
         }
 
         /* the number may become negative */
         tp->waiting--;
-        //如果队列中有任务，则直接执行任务，不会在while中等待conf signal
-        while (tp->queue.first == NULL) {  //此时任务队列为空，在条件变量上等待  配合ngx_thread_task_post阅读
+        //如果队列中有任务,则直接执行任务,不会在while中等待conf signal
+        while (tp->queue.first == NULL) {  //此时任务队列为空,在条件变量上等待  配合ngx_thread_task_post阅读
             //在添加任务的时候唤醒ngx_thread_task_post -> ngx_thread_cond_signal
             if (ngx_thread_cond_wait(&tp->cond, &tp->mtx, tp->log)
                 != NGX_OK) { //等待ngx_thread_cond_signal后才会返回
@@ -352,14 +352,14 @@ ngx_thread_pool_cycle(void *data) {
                 return NULL;
             }
         }
-        //取出队首任务，然后执行
+        //取出队首任务,然后执行
         task = tp->queue.first;
         tp->queue.first = task->next;
 
         if (tp->queue.first == NULL) {
             tp->queue.last = &tp->queue.first;
         }
-        //这一段加锁是因为线程池是共享资源，多个线程都从队列中取线程，并且主线程会添加任务到队列中
+        //这一段加锁是因为线程池是共享资源,多个线程都从队列中取线程,并且主线程会添加任务到队列中
         if (ngx_thread_mutex_unlock(&tp->mtx, tp->log) != NGX_OK) {
             return NULL;
         }
@@ -382,19 +382,19 @@ ngx_thread_pool_cycle(void *data) {
 
         ngx_spinlock(&ngx_thread_pool_done_lock, 1, 2048);
 
-        *ngx_thread_pool_done.last = task; //task添加到队列尾部，同时可以保证多次添加的时候，让新task和以前的task形成一个还，first执行第一个task，last指向最后一个task
+        *ngx_thread_pool_done.last = task; //task添加到队列尾部,同时可以保证多次添加的时候,让新task和以前的task形成一个还,first执行第一个task,last指向最后一个task
         ngx_thread_pool_done.last = &task->next;
 
         ngx_memory_barrier();
 
         ngx_unlock(&ngx_thread_pool_done_lock);
-        //ngx_notify通告主线程，该任务处理完毕，ngx_thread_pool_handler由主线程执行，也就是进程cycle{}通过epoll_wait返回执行，而不是由线程池中的线程执行
+        //ngx_notify通告主线程,该任务处理完毕,ngx_thread_pool_handler由主线程执行,也就是进程cycle{}通过epoll_wait返回执行,而不是由线程池中的线程执行
         (void) ngx_notify(ngx_thread_pool_handler);
     }
 }
 
-//任务处理完后，epoll的通知读事件会调用该函数
-//ngx_notify通告主线程，该任务处理完毕，ngx_thread_pool_handler由主线程执行，也就是进程cycle{}通过epoll_wait返回执行，而不是由线程池中的线程执行
+//任务处理完后,epoll的通知读事件会调用该函数
+//ngx_notify通告主线程,该任务处理完毕,ngx_thread_pool_handler由主线程执行,也就是进程cycle{}通过epoll_wait返回执行,而不是由线程池中的线程执行
 static void
 ngx_thread_pool_handler(ngx_event_t *ev) {
     ngx_event_t *event;
@@ -404,14 +404,14 @@ ngx_thread_pool_handler(ngx_event_t *ev) {
 
     ngx_spinlock(&ngx_thread_pool_done_lock, 1, 2048);
     /* 这里是不是有问题?
-       如果线程池中的线程执行任务比较快，而主进程在执行epoll_wait过程中有点阻塞，那么就检测不到ngx_notify中的epoll事件，有可能下次检测到该事件的时候
-       ngx_thread_pool_done上已经积累了很多执行完的任务事件，见ngx_thread_pool_cycle。
+       如果线程池中的线程执行任务比较快,而主进程在执行epoll_wait过程中有点阻塞,那么就检测不到ngx_notify中的epoll事件,有可能下次检测到该事件的时候
+       ngx_thread_pool_done上已经积累了很多执行完的任务事件,见ngx_thread_pool_cycle.
        单这里好像只取了队列首部的任务啊?????? 队首外的任务丢弃了???????????不对吧
-       答案是，这里面所有的任务都在下面的while{}中得到了执行
+       答案是,这里面所有的任务都在下面的while{}中得到了执行
     */
     task = ngx_thread_pool_done.first;
     ngx_thread_pool_done.first = NULL;
-    //尾部指向头，但是头已经变为空，即不执行任务
+    //尾部指向头,但是头已经变为空,即不执行任务
     ngx_thread_pool_done.last = &ngx_thread_pool_done.first;
 
     ngx_memory_barrier();
@@ -427,11 +427,11 @@ ngx_thread_pool_handler(ngx_event_t *ev) {
 
         event->complete = 1;
         event->active = 0;
-        /*如果是小文件，则一次可以读完，函数指向可以参考ngx_http_cache_thread_handler  ngx_http_copy_thread_handler  ngx_thread_read
-        如果是大文件下载，则第一次走这里函数式上面的几个函数，但是由于一次最多获取32768字节，因此需要多次读取文件，就是由一次tread执行完任务后
-        触发ngx_notify通道epoll，然后走到这里继续读
+        /*如果是小文件,则一次可以读完,函数指向可以参考ngx_http_cache_thread_handler  ngx_http_copy_thread_handler  ngx_thread_read
+        如果是大文件下载,则第一次走这里函数式上面的几个函数,但是由于一次最多获取32768字节,因此需要多次读取文件,就是由一次tread执行完任务后
+        触发ngx_notify通道epoll,然后走到这里继续读
         */
-        event->handler(event); //这里是否应该检查event->handler是否为空，例如参考ngx_thread_pool_destroy
+        event->handler(event); //这里是否应该检查event->handler是否为空,例如参考ngx_thread_pool_destroy
     }
 }
 
@@ -454,7 +454,7 @@ ngx_thread_pool_create_conf(ngx_cycle_t *cycle) {
     return tcf;
 }
 
-//如果配置thread_poll default，则指定默认的threads和max_queue
+//如果配置thread_poll default,则指定默认的threads和max_queue
 static char *
 ngx_thread_pool_init_conf(ngx_cycle_t *cycle, void *conf) {
     ngx_thread_pool_conf_t *tcf = conf;
@@ -491,7 +491,7 @@ ngx_thread_pool_init_conf(ngx_cycle_t *cycle, void *conf) {
 
 /*
 Syntax: thread_pool name threads=number [max_queue=number];
-Default: thread_pool default threads=32 max_queue=65536; threads参数为该pool中线程个数，max_queue表示等待被线程调度的任务数
+Default: thread_pool default threads=32 max_queue=65536; threads参数为该pool中线程个数,max_queue表示等待被线程调度的任务数
 */
 static char *
 ngx_thread_pool(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -507,7 +507,7 @@ ngx_thread_pool(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         return NGX_CONF_ERROR;
     }
 
-    if (tp->threads) { //说明配置了同样的thread_pool name threads xx，重复，如果threads数不同，还是可以满足条件的，后配置的会覆盖前面配置的
+    if (tp->threads) { //说明配置了同样的thread_pool name threads xx,重复,如果threads数不同,还是可以满足条件的,后配置的会覆盖前面配置的
         ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                            "duplicate thread pool \"%V\"", &tp->name);
         return NGX_CONF_ERROR;
@@ -554,7 +554,7 @@ ngx_thread_pool(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-//检查是否已经有该name的ngx_thread_pool_t，有则直接返回，没有则创建并添加到ngx_thread_pool_conf_t中
+//检查是否已经有该name的ngx_thread_pool_t,有则直接返回,没有则创建并添加到ngx_thread_pool_conf_t中
 ngx_thread_pool_t *
 ngx_thread_pool_add(ngx_conf_t *cf, ngx_str_t *name) {
     ngx_thread_pool_t *tp, **tpp;
@@ -563,7 +563,7 @@ ngx_thread_pool_add(ngx_conf_t *cf, ngx_str_t *name) {
     if (name == NULL) {
         name = &ngx_thread_pool_default;
     }
-    //检查该名字的线程池是否已经存在，存在则直接返回以前的线程池ngx_thread_pool_t，没有返回NULL
+    //检查该名字的线程池是否已经存在,存在则直接返回以前的线程池ngx_thread_pool_t,没有返回NULL
     tp = ngx_thread_pool_get(cf->cycle, name);
 
     if (tp) {
@@ -592,7 +592,7 @@ ngx_thread_pool_add(ngx_conf_t *cf, ngx_str_t *name) {
     return tp;
 }
 
-//检查该名字的线程池是否已经存在，存在则直接返回以前的线程池ngx_thread_pool_t，没有返回NULL
+//检查该名字的线程池是否已经存在,存在则直接返回以前的线程池ngx_thread_pool_t,没有返回NULL
 ngx_thread_pool_t *
 ngx_thread_pool_get(ngx_cycle_t *cycle, ngx_str_t *name) {
     ngx_uint_t i;
