@@ -4,25 +4,41 @@
 
 环境搭建:
 
-1.进入nginx目录,分别执行
+1.进入nginx目录,分别执行(请将path改成自己的目录):
 
-./auto/configure --add-module=src/ext/http_mytest_module 或
+```shell
+    ./auto/configure --add-module=src/ext/http_mytest_module 
+```
 
-./auto/configure --prefix=/home/yuan/code/cgit/nginx  \
-            --conf-path=/home/yuan/code/cgit/nginx/conf/nginx.conf \
+或:
+```shell
+    ./auto/configure --prefix=path/nginx  \
+            --conf-path=path/nginx/conf/nginx.conf \
             --with-file-aio --with-pcre --with-debug \
             --add-module=src/ext/http_mytest_module
+```
+2.
+```shell
+    cmake .
+```
+3.
+```shell
+    make
+```
 
-cmake .
+4.在linux上用clion打开该项目
 
-make
+5.编辑运行环境设置,将程序参数设置为
+```text
+-c  path/nginx/conf/nginx.conf
+```
 
-2.在linux上用clion打开该项目
+6.运行
 
-3.编辑运行环境设置,将程序参数设置为
+注意: 如果使用 --with-file-aio需要安装libaio,否则无法debug!
 
--c  /usr/local/cgit/nginx/conf/nginx.conf
+Ubuntu24:
+```shell
+    sudo apt install libaio-dev libaio1t64
+```
 
-4.运行
-注意: 使用 --with-file-aio需要安装libaio,否则无法debug \
-ubuntu24:  sudo apt install libaio-dev libaio1t64

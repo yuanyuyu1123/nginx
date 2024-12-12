@@ -55,7 +55,7 @@
     //存储着业务需要的指针.例如,在Nginx中,这个字段通常存储着对应的ngx_event_t亭件的指针.它实际上与io_getevents方法中返回的io_event结构体的data成员是完全一致的
     u_int64_t aio_data;
     //不需要设置
-    PADDED(aio_key,  aio_raservedl);
+    PADDED(aio_key,aio_raservedl);
     //操作码,其取值范围是io_iocb_cmd_t中的枚举命令
     u_int16_t aio_lio_opcode;
     //请求的优先级
@@ -75,8 +75,9 @@
   //表示当使用IOCB_FLAG_RESFD标志位时,用于进行事件通知的句柄
     u_int32_t aio_resfd;
 };
+
     因此,在设置好iocb结构体后,就可以向异步I/O提交事件了.
-aio_lio_opcode操作码指定了这个事件的操作类型,它的取值范围如下.
+aio_lio_opcode操作码指定了这个事件的操作类型,它的取值范围如下:
     typedef enum io_iocb_cmd{
     //异步读操作
     IO_CMD_PREAD=O,
@@ -84,20 +85,21 @@ aio_lio_opcode操作码指定了这个事件的操作类型,它的取值范围�
     IO_CMD_PWRITE=1,
     //强制同步
     IO_CMD_FSYNC=2,
-    //目前采使用
+    //目前未使用
     IO_CMD_FDSYNC=3,
     //目前未使用
     IO_CMD_POLL=5,
     //不做任何事情
     IO_CMD_NOOP=6,
 }io_iocb_cmd_t;
+
     在Nginx中,仅使用了IO_CMD_PREAD命令,这是因为目前仅支持文件的异步I/O读
 取,不支持异步I/O的写入.这其中一个重要的原因是文件的异步I/O无法利用缓存,而写
 文件操作通常是落到缓存中的,Linux存在统一将缓存中"脏"数据刷新到磁盘的机制.
     这样,使用io submit向内核提交了文件异步I/O操作的事件后,再使用io_cancel则可
 以将已经提交的事件取消.
     如何获取已经完成的异步I/O事件呢?io_getevents方法可以做到,它相当于epoll中的
-epoll_wait方法,这里用到了io_event结构体,下面看一下它的定义.
+epoll_wait方法,这里用到了io_event结构体,下面看一下它的定义:
 struct io_event  {
     //与提交事件时对应的iocb结构体中的aio_data是一致的
     uint64 t  data;
@@ -108,6 +110,7 @@ struct io_event  {
     //保留卑段
     int64_t    res2;
 );
+
     这样,根据获取的io_event结构体数组,就可以获得已经完成的异步I/O操作了,特别
 是iocb结构体中的aio_data成员和io_event中的data,可用于传递指针,也就是说,业务中
 的数据结构、事件完成后的回调方法都在这里.
@@ -115,8 +118,7 @@ struct io_event  {
 epoll的描述符.
     Linux内核提供的文件异步I/O机制用法非常简单,它充分利用了在内核中CPU与I/O
 设备是各自独立工作的这一特性,在提交了异步I/O操作后,进程完全可以做其他工作,直
-到空闲再来查看异步I/O操作是否完成.
-*/
+到空闲再来查看异步I/O操作是否完成*/
 extern int ngx_eventfd;
 extern aio_context_t ngx_aio_ctx;
 
