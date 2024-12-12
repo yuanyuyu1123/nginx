@@ -60,7 +60,7 @@ static ngx_connection_t dumb;
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                  ┃                                      ┃  在扰行不重启服务升级Nginx的操       ┃
 ┃                                  ┃                                      ┃作时,老的Nginx进程会通过环境变量     ┃
-┃  ngx_int_t ngx_add_inherited     ┃  cycle是当前进程的ngx_cycle_t结      ┃“NGINX”来传递需要打开的监听端       ┃
+┃  ngx_int_t ngx_add_inherited     ┃  cycle是当前进程的ngx_cycle_t结      ┃"NGINX"来传递需要打开的监听端       ┃
 ┃sockets(ngx_cycle_t幸cycle)       ┃构体指针                              ┃口,新的Nginx进程会通过ngx_add_       ┃
 ┃                                  ┃                                      ┃inherited- sockets方法来使用已经打开  ┃
 ┃                                  ┃                                      ┃的TCP监听端口                         ┃
@@ -335,9 +335,9 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
     /*在初始化ngx_cycle_t中的所有容器后,会为读取、解析配置文件做准备工作.因为每个模块都必须有相应的数据
       结构来存储配置文件中的各配置项,创建这些数据结构的工作都需要在这一步进行.Nginx框架只关心NGX_CORE_MODULE核
       心模块,这也是为了降低框架的复杂度.这里将会调用所有核心模块的create conf方法(也只有核心模块才有这个方法),
-      这意味着需要所有的核心模块开始构造用于存储配置项的结构体.其他非核心模块怎么办呢？其实很简单.这些模块大都
+      这意味着需要所有的核心模块开始构造用于存储配置项的结构体.其他非核心模块怎么办呢?其实很简单.这些模块大都
       从属于一个核心模块,如每个HTTP模块都由ngx_http_module管理(如图8-2所示),这样ngx_http_module在解析自己感兴
-      趣的“http”配置项时,将会调用所有HTTP模块约定的方法来创建存储配置项的结构体(xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法)*/
+      趣的"http"配置项时,将会调用所有HTTP模块约定的方法来创建存储配置项的结构体(xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法)*/
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;

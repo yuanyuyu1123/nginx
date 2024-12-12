@@ -23,7 +23,6 @@ static ssize_t ngx_writev_file(ngx_file_t *file, ngx_iovec_t *vec,
 
 #if (NGX_HAVE_FILE_AIO)
 
-//可以参考http://blog.csdn.net/bengda/article/details/21871413
 ngx_uint_t  ngx_file_aio = 1; //如果创建ngx_eventfd失败,置0,表示不支持AIO
 
 #endif
@@ -713,7 +712,7 @@ ngx_read_dir(ngx_dir_t *dir) {
     return NGX_ERROR;
 }
 
-
+//glob根据pattern匹配路径中的文件,获取对应的文件名
 ngx_int_t
 ngx_open_glob(ngx_glob_t *gl) {
     int n;
@@ -772,70 +771,44 @@ fcntl函数有5种功能:
        4.获得／设置异步I/O所有权(cmd=F_GETOWN或F_SETOWN).
        5.获得／设置记录锁(cmd=F_GETLK,F_SETLK或F_SETLKW).
 
-参数fd必须是已经成功抒开的文件句柄.实际上,nginx.conf文件中的lock_file配置项指定的文件路径,就是用于文件互斥锁的,
-这个文件被打开后得到的句柄,将会作为fd参数传递给fcntl方法,提供一种锁机制.
-struct flcok
-{
-　　 short int l_type;  锁定的状态 //这三个参数用于分段对文件加锁,若对整个文件加锁,则:l_whence=SEEK_SET,l_start=0,l_len=0;
-　　 short int l_whence;决定l_start位置* /  锁区域起始地址的相对位置
-　　 off_t l_start; / * 锁定区域的开头位置 * /  锁区域起始地址偏移量,同1_whence共同确定锁区域
-　　 off_t l_len; / *锁定区域的大小* /  锁的长度,O表示锁至文件末
-　　 pid_t l_pid; / *锁定动作的进程* /  拥有锁的进程ID
-};
-这里的cmd参数在Nginx中只会有两个值:F—SETLK和F—SETLKW,它们都表示试图获得互斥锁,但使用F—SETLK时如果互斥锁已经被其他进程占用,
-fcntl方法不会等待其他进程释放锁且自己拿到锁后才返回,而是立即返回获取互斥锁失败;使用F—SETLKW时则不同,锁被占用后fcntl方法会一直
-等待,在其他进程没有释放锁时,当前进程就会阻塞在fcntl方法中,这种阻塞会导致当前进程由可执行状态转为睡眠状态.
- 从flock结构体中可以看出,文件锁的功能绝不仅仅局限于普通的互斥锁,它还可以锁住文件中的部分内容.
- 但Nginx封装的文件锁仅用于保护代码段的顺序执行(例如,在进行负载均衡时,使用互斥锁保证同一时刻仅有一个worker进程可以处理新的TCP连接）,使用方式要简单得多:一个
-lock_file文件对应一个全局互斥锁,而且它对master进程或者worker进程都生效.因此,对于Lstart、l_len、l_pid,都填为0,而1_whence则填为
-SEEK_SET,只需要这个文件提供一个锁.l_type的值则取决于用户是想实现阻塞睡眠锁还是想实现非阻塞不会睡眠的锁.*/
-
-//当关闭fd句柄对应的文件时,当前进程将自动释放已经拿到的锁.
-
-/*对于文件锁,Nginx封装了3个方法:ngx_trylock_fd实现了不会阻塞进程、不会便得进程进入睡眠状态的互斥锁;ngx_lock_fd提供的互斥锁在锁
-已经被其他进程拿到时将会导致当前进程进入睡眠状态,直到顺利拿到这个锁后,当前进程才会被Linux内核重新调度,所以它是阻塞操作;
-ngx_unlock fd用于释放互斥锁.*/
+/*对于文件锁,Nginx封装了3个方法:ngx_trylock_fd实现了不会阻塞进程、不会便得进程进入睡眠状态的互斥锁;
+ *ngx_lock_fd提供的互斥锁在锁,已经被其他进程拿到时将会导致当前进程进入睡眠状态,直到顺利拿到这个锁后,当前进程才会被Linux内核重新调度,所以它是阻塞操作;
+ *ngx_unlock fd用于释放互斥锁.*/
 ngx_err_t
 ngx_trylock_fd(ngx_fd_t fd) {
     struct flock fl;
 
     ngx_memzero(&fl, sizeof(struct flock)); //这个文件锁并不用于锁文件中的内容,填充为0
-    fl.l_type = F_WRLCK; //F_WRLCK意味着不会导致进程睡眠
+    fl.l_type = F_WRLCK;
     fl.l_whence = SEEK_SET;
     //获取fd对应的互斥锁,如果返回
-    /*
-    使用ngx_trylock_fd方法获取互斥锁成功时会返回0,否则返回的其实是errno错误码,而这个错误码为NGX- EAGAIN或者NGX EACCESS时
-    表示当前没有拿到互斥锁,否则可以认为fcntl执行错误.
-     */
-    if (fcntl(fd, F_SETLK, &fl) == -1) {
+    /*使用ngx_trylock_fd方法获取互斥锁成功时会返回0,否则返回的其实是errno错误码,而这个错误码为NGX- EAGAIN或者NGX EACCESS时
+    表示当前没有拿到互斥锁,否则可以认为fcntl执行错误.*/
+    if (fcntl(fd, F_SETLK, &fl) == -1) {//F_SETLK意味着不会导致进程睡眠
         return ngx_errno;
     }
 
     return 0;
 }
 
-/*
-ngx_lock_fd方法将会阻塞进程的执行,使用时需要非常谨慎,它可能会导致worker进程宁可睡眠也不处理其他正常请求
-*/
+/*ngx_lock_fd方法将会阻塞进程的执行,使用时需要非常谨慎,它可能会导致worker进程宁可睡眠也不处理其他正常请求*/
 ngx_err_t
 ngx_lock_fd(ngx_fd_t fd) {
     struct flock fl;
 
     ngx_memzero(&fl, sizeof(struct flock));
-    //F_WRLCK会导致进程睡眠
     fl.l_type = F_WRLCK;
     fl.l_whence = SEEK_SET;
     //如果返回-1,则表示fcntl执行错误.一旦返回0,表示成功地拿到了锁
-    if (fcntl(fd, F_SETLKW, &fl) == -1) {
+    if (fcntl(fd, F_SETLKW, &fl) == -1) { //F_SETLKW意味着会导致进程睡眠
         return ngx_errno;
     }
 
     return 0;
 }
 
-/*
-ngx_unlock_fd方法用于释放当前进程已经拿到的互斥锁
-*/ //当关闭fd句柄对应的文件时,当前进程将自动释放已经拿到的锁.
+/*ngx_unlock_fd方法用于释放当前进程已经拿到的互斥锁
+当关闭fd句柄对应的文件时,当前进程将自动释放已经拿到的锁.*/
 ngx_err_t
 ngx_unlock_fd(ngx_fd_t fd) {
     struct flock fl;
@@ -858,6 +831,8 @@ ngx_int_t
 ngx_read_ahead(ngx_fd_t fd, size_t n) {
     int err;
 
+    /*posix_fadvise()系统调用允许进程就自身访问文件数据时可能采取的模式通知内核,这样内核就可以做一些优化
+    * POSIX_FADV_SEQUENTIAL进程预计会从低偏移量到高偏移量顺序读取数据.在 Linux 中,该操作将文件预读窗口大小置为默认值的两倍*/
     err = posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
 
     if (err == 0) {
@@ -874,8 +849,8 @@ ngx_read_ahead(ngx_fd_t fd, size_t n) {
 #if (NGX_HAVE_O_DIRECT)
 /*
 文件异步IO
-    事件驱动模块都是在处理网络事件,而没有涉及磁盘上文件的操作.本
-节将讨论Linux内核2.6.2x之后版本中支持的文件异步I/O,以及ngx_epoll_module模块是
+    事件驱动模块都是在处理网络事件,而没有涉及磁盘上文件的操作.
+本节将讨论Linux内核2.6.2x之后版本中支持的文件异步I/O,以及ngx_epoll_module模块是
 如何与文件异步I/O配合提供服务的.这里提到的文件异步I/O并不是glibc库提供的文件异
 步I/O.glibc库提供的异步I/O是基于多线程实现的,它不是真正意义上的异步I/O.而本节
 说明的异步I/O是由Linux内核实现,只有在内核中成功地完成了磁盘操作,内核才会通知
@@ -883,36 +858,20 @@ ngx_read_ahead(ngx_fd_t fd, size_t n) {
     使用这种方式的前提是Linux内核版本中必须支持文件异步I/O.当然,它带来的好处
 也非常明显,Nginx把读取文件的操作异步地提交给内核后,内核会通知I/O设备独立地执
 行操作,这样,Nginx进程可以继续充分地占用CPU.而且,当大量读事件堆积到I/O设备
-的队列中时,将会发挥出内核中“电梯算法”的优势,从而降低随机读取磁盘扇区的成本.
-    注意Linux内核级别的文件异步I/O是不支持缓存操作的,也就是说,即使需要操作
-的文件块在Linux文件缓存中存在,也不会通过读取、更改缓存中的文件块来代替实际对磁
-盘的操作,虽然从阻塞worker进程的角度上来说有了很大好转,但是对单个请求来说,还是
-有可能降低实际处理的速度,因为原先可以从内存中快速获取的文件块在使用了异步I/O后
-则一定会从磁盘上读取.异步文件I/O是把“双刃剑”,关键要看使用场景,如果大部分用户
-请求对文件的操作都会落到文件缓存中,那么不要使用异步I/O,反之则可以试着使用文件
-异步I/O,看一下是否会为服务带来并发能力上的提升.
-    目前,Nginx仅支持在读取文件时使用异步I/O,因为正常写入文件时往往是写入内存
-中就立刻返回,效率很高,而使用异步I/O写入时速度会明显下降.
+的队列中时,将会发挥出内核中"电梯算法"的优势,从而降低随机读取磁盘扇区的成本.
 文件异步AIO优点:
         异步I/O是由Linux内核实现,只有在内核中成功地完成了磁盘操作,内核才会通知
     进程,进而使得磁盘文件的处理与网络事件的处理同样高效.这样就不会阻塞worker进程.
 缺点:
-        不支持缓存操作的,也就是说,即使需要操作的文件块在Linux文件缓存中存在,也不会通过读取、
+        不支持缓存操作,也就是说,即使需要操作的文件块在Linux文件缓存中存在,也不会通过读取、
     更改缓存中的文件块来代替实际对磁盘的操作.有可能降低实际处理的速度,因为原先可以从内存中快速
     获取的文件块在使用了异步I/O后则一定会从磁盘上读取
 究竟是选择异步I/O还是普通I/O操作呢?
-        异步文件I/O是把“双刃剑”,关键要看使用场景,如果大部分用户
-    请求对文件的操作都会落到文件缓存中,那么不要使用异步I/O,反之则可以试着使用文件
-    异步I/O,看一下是否会为服务带来并发能力上的提升.
+        异步文件I/O是把"双刃剑",关键要看使用场景,如果大部分用户请求对文件的操作都会落到文件缓存中,那么不要使用异步I/O;
+        反之则可以试着使用文件异步I/O,看一下是否会为服务带来并发能力上的提升.
     目前,Nginx仅支持在读取文件时使用异步I/O,因为正常写入文件时往往是写入内存
 中就立刻返回,效率很高,而使用异步I/O写入时速度会明显下降.异步I/O不支持写操作,因为
-异步I/O无法利用缓存,而写操作通常是落到缓存上,linux会自动将文件中缓存中的数据写到磁盘
-普通文件读写过程:
-正常的系统调用read/write的流程是怎样的呢？
-- 读取:内核缓存有需要的文件数据:内核缓冲区->用户缓冲区;没有:硬盘->内核缓冲区->用户缓冲区;
-- 写回:数据会从用户地址空间拷贝到操作系统内核地址空间的页缓存中去,这是write就会直接返回,操作系统会在恰当的时机写入磁盘,这就是传说中的direct AIO*/
-
-//direct AIO可以参考http://blog.csdn.net/bengda/article/details/21871413
+异步I/O无法利用缓存,而写操作通常是落到缓存上,linux会自动将文件中缓存中的数据写到磁盘*/
 ngx_int_t
 ngx_directio_on(ngx_fd_t fd) {
     int flags;
@@ -929,16 +888,15 @@ ngx_directio_on(ngx_fd_t fd) {
        的使用以及内存带宽的占用.这对于某些特殊的应用程序,比如自缓存应用程序来说,不失为一种好的选择.如果要传输的数据量很大,使用直接 I/O
        的方式进行数据传输,而不需要操作系统内核地址空间拷贝数据操作的参与,这将会大大提高性能.
    direct I/O缺点: 设置直接 I/O 的开销非常大,而直接 I/O 又不能提供缓存 I/O 的优势.缓存 I/O 的读操作可以从高速缓冲存储器中获取数据,而直接
-       I/O 的读数据操作会造成磁盘的同步读,这会带来性能上的差异 , 并且导致进程需要较长的时间才能执行完
+       I/O 的读数据操作会造成磁盘的同步读,这会带来性能上的差异,并且导致进程需要较长的时间才能执行完
    总结:
    Linux 中的直接 I/O 访问文件方式可以减少 CPU 的使用率以及内存带宽的占用,但是直接 I/O 有时候也会对性能产生负面影响.所以在使用
    直接 I/O 之前一定要对应用程序有一个很清醒的认识,只有在确定了设置缓冲 I/O 的开销非常巨大的情况下,才考虑使用直接 I/O.直接 I/O
    经常需要跟异步 I/O 结合起来使用
 
    普通缓存I/O: 硬盘->内核缓冲区->用户缓冲区 写数据写道缓冲区中就返回,一般由内核定期写道磁盘(或者直接调用API指定要写入磁盘),
-   读操作首先检查缓冲区是否有所需的文件内容,没有就冲磁盘读到内核缓冲区,在从内核缓冲区到用户缓冲区
-   O_DIRECT为直接I/O方式,硬盘->用户缓冲区,少了内核缓冲区操作,但是直接磁盘操作很费时,所以直接I/O一般借助AIO和EPOLL实现
-   参考:http://blog.csdn.net/bengda/article/details/21871413  http://www.ibm.com/developerworks/cn/linux/l-cn-directio/index.html*/
+   读操作首先检查缓冲区是否有所需的文件内容,没有就从磁盘读到内核缓冲区,再从内核缓冲区到用户缓冲区
+   O_DIRECT为直接I/O方式,硬盘->用户缓冲区,少了内核缓冲区操作,但是直接磁盘操作很费时,所以直接I/O一般借助AIO和EPOLL实现*/
     return fcntl(fd, F_SETFL, flags | O_DIRECT);
 }
 
@@ -971,7 +929,7 @@ int fstatfs(int fd, struct statfs *buf);
 
   参数:
 path: 位于需要查询信息的文件系统的文件路径名.
-fd: 位于需要查询信息的文件系统的文件描述词.
+fd: 位于需要查询信息的文件系统的文件描述符.
 buf:以下结构体的指针变量,用于储存文件系统相关的信息
 struct statfs {
     long    f_type;     / * 文件系统类型  * /

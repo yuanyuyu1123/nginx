@@ -119,7 +119,7 @@ static ngx_core_module_t  ngx_http_module_ctx = {
 
 //http{}外的配置见ngx_core_module_ctx, http{}内的配置见ngx_http_module
 //NGX_CORE_MODULE的模块在ngx_init_cycle中执行
-//一旦在nginx.conf配置文件中找到ngx_http_module感兴趣的“http{},ngx_http_module模块就开始工作了
+//一旦在nginx.conf配置文件中找到ngx_http_module感兴趣的"http{},ngx_http_module模块就开始工作了
 ngx_module_t  ngx_http_module = {
         NGX_MODULE_V1,
         &ngx_http_module_ctx,                  /* module context */
@@ -141,7 +141,7 @@ ngx_module_t  ngx_http_module = {
 http_core_module模块,所谓的HTTP框架主要由这两个模块组成),下面解释图中每个流程
 的意义.
     1)图4-1中的主循环是指Nginx进程的主循环,主循环只有调用配置文件解析器才能
-解析nginx.conf文件(这里的“主循环”是指解析全部配置文件的循环代码,图8-6的第4
+解析nginx.conf文件(这里的"主循环"是指解析全部配置文件的循环代码,图8-6的第4
 步,为了便于理解,可以认为是Nginx框架代码在循环解析配置项).
     2)当发现配置文件中含有http{)关键字时,HTTP框架开始启动,这一过程详见10.7
 节描述的ngx_http_block方法.
@@ -592,7 +592,7 @@ ngx_http_init_headers_in_hash(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 /*
 在各个HTTP模块能够介入的7个阶段中,实际上共享了4个checker方法:ngx_http_core_generic_phase、ngx_http_core_rewrite_phase、
 ngx_http_core_access_phase、ngx_http_core_content_phase.这4个checker方法的主要任务在于,根据phase_handler执行某个HTTP模块实现的
-回调方法,并根据方法的返回值决定:当前阶段已经完全结束了吗？下次要执行的回调方法是哪一个？究竟是立刻执行下一个回调方法还是先把控制权交还给epoll?
+回调方法,并根据方法的返回值决定:当前阶段已经完全结束了吗?下次要执行的回调方法是哪一个?究竟是立刻执行下一个回调方法还是先把控制权交还给epoll?
 */
 //cmcf->phases[]数组各个阶段的ngx_http_handler_pt节点信息全部赋值给cmcf->phase_engine.handlers数组队列
 static ngx_int_t
@@ -1107,7 +1107,7 @@ ngx_http_init_locations(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.
 */
 /*
-注意,这里的二叉查找树并不是红黑树,不过,为什么不使用红黑树呢？因为location是由nginx.conf中读取到的,它是静态不变的,
+注意,这里的二叉查找树并不是红黑树,不过,为什么不使用红黑树呢?因为location是由nginx.conf中读取到的,它是静态不变的,
 不存在运行过程中在树中添加或者删除location的场景,而且红黑树的查询效率也没有重新构造的静态的完全平衡二叉树高.
 */
 //location tree的建立在ngx_http_init_static_location_trees中进行:

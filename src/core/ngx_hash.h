@@ -45,8 +45,8 @@ ngx_hash_wildcard_t专用于表示牵制或后置通配符的哈希表,如:前�
 */
 /*
 nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
-例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
-尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+例如:"*.abc.com",也可以省略掉星号,直接写成".abc.com".这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:"mail.xxx.*",请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
 mail.xxx.net之类的域名.
 有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
 的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
@@ -148,8 +148,8 @@ pool: 构建这些hash表使用的pool.
 temp_pool: 在构建这个类型以及最终的三个hash表过程中可能用到临时pool.该temp_pool可以在构建完成以后,被销毁掉.这里只是存放临时的一些内存消耗.
 keys: 存放所有非通配符key的数组.
 keys_hash: 这是个二维数组,第一个维度代表的是bucket的编号,那么keys_hash[i]中存放的是所有的key算出来的hash值对hsize取模以后的值为i的key.假设有3个key,分别是key1,key2和key3假设hash值算出来以后对hsize取模的值都是i,那么这三个key的值就顺序存放在keys_hash[i][0],keys_hash[i][1], keys_hash[i][2].该值在调用的过程中用来保存和检测是否有冲突的key值,也就是是否有重复.
-dns_wc_head: 放前向通配符key被处理完成以后的值.比如:“*.abc.com” 被处理完成以后,变成 “com.abc.” 被存放在此数组中.
-dns_wc_tail: 存放后向通配符key被处理完成以后的值.比如:“mail.xxx.*” 被处理完成以后,变成 “mail.xxx.” 被存放在此数组中.
+dns_wc_head: 放前向通配符key被处理完成以后的值.比如:"*.abc.com" 被处理完成以后,变成 "com.abc." 被存放在此数组中.
+dns_wc_tail: 存放后向通配符key被处理完成以后的值.比如:"mail.xxx.*" 被处理完成以后,变成 “mail.xxx." 被存放在此数组中.
 dns_wc_head_hash: 该值在调用的过程中用来保存和检测是否有冲突的前向通配符的key值,也就是是否有重复.
 dns_wc_tail_hash: 该值在调用的过程中用来保存和检测是否有冲突的后向通配符的key值,也就是是否有重复.
 */
@@ -216,7 +216,7 @@ typedef struct {
 可以看到,ngx_table_elt_t就是一个key/value对,ngx_str_t 类型的key、value成员分别存储的是名字、值字符串.
 hash成员表明ngx_table_elt_t也可以是某个散列表数据结构(ngx_hash_t类型)中的成员.ngx_uint_t 类型的hash
 成员可以在ngx_hash_t中更快地找到相同key的ngx_table_elt_t数据.lowcase_key指向的是全小写的key字符串.
-显而易见,ngx_table_elt_t是为HTTP头部“量身订制”的,其中key存储头部名称(如Content-Length),value存储对应的值(如“1024”),
+显而易见,ngx_table_elt_t是为HTTP头部“量身订制"的,其中key存储头部名称(如Content-Length),value存储对应的值(如“1024"),
 lowcase_key是为了忽略HTTP头部名称的大小写(例如,有些客户端发来的HTTP请求头部是content-length,Nginx希望它与大小写敏感的
 Content-Length做相同处理,有了全小写的lowcase_key成员后就可以快速达成目的了),hash用于快速检索头部(它的用法在3.6.3节中进行详述).
 */

@@ -66,7 +66,7 @@ static ngx_http_module_t ngx_http_write_filter_module_ctx = {
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.                             它仅应用于     ┃
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
-┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应          ┃
+┃                                    ┃能够有序,所谓的"有序"是揩按照构造子请求的顺序发送响应          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
@@ -386,7 +386,7 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
             //调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_set_write_handler->ngx_http_writer添加epoll write事件来触发
         }
         /*
-        本步将把响应发送给客户端.然而,缓冲区中的响应可能非常大,那么这一次应该发送多少字节呢？这要根据前面计算出的limit变量,
+        本步将把响应发送给客户端.然而,缓冲区中的响应可能非常大,那么这一次应该发送多少字节呢?这要根据前面计算出的limit变量,
     前面取得的配置项sendfile_max_chunk来计算,同时要根据遍历缓冲区计算出的待发送字节数来决定,这3个值中的最小值即作为本
     次发送的响应长度. 实际最后通过ngx_writev_chain发送数据的时候,还会限制一次
     */

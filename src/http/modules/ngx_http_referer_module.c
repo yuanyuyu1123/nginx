@@ -13,10 +13,10 @@
 #define NGX_HTTP_REFERER_NO_URI_PART  ((void *) 4)
 
 /*
-The ngx_http_referer_module module is used to block access to a site for requests with invalid values in the “Referer” header
-field. It should be kept in mind that fabricating a request with an appropriate “Referer” field value is quite easy, and so
+The ngx_http_referer_module module is used to block access to a site for requests with invalid values in the "Referer" header
+field. It should be kept in mind that fabricating a request with an appropriate "Referer" field value is quite easy, and so
 the intended purpose of this module is not to block such requests thoroughly but to block the mass flow of requests sent by
-regular browsers. It should also be taken into consideration that regular browsers may not send the “Referer” field even for
+regular browsers. It should also be taken into consideration that regular browsers may not send the "Referer" field even for
 valid requests.
 Example Configuration
 valid_referers none blocked server_names
@@ -39,21 +39,21 @@ Default: —
 Context:
 server, location
 
-Specifies the “Referer” request header field values that will cause the embedded $invalid_referer variable to be set to an empty
-string. Otherwise, the variable will be set to “1”. Search for a match is case-insensitive.
+Specifies the "Referer" request header field values that will cause the embedded $invalid_referer variable to be set to an empty
+string. Otherwise, the variable will be set to "1". Search for a match is case-insensitive.
 Parameters can be as follows:
-nonethe “Referer” field is missing in the request header; blockedthe “Referer” field is present in the request header, but its
-value has been deleted by a firewall or proxy server; such values are strings that do not start with “http://” or “https://”;
-server_namesthe “Referer” request header field contains one of the server names; arbitrary stringdefines a server name and an
-optional URI prefix. A server name can have an “*” at the beginning or end. During the checking, the server’s port in the “Referer”
-field is ignored; regular expressionthe first symbol should be a “~”. It should be noted that an expression will be matched against
-the text starting after the “http://” or “https://”.
+nonethe "Referer" field is missing in the request header; blockedthe "Referer" field is present in the request header, but its
+value has been deleted by a firewall or proxy server; such values are strings that do not start with "http://" or "https://";
+server_namesthe "Referer" request header field contains one of the server names; arbitrary stringdefines a server name and an
+optional URI prefix. A server name can have an "*" at the beginning or end. During the checking, the server’s port in the "Referer"
+field is ignored; regular expressionthe first symbol should be a "~". It should be noted that an expression will be matched against
+the text starting after the "http://" or "https://".
 Example:
 valid_referers none blocked server_names
                *.example.com example.* www.example.org/galleries/
                ~\.google\.;
 Embedded Variables
-$invalid_refererEmpty string, if the “Referer” request header field value is considered valid, otherwise “1”.
+$invalid_refererEmpty string, if the "Referer" request header field value is considered valid, otherwise "1".
 */
 typedef struct {
     ngx_hash_combined_t hash; //赋值和初始化见ngx_http_referer_merge_conf
@@ -146,7 +146,7 @@ if ($invalid_referer) {return 403;}
 实现方法如下:
 实现方法如下:
 1. 下载NginxHttpAccessKeyModule模块文件:Nginx-accesskey-2.0.3.tar.gz;
-2. 解压此文件后,找到nginx-accesskey-2.0.3下的config文件.编辑此文件:替换其中的”$HTTP_ACCESSKEY_MODULE”为”ngx_http_accesskey_module”;
+2. 解压此文件后,找到nginx-accesskey-2.0.3下的config文件.编辑此文件:替换其中的"$HTTP_ACCESSKEY_MODULE"为"ngx_http_accesskey_module";
 3. 用一下参数重新编译nginx:
 ./configure --add-module=path/to/nginx-accesskey
 4. 修改nginx的conf文件,添加以下几行:
@@ -174,7 +174,7 @@ echo $output_org_url;
 //ngx_http_secure_link_module现在可以代替ngx_http_accesskey_module,他们功能类似   ngx_http_secure_link_module Nginx的安全模块,免得别人拿webserver权限.
 //ngx_http_referer_module具有普通防盗链功能
 
-//$invalid_referer变量,Empty string, if the “Referer” request header field value is considered valid, otherwise '1' 见ngx_http_valid_referers
+//$invalid_referer变量,Empty string, if the "Referer" request header field value is considered valid, otherwise '1' 见ngx_http_valid_referers
 static ngx_command_t ngx_http_referer_commands[] = {
 
         {ngx_string("valid_referers"), //该变量值获取生效在ngx_http_referer_variable
@@ -617,29 +617,29 @@ ngx_http_valid_referers(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
                                "invalid referer \"%V\"", &value[i]);
             return NGX_CONF_ERROR;
         }
-        //the “Referer” field is missing in the request header;
+        //the "Referer" field is missing in the request header;
         //也就是不带referer头部行的满足valid_referers
         if (ngx_strcmp(value[i].data, "none") == 0) {
             rlcf->no_referer = 1;
             continue;
         }
         /*
-        the “Referer” field is present in the request header, but its value has been deleted by a firewall or proxy server;
-        such values are strings that do not start with “http://” or “https://”;
+        the "Referer" field is present in the request header, but its value has been deleted by a firewall or proxy server;
+        such values are strings that do not start with "http://" or "https://";
           */
         if (ngx_strcmp(value[i].data, "blocked") == 0) {
             rlcf->blocked_referer = 1;
             continue;
         }
-        //the “Referer” request header field contains one of the server names;
+        //the "Referer" request header field contains one of the server names;
         if (ngx_strcmp(value[i].data, "server_names") == 0) { //该参数后面跟域名信息
             rlcf->server_names = 1;
             continue;
         }
         /*
-  arbitrary stringdefines a server name and an optional URI prefix. A server name can have an “*” at the beginning or end.
-  During the checking, the server’s port in the “Referer” field is ignored; regular expressionthe first symbol should be a “~”.
-  It should be noted that an expression will be matched against the text starting after the “http://” or “https://”.
+  arbitrary stringdefines a server name and an optional URI prefix. A server name can have an "*" at the beginning or end.
+  During the checking, the server’s port in the "Referer" field is ignored; regular expressionthe first symbol should be a "~".
+  It should be noted that an expression will be matched against the text starting after the "http://" or "https://".
 
 
   Example:

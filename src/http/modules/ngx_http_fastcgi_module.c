@@ -490,7 +490,7 @@ fastcgi_store_access  group:rw  all:r;
 默认值:fastcgi_intercept_errors off
 使用字段:http, server, location
 这个指令指定是否传递4xx和5xx错误信息到客户端,或者允许nginx使用error_page处理错误信息.
-你必须明确的在error_page中指定处理方法使这个参数有效,正如Igor所说“如果没有适当的处理方法,nginx不会拦截一个错误,这个错误
+你必须明确的在error_page中指定处理方法使这个参数有效,正如Igor所说"如果没有适当的处理方法,nginx不会拦截一个错误,这个错误
 不会显示自己的默认页面,这里允许通过某些方法拦截错误.
 */
         {ngx_string("fastcgi_intercept_errors"),
@@ -550,7 +550,7 @@ fastcgi_store_access  group:rw  all:r;
         /*
        nginx的存储系统分两类,一类是通过proxy_store开启的,存储方式是按照url中的文件路径,存储在本地.比如/file/2013/0001/en/test.html,
      那么nginx就会在指定的存储目录下依次建立各个目录和文件.另一类是通过proxy_cache开启,这种方式存储的文件不是按照url路径来组织的,
-     而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢？
+     而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢?
     按url路径存储文件的方式,程序处理起来比较简单,但是性能不行.首先有的url巨长,我们要在本地文件系统上建立如此深的目录,那么文件的打开
     和查找都很会很慢(回想kernel中通过路径名查找inode的过程吧).如果使用自定义方式来处理模式,尽管也离不开文件和路径,但是它不会因url长度
     而产生复杂性增加和性能的降低.从某种意义上说这是一种用户态文件系统,最典型的应该算是squid中的CFS.nginx使用的方式相对简单,主要依靠
@@ -874,11 +874,11 @@ fastcgi_param  REDIRECT_STATUS  200;
 使用字段:http, server, location
 这个指令禁止处理一些FastCGI服务器应答的头部字段,比如可以指定像"X-Accel-Redirect", "X-Accel-Expires", "Expires"或"Cache-Control"等.
 If not disabled, processing of these header fields has the following effect:
-“X-Accel-Expires”, “Expires”, “Cache-Control”, “Set-Cookie”, and “Vary” set the parameters of response caching;
-“X-Accel-Redirect” performs an internal redirect to the specified URI;
-“X-Accel-Limit-Rate” sets the rate limit for transmission of a response to a client;
-“X-Accel-Buffering” enables or disables buffering of a response;
-“X-Accel-Charset” sets the desired charset of a response.
+"X-Accel-Expires", "Expires", "Cache-Control", "Set-Cookie", and "Vary" set the parameters of response caching;
+"X-Accel-Redirect" performs an internal redirect to the specified URI;
+"X-Accel-Limit-Rate" sets the rate limit for transmission of a response to a client;
+"X-Accel-Buffering" enables or disables buffering of a response;
+"X-Accel-Charset" sets the desired charset of a response.
 */
         {ngx_string("fastcgi_ignore_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
@@ -4099,7 +4099,7 @@ ngx_http_fastcgi_split(ngx_http_request_t *r, ngx_http_fastcgi_loc_conf_t *flcf)
 }
 
 /*
-这个ngx_http_fastcgi_handler是在nginx 解析配置的时候,解析到了ngx_string(“fastcgi_pass”),指令的时候会调用ngx_http_fastcgi_pass()进行指令解析
+这个ngx_http_fastcgi_handler是在nginx 解析配置的时候,解析到了ngx_string("fastcgi_pass"),指令的时候会调用ngx_http_fastcgi_pass()进行指令解析
 */
 static char *
 ngx_http_fastcgi_pass(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {

@@ -562,8 +562,8 @@ hash:可以按照uri  ip 等参数进行做hash
 /*
 Nginx不仅仅可以用做Web服务器.upstream机制其实是由ngx_http_upstream_module模块实现的,它是一个HTTP模块,使用upstream机制时客
 户端的请求必须基于HTTP.
-既然upstream是用于访问“上游”服务器的,那么,Nginx需要访问什么类型的“上游”服务器呢？是Apache、Tomcat这样的Web服务器,还
-是memcached、cassandra这样的Key-Value存储系统,又或是mongoDB、MySQL这样的数据库？这就涉及upstream机制的范围了.基于事件驱动
+既然upstream是用于访问"上游"服务器的,那么,Nginx需要访问什么类型的"上游"服务器呢?是Apache、Tomcat这样的Web服务器,还
+是memcached、cassandra这样的Key-Value存储系统,又或是mongoDB、MySQL这样的数据库?这就涉及upstream机制的范围了.基于事件驱动
 架构的upstream机制所要访问的就是所有支持TCP的上游服务器.因此,既有ngx_http_proxy_module模块基于upstream机制实现了HTTP的反向
 代理功能,也有类似ngx_http_memcached_module的模块基于upstream机制使得请求可以访问memcached服务器.
 当nginx接收到一个连接后,读取完客户端发送出来的Header,然后就会进行各个处理过程的调用.之后就是upstream发挥作用的时候了,
@@ -746,7 +746,7 @@ ngx_http_upstream_init(ngx_http_request_t *r) { //在读取完浏览器发送来
 #endif
     /*
         首先检查请求对应于客户端的连接,这个连接上的读事件如果在定时器中,也就是说,读事件的timer_ set标志位为1,那么调用ngx_del_timer
-    方法把这个读事件从定时器中移除.为什么要做这件事呢？因为一旦启动upstream机制,就不应该对客户端的读操作带有超时时间的处理(超时会关闭客户端连接),
+    方法把这个读事件从定时器中移除.为什么要做这件事呢?因为一旦启动upstream机制,就不应该对客户端的读操作带有超时时间的处理(超时会关闭客户端连接),
     请求的主要触发事件将以与上游服务器的连接为主.
      */
     if (c->read->timer_set) {

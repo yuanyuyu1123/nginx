@@ -59,7 +59,7 @@ ngx_tcp_nopush(ngx_socket_t s)
 }
 
 /*
-Nagle算法的基本定义是任意时刻,最多只能有一个未被确认的小段. 所谓“小段”,指的是小于MSS尺寸的数据块,所谓“未被确认”,是指一
+Nagle算法的基本定义是任意时刻,最多只能有一个未被确认的小段. 所谓"小段",指的是小于MSS尺寸的数据块,所谓"未被确认",是指一
 个数据块发送出去后,没有收到对方发送的ACK确认该数据已收到.
     Nagle算法的规则(可参考tcp_output.c文件里tcp_nagle_check函数注释):
       (1)如果包长度达到MSS,则允许发送;
@@ -108,7 +108,7 @@ ngx_tcp_push(ngx_socket_t s)
 #elif (NGX_LINUX)  //linux情况nginx使用NGX_CORK  选项仅在使用sendfile的时候才开启  见配置tcp_nopush on | off;
 
 /*
-Nagle算法的基本定义是任意时刻,最多只能有一个未被确认的小段. 所谓“小段”,指的是小于MSS尺寸的数据块,所谓“未被确认”,是指一
+Nagle算法的基本定义是任意时刻,最多只能有一个未被确认的小段. 所谓"小段",指的是小于MSS尺寸的数据块,所谓"未被确认",是指一
 个数据块发送出去后,没有收到对方发送的ACK确认该数据已收到.
     Nagle算法的规则(可参考tcp_output.c文件里tcp_nagle_check函数注释):
       (1)如果包长度达到MSS,则允许发送;

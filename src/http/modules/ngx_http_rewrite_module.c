@@ -121,9 +121,9 @@ break;
 }
 10.文件反盗链并设置过期时间
 这里的return412 为自定义的http状态码,默认为403,方便找出正确的盗链的请求
-“rewrite ^/ http://img.linuxidc.net/leech.gif;”显示一张防盗链图片
-“access_log off;”不记录访问日志,减轻压力
-“expires 3d”所有文件3天的浏览器缓存
+"rewrite ^/ http://img.linuxidc.net/leech.gif;"显示一张防盗链图片
+"access_log off;"不记录访问日志,减轻压力
+"expires 3d"所有文件3天的浏览器缓存
 location ~*^.+\.(jpg|jpeg|gif|png|swf|rar|zip|css|js)$ {
 valid_referers none blocked *.linuxidc.com*.linuxidc.net localhost 208.97.167.194;
 if ($invalid_referer) {
@@ -142,7 +142,7 @@ allow  208.97.167.194;
 allow  222.33.1.2;
 allow  231.152.49.4;
 deny  all;
-auth_basic “C1G_ADMIN”;
+auth_basic "C1G_ADMIN";
 auth_basic_user_file htpasswd;
 12将多级目录下的文件转成一个文件,增强seo效果
 /job-123-456-789.html 指向/job/123/456/789.html
@@ -198,7 +198,7 @@ document_uri      #与uri相同.
 host                #请求主机头字段,否则为服务器名称.
 hostname          #Set to themachine’s hostname as returned by gethostname
 http_HEADER
-is_args              #如果有args参数,这个变量等于”?”,否则等于”",空值.
+is_args              #如果有args参数,这个变量等于"?",否则等于"",空值.
 http_user_agent    #客户端agent信息
 http_cookie          #客户端cookie信息
 limit_rate            #这个变量可以限制连接速率.
@@ -211,7 +211,7 @@ remote_user          #已经经过Auth Basic Module验证的用户名.
 request_completion #如果请求结束,设置为OK. 当请求未结束或如果该请求不是请求链串的最后一个时,为空(Empty).
 request_method    #GET或POST
 request_filename  #当前请求的文件路径,由root或alias指令与URI请求生成.
-request_uri          #包含请求参数的原始URI,不包含主机名,如:”/foo/bar.php?arg=baz”.不能修改.
+request_uri          #包含请求参数的原始URI,不包含主机名,如:"/foo/bar.php?arg=baz".不能修改.
 scheme                #HTTP方法(如http,https).
 server_protocol      #请求使用的协议,通常是HTTP/1.0或HTTP/1.1.
 server_addr          #服务器地址,在完成一次系统调用后可以确定这个值.
@@ -282,19 +282,19 @@ if主要用来判断一些在rewrite语句中无法直接匹配的条件,比如�
 ~* 大小写不敏感匹配  yang add 应该是不区分大小写匹配
 !~ 大小写敏感不匹配   yang add,如果完全匹配,则为假
 !~* 大小写不敏感不匹配 yang add 如果不区分大小写匹配成功,返回假
-这几句话看起来有点绕,总之记住: ~为正则匹配, 后置*为大小写不敏感, 前置!为”非”操作
+这几句话看起来有点绕,总之记住: ~为正则匹配, 后置*为大小写不敏感, 前置!为"非"操作
 随便一提,因为nginx使用花括号{}判断区块,所以当正则中包含花括号时,则必须用双引号将正则包起来.对下面讲到的rewrite语句中的正则亦是如此.
-比如 “\d{4}\d{2}\.+”
+比如 "\d{4}\d{2}\.+"
 - 使用-f,-d,-e,-x检测文件和目录
 -f 检测文件存在
 -d 检测目录存在
 -e 检测文件,目录或者符号链接存在
 -x 检测文件可执行
-跟~类似,前置!则为”非”操作
+跟~类似,前置!则为"非"操作
 举例
 if ($http_user_agent ~ MSIE) {
   rewrite  ^(.*)$  /msie/$1  break;
-}//如果UA包含”MSIE”,rewrite 请求到/msie目录下
+}//如果UA包含"MSIE",rewrite 请求到/msie目录下
 if ($http_cookie ~* "id=([^;] +)(?:;|$)" ) {
   set  $id  $1;
 }//如果cookie匹配正则,设置变量$id等于正则引用部分
@@ -307,7 +307,7 @@ if (!-f $request_filename) {
 }//如果请求文件名不存在,则反向代理localhost
 if ($args ~ post=140){
   rewrite ^ http://example.com/ permanent;
-}//如果query string中包含”post=140″,永久重定向到example.com
+}//如果query string中包含"post=140″,永久重定向到example.com
 3.return
 return可用来直接设置HTTP返回状态,比如403,404等(301,302不可用return返回,这个下面会在rewrite提到)
 4.break
@@ -329,7 +329,7 @@ rewrite  ^(/download/.*)/media/(.*)\..*$  $1/mp3/$2.mp3  last;如果请求为 /d
 rewrite ~* cafeneko\.info http://newdomain.com/ permanent;这句是永远无法执行的,以这个URL为例
 http://blog.cafeneko.info/2010/10/neokoseseiki_in_new_home/?utm_source=rss&utm_medium=rss&utm_campaign=neokoseseiki_in_new_home
 其中cafeneko.info叫做hostname,再往后到?为止叫做相对路径,?后面的一串叫做query string
-对于rewrite来说,其正则表达式仅对”/2010/10/neokoseseiki_in_new_home”这一部分进行匹配,即不包含hostname,也不包含query string .所以除非相对路径中包含跟域名一样的string,否则是不会匹配的. 如果非要做域名匹配的话就要使用if语句了,比如进行去www跳转
+对于rewrite来说,其正则表达式仅对"/2010/10/neokoseseiki_in_new_home"这一部分进行匹配,即不包含hostname,也不包含query string .所以除非相对路径中包含跟域名一样的string,否则是不会匹配的. 如果非要做域名匹配的话就要使用if语句了,比如进行去www跳转
 if ($host ~* ^www\.(cafeneko\.info)) {
   set $host_without_www $1;
   rewrite ^(.*)$ http://$host_without_www$1 permanent;
@@ -372,7 +372,7 @@ location /download/ {
 说到这里我就要抱怨下了,网上能找到关于nginx rewrite的文章中80%对last标志的解释都是
 last – 基本上都用这个Flag
 ……这他妈坑爹呢!!! 什么叫基本上都用? 什么是不基本的情况?  =皿=
-有兴趣的可以放狗”基本上都用这个Flag”…
+有兴趣的可以放狗"基本上都用这个Flag"…
 我最终还是在stack overflow找到了答案:
 last和break最大的不同在于
 - break是终止当前location的rewrite检测,而且不再进行location匹配
@@ -498,7 +498,7 @@ if (!-e $request_filename) {
 后来看了一些文章才明白了rewrite的本质,其实是在保持请求地址不变的情况下,在服务器端将请求转到特定的页面.
 乍一看supercache的性质有点像302到静态文件,所以可以用redirect调试.
 但是permalink却是性质完全不同的rewrite,这跟wordpress的处理方式有关. 我研究不深就不多说了,简单说就是保持URL不变将请求rewrite到index.php,WP将分析其URL结构再对其并进行匹配(文章,页面,tag等),然后再构建页面. 所以其实这条rewrite
-rewrite . /index.php last;说的是,任何请求都会被rewrite到index.php.因为”.”匹配任意字符,所以这条rewrite其实可以写成任何形式的能任意命中的正则.比如说
+rewrite . /index.php last;说的是,任何请求都会被rewrite到index.php.因为"."匹配任意字符,所以这条rewrite其实可以写成任何形式的能任意命中的正则.比如说
 rewrite . /index.php last;
 rewrite ^ /index.php last;
 rewrite .* /index.php last;效果都是一样的,都能做到permalink rewrite.
@@ -637,7 +637,7 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
    ·break - 完成重写指令.
    ·redirect - 返回302临时重定向,如果替换字段用http://开头则被使用.
    ·permanent - 返回301永久重定向.
-   注意如果一个重定向是相对的(没有主机名部分),nginx将在重定向的过程中使用匹配server_name指令的“Host”头或者server_name指令指定的第一个名称,如果头不匹配或不存在,如果没有设置server_name,将使用本地主机名,如果你总是想让nginx使用“Host”头,可以在server_name使用“*”通配符(查看http核心模块中的server_name).例如:
+   注意如果一个重定向是相对的(没有主机名部分),nginx将在重定向的过程中使用匹配server_name指令的"Host"头或者server_name指令指定的第一个名称,如果头不匹配或不存在,如果没有设置server_name,将使用本地主机名,如果你总是想让nginx使用"Host"头,可以在server_name使用"*"通配符(查看http核心模块中的server_name).例如:
    rewrite  ^(/download/.*)/media/(.*)\..*$  $1/mp3/$2.mp3  last;
    rewrite  ^(/download/.*)/audio/(.*)\..*$  $1/mp3/$2.ra   last;
    return   403;但是如果我们将其放入一个名为/download/的location中,则需要将last标记改为break,否则nginx将执行10次循环并返回500错误.
@@ -707,12 +707,12 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
     判断一个条件,如果条件成立,则后面的大括号内的语句将执行,相关配置从上级继承.
     可以在判断语句中指定下列值:
 
-    ·一个变量的名称;不成立的值为:空字符传""或者一些用“0”开始的字符串.
+    ·一个变量的名称;不成立的值为:空字符传""或者一些用"0"开始的字符串.
     ·一个使用=或者!=运算符的比较语句.
     ·使用符号~*和~模式匹配的正则表达式:
     ·~为区分大小写的匹配.
     ·~*不区分大小写的匹配(firefox匹配FireFox).
-    ·!~和!~*意为“不匹配的”.
+    ·!~和!~*意为"不匹配的".
     ·使用-f和!-f检查一个文件是否存在.
     ·使用-d和!-d检查一个目录是否存在.
     ·使用-e和!-e检查一个文件,目录或者软链接是否存在.
@@ -808,7 +808,7 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
        copying "..mpe"
        completion of regular expression
        completion of entire sequence
-     注意并没有关于limit_rate的代码,因为它没有提及ngx_http_rewrite_module模块,“if”块可以类似"location"指令在配置文件的相同部分同时存在.
+     注意并没有关于limit_rate的代码,因为它没有提及ngx_http_rewrite_module模块,"if"块可以类似"location"指令在配置文件的相同部分同时存在.
      如果$slow为真,对应的if块将生效,在这个配置中limit_rate的值为10k.
      指令:
      rewrite  ^/(download/.*)/media/(.*)\..*$  /$1/mp3/$2.mp3  break;如果我们将第一个斜杠括入圆括号,则可以减少执行顺序:
@@ -1349,7 +1349,7 @@ ngx_http_rewrite_if(ngx_conf_t *cf, ngx_command_t *cmd, void *conf){ //下面代
 
         if (module->create_loc_conf) {
             /*
-              在解析if时, nginx会把它当做一个location来对待的,并且它的location type为noname.通过ngx_http_add_location将该“location”添
+              在解析if时, nginx会把它当做一个location来对待的,并且它的location type为noname.通过ngx_http_add_location将该"location"添
               加到上层的locations中.这里将if看做location自然有它的合理性,因为if的配置也是需要进行url匹配的.
               */
             mconf = module->create_loc_conf(cf);
@@ -1723,7 +1723,7 @@ ngx_http_rewrite_set(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     /*
     脚本引擎是一系列的凹调函数以及相关数据(它们被组织成ngx_httpscript_ xxx_codet这样的结构体,代表各种不同功能的操
 作步骤),被保存在变量lcf->codes数组内,而ngx_httprewrite_loc_conf_t类型变量Icf是与当前location相关联的,所以这个脚本引擎只有
-当客户端请求访问当前这个location时才会被启动执行.如下配置中,“set $file t_a;”构建的脚本引擎只有当客户端请求访问/t日录时才会
+当客户端请求访问当前这个location时才会被启动执行.如下配置中,"set $file t_a;"构建的脚本引擎只有当客户端请求访问/t日录时才会
 被触发,如果当客户端请求访问根目录时则与它毫无关系.
        location / {
 			root web;

@@ -34,13 +34,13 @@ include conf/mime.types;
 default_type application/octet-stream;
 #设定日志格式
 log_format main ‘$remote_addr – $remote_user [$time_local] ‘
-‘”$request” $status $bytes_sent ‘
-‘”$http_referer” “$http_user_agent” ‘
-‘”$gzip_ratio”‘;
+‘"$request" $status $bytes_sent ‘
+‘"$http_referer" "$http_user_agent" ‘
+‘"$gzip_ratio"‘;
 log_format download ‘$remote_addr – $remote_user [$time_local] ‘
-‘”$request” $status $bytes_sent ‘
-‘”$http_referer” “$http_user_agent” ‘
-‘”$http_range” “$sent_http_content_range”‘;
+‘"$request" $status $bytes_sent ‘
+‘"$http_referer" "$http_user_agent" ‘
+‘"$http_range" "$sent_http_content_range"‘;
 #设定请求缓冲
 client_header_buffer_size 1k;
 large_client_header_buffers 4 4k;
@@ -81,7 +81,7 @@ location ~ ^/(img|js|css)/ {
 root /data3/Html;
 expires 24h;
 }
-#对 “/” 启用负载均衡
+#对 "/" 启用负载均衡
 location / {
 proxy_pass http://mysvr;
 proxy_redirect off;
@@ -102,7 +102,7 @@ proxy_temp_file_write_size 64k;
 location /NginxStatus {
 stub_status on;
 access_log on;
-auth_basic “NginxStatus”;
+auth_basic "NginxStatus";
 auth_basic_user_file conf/htpasswd;
 }
 }
@@ -251,7 +251,7 @@ location / { //设置虚拟主机的基本信息
 root sites/www; //设置虚拟主机的网站根目录
 index index.html index.htm; //设置虚拟主机默认访问的网页
 }
-location /status { // 查看nginx当前的状态情况,需要模块 “--with-http_stub_status_module”支持
+location /status { // 查看nginx当前的状态情况,需要模块 "--with-http_stub_status_module"支持
 stub_status on;
 access_log /usr/local/nginx/logs/status.log;
 auth_basic "NginxStatus"; }
@@ -399,7 +399,7 @@ typedef struct { //注意和ngx_http_conf_ctx_t结构配合        初始化赋�
           char*(*merge_loc_conf) (ngx_conf_t *cf, void *prev,
     }ngx_http_module_t
         上面这段代码定义了create loc_conf方法,意味着HTTP框架会建立loc级别的配置.
-    什么意思呢？就是说,如果没有实现merge_loc_conf方法,也就是在构造ngx_http_module_t
+    什么意思呢?就是说,如果没有实现merge_loc_conf方法,也就是在构造ngx_http_module_t
     时将merge_loc_conf设为NULL了,那么在4.1节的例子中server块或者http块内出现的
     配置项都不会生效.如果我们希望在server块或者http块内的配置项也生效,那么可以通过
     merge_loc_conf方法来实现.merge_loc_conf会把所属父配置块的配置项与子配置块的同名

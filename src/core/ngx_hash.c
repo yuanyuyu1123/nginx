@@ -49,8 +49,8 @@ ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len) {
 
 /*
 nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
-例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
-尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+例如:"*.abc.com",也可以省略掉星号,直接写成".abc.com".这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:"mail.xxx.*",请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
 mail.xxx.net之类的域名.
 有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
 的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
@@ -151,17 +151,17 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
 
 /*
 nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
-例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
-尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+例如:"*.abc.com",也可以省略掉星号,直接写成".abc.com".这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:"mail.xxx.*",请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
 mail.xxx.net之类的域名.
 有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
 的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
 ngx_hash_find_wc_tail来做的.ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的,而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的.
 hinit: 构造一个通配符hash表的一些参数的一个集合.关于该参数对应的类型的说明,请参见ngx_hash_t类型中ngx_hash_init函数的说明.
-names: 构造此hash表的所有的通配符key的数组.特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com”或者“.abc.com”
-被预处理完成以后,变成了“com.abc.”.而“mail.xxx.*”则被预处理为“mail.xxx.”.为什么会被处理这样？这里不得不简单地描述一下
-通配符hash表的实现原理.当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”起来的.
-比如:对于“*.abc.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+names: 构造此hash表的所有的通配符key的数组.特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com"或者“.abc.com"
+被预处理完成以后,变成了“com.abc.".而“mail.xxx.*"则被预处理为“mail.xxx.".为什么会被处理这样?这里不得不简单地描述一下
+通配符hash表的实现原理.当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表",是通过hash表中的key“链接"起来的.
+比如:对于“*.abc.com"将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
 而第二个hash表中有一个表项abc,该表项的value包含有指向*.abc.com对应的value的指针.那么查询的时候,比如查询www.abc.com的时候,
 先查com,通过查com可以找到第二级的hash表,在第二级hash表中,再查找abc,依次类推,直到在某一级的hash表中查到的表项对应的value对
 应一个真正的值而非一个指向下一级hash表的指针的时候,查询过程结束.这里有一点需要特别注意的,就是names数组中元素的value所对应的
@@ -210,7 +210,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "value:\"%p\"", value);
 #endif
     /*
-    还记得上节在ngx_hash_wildcard_init中,用value指针低2位来携带信息吗？其是有特殊意义的,如下:
+    还记得上节在ngx_hash_wildcard_init中,用value指针低2位来携带信息吗?其是有特殊意义的,如下:
     * 00 - value 是数据指针
     * 11 - value的指向下一个哈希表
     */
@@ -493,7 +493,7 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
             return NGX_ERROR;
         }
     }
-    //接着分配elts,大小为len+ngx_cacheline_size,此处为什么+32？——下面要按32字节对齐
+    //接着分配elts,大小为len+ngx_cacheline_size,此处为什么+32?——下面要按32字节对齐
     elts = ngx_palloc(hinit->pool, len + ngx_cacheline_size);
     //len表示所有names[](假设数组有x个成员)数组数据一共需要x个ngx_hash_elt_t结构存储,这x个ngx_hash_elt_t暂用的空间总和
     if (elts == NULL) {
@@ -583,15 +583,15 @@ ngx_hash_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, ngx_uint_t nelts) {
 
 /*
 nginx为了处理带有通配符的域名的匹配问题,实现了ngx_hash_wildcard_t这样的hash表.他可以支持两种类型的带有通配符的域名.一种是通配符在前的,
-例如:“*.abc.com”,也可以省略掉星号,直接写成”.abc.com”.这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
-尾的,例如:“mail.xxx.*”,请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
+例如:“*.abc.com",也可以省略掉星号,直接写成".abc.com".这样的key,可以匹配www.abc.com,qqq.www.abc.com之类的.另外一种是通配符在末
+尾的,例如:“mail.xxx.*",请特别注意通配符在末尾的不像位于开始的通配符可以被省略掉.这样的通配符,可以匹配mail.xxx.com、mail.xxx.com.cn、
 mail.xxx.net之类的域名.
 有一点必须说明,就是一个ngx_hash_wildcard_t类型的hash表只能包含通配符在前的key或者是通配符在后的key.不能同时包含两种类型的通配符
 的key.ngx_hash_wildcard_t类型变量的构建是通过函数ngx_hash_wildcard_init完成的,而查询是通过函数ngx_hash_find_wc_head或者
 ngx_hash_find_wc_tail来做的.ngx_hash_find_wc_head是查询包含通配符在前的key的hash表的,而ngx_hash_find_wc_tail是查询包含通配符在后的key的hash表的.
-特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com”或者“.abc.com”被预处理完成以后,变成了“com.abc.”.而“mail.xxx.*”则被预处理为“mail.xxx.”
-首先看一下ngx_hash_wildcard_init 的内存结构,当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”
-起来的.比如:对于“*.abc.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+特别要注意的是这里的key已经都是被预处理过的.例如:“*.abc.com"或者“.abc.com"被预处理完成以后,变成了“com.abc.".而“mail.xxx.*"则被预处理为“mail.xxx."
+首先看一下ngx_hash_wildcard_init 的内存结构,当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表",是通过hash表中的key“链接"
+起来的.比如:对于“*.abc.com"将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
 而第二个hash表中有一个表项abc,该表项的value包含有指向*.abc.com对应的value的指针.那么查询的时候,比如查询www.abc.com的时候,先查com,
 通过查com可以找到第二级的hash表,在第二级hash表中,再查找abc,依次类推,直到在某一级的hash表中查到的表项对应的value对应一个真正的值而非
 一个指向下一级hash表的指针的时候,查询过程结束.
@@ -881,8 +881,8 @@ Nginx哈希支持三种类型的通配:
 "*.example.com", 经过预处理后变成了: "com.example.\0"
 ".example.com"  经过预处理后变成了: "com.example\0"
 "www.example.*" 经过预处理后变成了:  "www.example\0"
-通配符hash表的实现原理 : 当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表”,是通过hash表中的key“链接”起来的.
-比如:对于“*.example.com”将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
+通配符hash表的实现原理 : 当构造此类型的hash表的时候,实际上是构造了一个hash表的一个“链表",是通过hash表中的key“链接"起来的.
+比如:对于“*.example.com"将会构造出2个hash表,第一个hash表中有一个key为com的表项,该表项的value包含有指向第二个hash表的指针,
 而第二个hash表中有一个表项abc,该表项的value包含有指*.example.com对应的value的指针.那么查询的时候,比如查询www.example.com的时候,
 先查com,通过查com可以找到第二级的hash表,在第二级hash表中,再查找example,依次类推,直到在某一级的hash表中查到的表项对应的value对
 应一个真正的值而非一个指向下一级hash表的指针的时候,查询过程结束.而查找到哪里是由value地址的最低两bit表示: (这也是在申请内存时要
@@ -909,9 +909,9 @@ Nginx哈希支持三种类型的通配:
 ngx_hash_add_key是将带或不带通配符的key转换后存放在上述结构中的,其过程是:
     先看传入的第三个参数标志标明的key是不是NGX_HASH_WILDCARD_KEY,
     如果不是,则在ha->keys_hash中检查是否冲突,冲突就返回NGX_BUSY,否则,就将这一项插入到ha->keys中.
-    如果是,就判断通配符类型,支持的统配符有三种”*.example.com”, “.example.com”, and “www.example.*“,
+    如果是,就判断通配符类型,支持的统配符有三种"*.example.com", “.example.com", and “www.example.*“,
     然后将第一种转换为"com.example.“并插入到ha->dns_wc_head中,将第三种转换为"www.example"并插入到ha->dns_wc_tail中,
-    对第二种比较特殊,因为它等价于”*.example.com”+“example.com”,所以会一份转换为"com.example.“插入到ha->dns_wc_head,
+    对第二种比较特殊,因为它等价于"*.example.com"+“example.com",所以会一份转换为"com.example.“插入到ha->dns_wc_head,
     一份为"example.com"插入到ha->keys中.当然插入前都会检查是否冲突.
 */ //ngx_hash_keys_array_init一般和ngx_hash_add_key配合使用,前者表示初始化ngx_hash_keys_arrays_t数组空间,后者用来存储对应的key到数组中的对应hash和数组中
 

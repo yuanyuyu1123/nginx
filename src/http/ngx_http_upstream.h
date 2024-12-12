@@ -298,7 +298,7 @@ ngx_http_upstream_hide_headers hash方法来初始化hide_headers,但仅可用�
 //当转发上游响应头部(ngx_http_upstream_t中headers_in结构体中的头部)给下游客户端时如果不希望某些头部转发给下游,就设置到hide_headers动态数组中
     ngx_array_t                     *hide_headers; //proxy_hide_header fastcgi_hide_header
 /*
-当转发上游响应头部(ngx_http_upstream_t中headers_in结构体中的头部)给下游客户端时,upstream机制默认不会转发如“Date”、“Server”之
+当转发上游响应头部(ngx_http_upstream_t中headers_in结构体中的头部)给下游客户端时,upstream机制默认不会转发如"Date"、"Server"之
 类的头部,如果确实希望直接转发它们到下游,就设置到pass_headers动态数组中
 */ //XXX_pass_headers   XXX_hide_headers出现重叠冲突,则以hide_header为准,见ngx_http_upstream_hide_headers_hash
     ngx_array_t                     *pass_headers; // proxy_hide_header  fastcgi_hide_header
@@ -504,7 +504,7 @@ typedef void (*ngx_http_upstream_handler_pt)(ngx_http_request_t *r,
 
 /*
 upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉
-upstream使用哪一种方式处理上游的响应包体呢？当请求的ngx_http_request_t结构体中
+upstream使用哪一种方式处理上游的响应包体呢?当请求的ngx_http_request_t结构体中
 subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体
 到下游,由HTTP模块实现的input_filter方法处理包体;当subrequest_in_memory为0时,
 upstream会转发响应包体.当ngx_http_upstream_conf t配置结构体中的buffering标志位为1
@@ -802,7 +802,7 @@ ngx_http_upstream_process_headers方法将会最终调用rewrite_redirect方法
 #endif
 
     /*
-  upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
+  upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢?
   当请求的ngx_http_request_t结构体中subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体到下游,由HTTP模
       块实现的input_filter方法处理包体;
   当subrequest_in_memory为0时,upstream会转发响应包体.

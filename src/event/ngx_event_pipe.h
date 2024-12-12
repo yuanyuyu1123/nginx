@@ -155,7 +155,7 @@ bufferin方式如果配置xxx_buffers  XXX_buffer_size指定的空间都用完�
     ngx_msec_t         read_timeout;
     // 向下游发送响应的超时时间
     ngx_msec_t         send_timeout;
-    // 向下游发送响应时,TCP连接中设置的send_lowat“水位” 内核缓冲区数据只有达到该值才能从缓冲区发送出去
+    // 向下游发送响应时,TCP连接中设置的send_lowat"水位" 内核缓冲区数据只有达到该值才能从缓冲区发送出去
     ssize_t            send_lowat;
 
     ngx_pool_t *pool;

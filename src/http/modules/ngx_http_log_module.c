@@ -225,19 +225,19 @@ static ngx_command_t ngx_http_log_commands[] = {
 
 指定日志的格式.
 日志格式允许包含普通变量和只在日志写入时存在的变量:  一下变量参考ngx_http_core_variables
-$body_bytes_sent发送给客户端的字节数,不包括响应头的大小; 该变量与Apache模块mod_log_config里的“%B”参数兼容.
+$body_bytes_sent发送给客户端的字节数,不包括响应头的大小; 该变量与Apache模块mod_log_config里的“%B"参数兼容.
 $bytes_sent发送给客户端的总字节数.
 $connection连接的序列号.
 $connection_requests当前通过一个连接获得的请求数量.
 $msec日志写入时间.单位为秒,精度是毫秒.
-$pipe如果请求是通过HTTP流水线(pipelined)发送,pipe值为“p”,否则为“.”.
+$pipe如果请求是通过HTTP流水线(pipelined)发送,pipe值为“p",否则为“.".
 $request_length请求的长度(包括请求行,请求头和请求正文）.
 $request_time请求处理时间,单位为秒,精度毫秒; 从读入客户端的第一个字节开始,直到把最后一个字符发送给客户端后进行日志写入为止.
 $status响应状态.
 $time_iso8601ISO8601标准格式下的本地时间.
 $time_local通用日志格式下的本地时间.
-发送给客户端的响应头拥有“sent_http_”前缀. 比如$sent_http_content_range.
-配置始终包含预先定义的“combined”日志格式:
+发送给客户端的响应头拥有“sent_http_"前缀. 比如$sent_http_content_range.
+配置始终包含预先定义的“combined"日志格式:
 log_format combined '$remote_addr - $remote_user [$time_local] '
                     '"$request" $status $body_bytes_sent '
                     '"$http_referer" "$http_user_agent"';
@@ -266,7 +266,7 @@ access_log off;
 默认值:  access_log logs/access.log combined;
 上下文:  http, server, location, if in location, limit_except
 为访问日志设置路径,格式和缓冲区大小(nginx访问日志支持缓存）. 在同一个配置层级里可以指定多个日志. 特定值off会取消当前配置层
-级里的所有access_log指令. 如果没有指定日志格式则会使用预定义的“combined”格式.
+级里的所有access_log指令. 如果没有指定日志格式则会使用预定义的“combined"格式.
 缓冲区的大小不能超过磁盘文件原子性写入的大小. 对于FreeBSD来说缓冲区大小是无限制的.
 日志文件的路径可以包含变量(0.7.6+）, 但此类日志存在一些限制:
 ? 工作进程使用的user 应拥有在目录里创建文件的权限;

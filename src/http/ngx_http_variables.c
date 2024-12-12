@@ -231,7 +231,7 @@ static ngx_int_t ngx_http_variable_time_local(ngx_http_request_t *r,
        上面红色部分为Nginx默认指定的格式样式,每个样式的含义如下:
        $server_name:虚拟主机名称.
        $remote_addr:远程客户端的IP地址.
-       -:空白,用一个“-”占位符替代,历史原因导致还存在.
+       -:空白,用一个"-"占位符替代,历史原因导致还存在.
        $remote_user:远程客户端用户名称,用于记录浏览者进行身份验证时提供的名字,如登录百度的用户名scq2099yt,如果没有登录就是空白.
        [$time_local]:访问的时间与时区,比如18/Jul/2012:17:00:01 +0800,时间信息最后的"+0800"表示服务器所处时区位于UTC之后的8小时.
        $request:请求的URI和HTTP协议,这是整个PV日志记录中最有用的信息,记录服务器收到一个什么样的请求
@@ -272,7 +272,7 @@ static ngx_int_t ngx_http_variable_time_local(ngx_http_request_t *r,
        需要注意的是:error_log off并不能关闭错误日志,而是会将错误日志记录到一个文件名为off的文件中.
        正确的关闭错误日志记录功能的方法如下:
        error_log /dev/null;
-       上面表示将存储日志的路径设置为“垃圾桶”.
+       上面表示将存储日志的路径设置为"垃圾桶".
 */ //日志可以按天进行分割,可以参考nginx日志分析解决方案- Awstats
 /*
 那么首先需要了解一下nginx中变量的组织结构,nginx变量可以归为两类:
@@ -301,7 +301,7 @@ $document_root 表示当前请求所使用的root配置项的值
 $uri 表示当前请求的URI,不带任何参数
 $document_uri 与$uri含义相同
 $request_uri 表示客户端发来的原始请求URI,带完整的参数.$uri和$document_uri未必是用户的原始请求,在内部重定向后可能是重定向后的URI,而$request_uri永远不会改变,始终是客户端的原始URI
-$host 表示客户端请求头部中的Host字段.如果Host字段不存在,则以实际处理的server(虚拟主机)名称代替.如果Host字段中带有端口,如IP:PORT,那么$host是去掉端口的,它的值为IP.$host是全小写的.这些特性与http_HEADER中的http_host不同,http_host只是“忠实”地取出Host头部对应的值
+$host 表示客户端请求头部中的Host字段.如果Host字段不存在,则以实际处理的server(虚拟主机)名称代替.如果Host字段中带有端口,如IP:PORT,那么$host是去掉端口的,它的值为IP.$host是全小写的.这些特性与http_HEADER中的http_host不同,http_host只是"忠实"地取出Host头部对应的值
 $hostname 表示Nginx所在机器的名称,与gethostbyname调用返回的值相同
 $http_HEADER 表示当前HTTP请求中相应头部的值.HEADER名称全小写.例如,用$http_host表示请求中Host头部对应的值
 $sent_http_HEADER 表示返回客户端的HTTP响应中相应头部的值.HEADER名称全小写.例如,用$sent_http_content_type表示响应中Content-Type头部对应的值
@@ -315,7 +315,7 @@ $remote_user 表示使用Auth Basic Module时定义的用户名
 $request_filename 表示用户请求中的URI经过root或alias转换后的文件路径
 $request_body 表示HTTP请求中的包体,该参数只在proxy_pass或fastcgi_pass中有意义
 $request_body_file 表示HTTP请求中的包体存储的临时文件名
-$request_completion 当请求已经全部完成时,其值为“ok”.若没有完成,就要返回客户端,则其值为空字符串;或者在断点续传等情况下使用HTTP range访问的并不是文件的最后一块,那么其值也是空字符串
+$request_completion 当请求已经全部完成时,其值为"ok".若没有完成,就要返回客户端,则其值为空字符串;或者在断点续传等情况下使用HTTP range访问的并不是文件的最后一块,那么其值也是空字符串
 $request_method 表示HTTP请求的方法名,如GET、PUT、POST等
 $scheme 表示HTTP scheme,如在请求https://nginx.com/中表示https
 $server_addr 表示服务器地址
@@ -731,7 +731,7 @@ ngx_http_add_prefix_variable(ngx_conf_t *cf, ngx_str_t *name, ngx_uint_t flags) 
 
 
 /*
-那可能有读者可能会有疑问了.如果某个变量设置了NGX_HTTP_VAR_NOHASH的标志,不能使用变量名访问,那应该怎么访问呢？
+那可能有读者可能会有疑问了.如果某个变量设置了NGX_HTTP_VAR_NOHASH的标志,不能使用变量名访问,那应该怎么访问呢?
 ngx_http_get_variable_index会把变量加入一个array并返回变量在array中的下标,这样模块保存变量的下标,并通过
 ngx_http_get_indexed_variable直接得到变量值
 */
@@ -2806,9 +2806,9 @@ ngx_http_variables_add_core_vars(ngx_conf_t *cf) {
 /*
 这个合法性检测逻辑很简单,实现在函数ngx_http_variables_init_vars内,其遍历cmcf->variables内收集的所有已使用变量,逐个去已定义变量
 cmcf->variableskeys集合罩查找.如果找到则表示用户使用无误,如果没找到,则需要注意,这还只能说明它可能是一个非法变量.
-    有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以”http_”、”sent_http_”、”upstream http”、”cookie_”、
-”arg”开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以”arg”开头代表的参数类变量会根
-据客户端请求URI时附带的参数不I司而不同,一个类似于“http:// 192.168. 164.2/?pageid=2”这样的请求会自动生成变量$argpageid.因此还需判断
+    有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以"http_"、"sent_http_"、"upstream http"、"cookie_"、
+"arg"开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以"arg"开头代表的参数类变量会根
+据客户端请求URI时附带的参数不I司而不同,一个类似于"http:// 192.168. 164.2/?pageid=2"这样的请求会自动生成变量$argpageid.因此还需判断
 用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致(这也间接说明,用户自定义变量时
 最好不要以这些字符开头).当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
 但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)
@@ -2866,11 +2866,11 @@ ngx_http_variables_init_vars(ngx_conf_t *cf) {
         av = NULL;
         /*
          ngx_http_variables_init_vars会检测variables中的变量是否在variables_keys中,如果不在,说明这个使用到的变量有可能是没有定义过的,
-         这样是不能使用的.为什么是有可能？看for循环下面的那几个if条件判断,如果不在variables_keys中的变量在下面的if判断中就说明这个
+         这样是不能使用的.为什么是有可能?看for循环下面的那几个if条件判断,如果不在variables_keys中的变量在下面的if判断中就说明这个
          变量是合法的,否则不合法
-           有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以”http_”、”sent_http_”、”upstream http”、”cookie_”、
-       ”arg”开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以”arg”开头代表的参数类变量会根
-       据客户端请求URI时附带的参数不同而不同,一个类似于“http:// 192.168. 164.2/?pageid=2”这样的请求会自动生成变量$argpageid.因此还需判断
+           有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以"http_"、"sent_http_"、"upstream http"、"cookie_"、
+       "arg"开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以"arg"开头代表的参数类变量会根
+       据客户端请求URI时附带的参数不同而不同,一个类似于"http:// 192.168. 164.2/?pageid=2"这样的请求会自动生成变量$argpageid.因此还需判断
        用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致(这也间接说明,用户自定义变量时
        最好不要以这些字符开头).当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
        但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)

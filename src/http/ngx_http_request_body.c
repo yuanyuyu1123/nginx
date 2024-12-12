@@ -54,7 +54,7 @@ post_handler指向的回调方法会被调用.因此,即使在调用了ngx_http_
 /* HTTP框架提供了两种方式处理HTTP包体,当然,这两种方式保持了完全无阻塞的事件驱动机制,非常高效.第一种方式就是把请求中的包体
 接收到内存或者文件中,当然,由于包体的长度是可变的,同时内存又是有限的,因此,一般都是将包体存放到文件中.第二种方式是选择丢弃包体,
 注意,丢弃不等于可以不接收包体,这样做可能会导致客户端出现发送请求超时的错误,所以,这个丢弃只是对于HTTP模块而言的,HTTP框架还是需
-要“尽职尽责”地接收包体,在接收后直接丢弃. */
+要"尽职尽责"地接收包体,在接收后直接丢弃. */
 //一般都是需要访问上游服务器的时候才会读取包体,例如ngx_http_proxy_handler ,
 /*
 一般都是如果解析头部行后,后面有携带包体,则会走到这里,如果包体还没读完,下次也不会走到该函数,而是走ngx_http_do_read_client_request_body
@@ -775,7 +775,7 @@ ngx_http_write_request_body(ngx_http_request_t *r) { //ngx_http_write_request_bo
 
 //如果不想处理请求中的包体,那么可以调用ngx_http_discard_request_body方法将接收自客户端的HTTP包体丢弃掉.
 /* //丢弃请求中的包体
-ngx_http_discard_request_body只是丢弃包体,不处理包体不就行了吗？何必还要调用ngx_http_discard_request_body方法呢？其实这一步非常有意义,
+ngx_http_discard_request_body只是丢弃包体,不处理包体不就行了吗?何必还要调用ngx_http_discard_request_body方法呢?其实这一步非常有意义,
 因为有些客户端可能会一直试图发送包体,而如果HTTP模块不接收发来的TCP流,有可能造成客户端发送超时.
 */ //获取接收请求包体的函数为ngx_http_read_client_request_body
 
@@ -793,7 +793,7 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
     ngx_int_t rc;
     ngx_event_t *rev;
     /*
-     首先检查当前请求是一个子请求还是原始请求.为什么要检查这个呢？因为对于子请求而言,它不是来自客户端的请求,所以不存在处理HTTP
+     首先检查当前请求是一个子请求还是原始请求.为什么要检查这个呢?因为对于子请求而言,它不是来自客户端的请求,所以不存在处理HTTP
      请求包体的概念.如果当前请求是原始请求,则继续执行;如果它是子请求,则直接返回NGX_OK表示丢弃包体成功.检查ngx_http_request_t结构
      体的request_body成员,如果它已经被赋值过且不再为NULL空指针,则说明已经接收过包体了,这时也需要返回NGX_OK表示成功.
      */

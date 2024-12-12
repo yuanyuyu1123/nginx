@@ -122,7 +122,7 @@ typedef struct {
     size_t len; //levels=x:y最终的结果是path->len = (x+1) + (y+1)  参考ngx_http_file_cache_set_slot
     /*
  levels=1:2,意思是说使用两级目录,第一级目录名是一个字符,第二级用两个字符.但是nginx最大支持3级目录,即levels=xxx:xxx:xxx.
- 那么构成目录名字的字符哪来的呢？假设我们的存储目录为/cache,levels=1:2,那么对于上面的文件 就是这样存储的:
+ 那么构成目录名字的字符哪来的呢?假设我们的存储目录为/cache,levels=1:2,那么对于上面的文件 就是这样存储的:
  /cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致  参考ngx_create_hashed_filename
 */ //fastcgi_cache_path /tmp/nginx/fcgi/cache levels=1:2 keys_zone=fcgi:10m inactive=30m max_size=128m;中的levels=1:2中的1:2
 //目录创建见ngx_create_path

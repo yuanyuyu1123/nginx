@@ -521,7 +521,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc) { //ngx_http_script_compi
                     sc->dup_capture = 1;
                 }
                 /*
-                        在sc->captures_mask中将数字对应的位置1,那么captures_mask的作用是什么？ 在后面对sc结构体分析时会提到.
+                        在sc->captures_mask中将数字对应的位置1,那么captures_mask的作用是什么? 在后面对sc结构体分析时会提到.
                         */
                 sc->captures_mask |= (ngx_uint_t) 1 << n;
 
@@ -543,7 +543,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc) { //ngx_http_script_compi
             * 这里是个有意思的地方,举个例子,假设有个这样一个配置proxy_pass $host$uritest,
             * 我们这里其实是想用nginx的两个内置变量,host和uri,但是对于$uritest来说,如果我们
             * 不加处理,那么在函数里很明显会将uritest这个整体作为一个变量,这显然不是我们想要的.
-            * 那怎么办呢？nginx里面使用"{}"来把一些变量包裹起来,避免跟其他的字符串混在一起,在此处
+            * 那怎么办呢?nginx里面使用"{}"来把一些变量包裹起来,避免跟其他的字符串混在一起,在此处
             * 我们可以这样用${uri}test,当然变量之后是数字,字母或者下划线之类的字符才有必要这样处理
             * 代码中体现的很明显.
             */
@@ -603,7 +603,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc) { //ngx_http_script_compi
             continue;
         }
         /*
-          程序到这里意味着一个变量分离出来(是普通字符串),或者还没有碰到变量,一些非变量的字符串,这里不妨称为”常量字符串“
+          程序到这里意味着一个变量分离出来(是普通字符串),或者还没有碰到变量,一些非变量的字符串,这里不妨称为"常量字符串"
           这里涉及到请求参数部分的处理,比较简单.这个地方一般是在一次分离变量或者常量结束后,后面紧跟'?'的情况
           相关的处理子在ngx_http_script_add_args_code会设置.
          */
@@ -619,7 +619,7 @@ ngx_http_script_compile(ngx_http_script_compile_t *sc) { //ngx_http_script_compi
 
             continue;
         }
-        // 这里name保存一段所谓的”常量字符串“
+        // 这里name保存一段所谓的"常量字符串"
         name.data = &sc->source->data[i];
         // 分离该常量字符串
         while (i < sc->source->len) {

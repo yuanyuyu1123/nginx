@@ -33,10 +33,10 @@ static ngx_atomic_t ngx_time_lock;
 
 volatile ngx_msec_t ngx_current_msec; //格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的毫秒数
 volatile ngx_time_t *ngx_cached_time; //ngx_time_t结构体形式的当前时间
-volatile ngx_str_t ngx_cached_err_log_time; //用于记录error_log的当前时间字符串,它的格式类似于:”1970/09/28  12:OO:OO”
-//用于HTTP相关的当前时间字符串,它的格式类似于:”Mon,28  Sep  1970  06:OO:OO  GMT”
+volatile ngx_str_t ngx_cached_err_log_time; //用于记录error_log的当前时间字符串,它的格式类似于:"1970/09/28  12:OO:OO"
+//用于HTTP相关的当前时间字符串,它的格式类似于:"Mon,28  Sep  1970  06:OO:OO  GMT"
 volatile ngx_str_t ngx_cached_http_time;
-//用于记录HTTP曰志的当前时间字符串,它的格式类似于:”28/Sep/1970:12:OO:00  +0600n"
+//用于记录HTTP曰志的当前时间字符串,它的格式类似于:"28/Sep/1970:12:OO:00  +0600n"
 volatile ngx_str_t ngx_cached_http_log_time;
 //以IS0 8601标准格式记录下的字符串形式的当前时间
 volatile ngx_str_t ngx_cached_http_log_iso8601;
@@ -86,15 +86,15 @@ static char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 ┃                                ┃                                  ┃ log_is08601这6个全局变量都会得到更新         ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                ┃    t是需要转换的时间,它是格     ┃                                              ┃
-┃u_char *ngx_http_time           ┃林威治时间1970年1月1日凌晨        ┃    将时间t转换成“Mon, 28 Sep 1970 06:00:00  ┃
-┃                                ┃0点O分O秒到某一时间的秒数,       ┃ GMT”形式的时间,返回值与buf是相同           ┃
+┃u_char *ngx_http_time           ┃林威治时间1970年1月1日凌晨        ┃    将时间t转换成"Mon, 28 Sep 1970 06:00:00  ┃
+┃                                ┃0点O分O秒到某一时间的秒数,       ┃ GMT"形式的时间,返回值与buf是相同           ┃
 ┃(u_char *buf, time_t t)         ┃                                  ┃的,都是指向存放时间的字符串                  ┃
 ┃                                ┃buf是t时间转换成字符串形式的      ┃                                              ┃
 ┃                                ┃r-rrIP时间后用来存放字符串的内存  ┃                                              ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                ┃    t悬需要转换的时间,它是格     ┃                                              ┃
-┃                                ┃林威治时间1970年1月1日凌晨        ┃    将时间t转换成“Mon. 28-Sep-70 06:00:00    ┃
-┃u_char *ngx_http_cookie_time    ┃0点0分0秒到某一时间的秒数,       ┃ GMT”形式适用于cookie的时间,返回值          ┃
+┃                                ┃林威治时间1970年1月1日凌晨        ┃    将时间t转换成"Mon. 28-Sep-70 06:00:00    ┃
+┃u_char *ngx_http_cookie_time    ┃0点0分0秒到某一时间的秒数,       ┃ GMT"形式适用于cookie的时间,返回值          ┃
 ┃(u_char *buf, time_t t)         ┃buf是t时间转换成字符串形式适      ┃与buf是相同的,都是指向存放时间的字           ┃
 ┃                                ┃用于cookie的时间后用来存放字      ┃符串                                          ┃
 ┃                                ┃符串的内存                        ┃                                              ┃
@@ -166,7 +166,7 @@ slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变
 #define ngx_memory_barrier()    __asm__ volatile ("" ::: "memory")
 它的作用实际上还是和防止读操作混乱有关,它告诉编译器不要将其后面的语句进行优化,不要打乱其执行顺序*/
 
-/*这个缓存时间什么时候会更新呢？对于worker进程而言,除了Nginx启动时更新一次时间外,任何更新时间的操作都只能由ngx_epoll_process_events方法
+/*这个缓存时间什么时候会更新呢?对于worker进程而言,除了Nginx启动时更新一次时间外,任何更新时间的操作都只能由ngx_epoll_process_events方法
 执行.回顾一下ngx_epoll_process_events方法的代码,当flags参数中有NGX_UPDATE_TIME标志位,或者ngx_event_timer_alarm标志
 位为1时,就会调用ngx_time_update方法更新缓存时间.*/
 //如果没有设置timer_resolution则定时器可能永远不超时,因为epoll_wait不返回,无法更新时间

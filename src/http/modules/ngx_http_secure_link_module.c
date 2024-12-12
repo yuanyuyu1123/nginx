@@ -211,7 +211,7 @@ secure_link_secret xxx计算出的MD5值进行比较,相同则有权限,置变�
 语法:secure_link_md5 $the_uri_you_want_to_hashed_by_md5
 默认值:none
 使用字段:location
-这个指令指定你需要通过MD5哈希的字符串,字符串可以包含变量,哈希值将和”secure_link”设置的$md5_hash变量进行比较,如果结果相同,
+这个指令指定你需要通过MD5哈希的字符串,字符串可以包含变量,哈希值将和"secure_link"设置的$md5_hash变量进行比较,如果结果相同,
 $secure_link变量值为1,否则为空字符串.
 */ //secure_link_md5生效比较见ngx_http_secure_link_variable
 //如果配置了secure_link_secret则不能配置 secure_link secure_link_md5,见ngx_http_secure_link_merge_conf
@@ -311,9 +311,9 @@ ngx_module_t ngx_http_secure_link_module = { //访问权限控制相关模块:ng
 /*
 变量
 $secure_link
-根据你是否使用”secure_link_secret”,这个值有两个不同的意义:
-如果使用”secure_link_secret”,并且验证的URL通过验证,这个值为true,否则为空字符串.
-如果使用”secure_link”和”secure_link_md5”.并且验证的URL通过验证$secure_link为'1'.如果本地时间超过$expire_time, $secure_link值为'0'.否则,将为空字符串.
+根据你是否使用"secure_link_secret",这个值有两个不同的意义:
+如果使用"secure_link_secret",并且验证的URL通过验证,这个值为true,否则为空字符串.
+如果使用"secure_link"和"secure_link_md5".并且验证的URL通过验证$secure_link为'1'.如果本地时间超过$expire_time, $secure_link值为'0'.否则,将为空字符串.
 $secure_link_expires
 等于变量$expire_time的值.
 The status of these checks is made available in the $secure_link variable.

@@ -50,7 +50,7 @@
 型),这个描述符和epoll_create返回的描述符一样,是贯穿始终的.注意,nr_ events只是
 指定了异步I/O至少初始化的上下文容量,它并没有限制最大可以处理的异步I/O事件数目.
 为了便于理解,不妨将io_setup与epoll_create进行对比,它们还是很相似的.
-    既然把epoll和异步I/O进行对比,那么哪些调用相当于epoll_ctrl呢？就是io—submit
+    既然把epoll和异步I/O进行对比,那么哪些调用相当于epoll_ctrl呢?就是io—submit
 和io cancel.其中io- submit相当于向异步I/O中添加事件,而io- cancel则相当于从异步I/O
 中移除事件.io—submit中用到了一个结构体iocb,下面简单地看一下它的定义.
     struct iocb  f
@@ -96,10 +96,10 @@ U int32 t aio resfd;
     )  io_iocIb_cmd_t j
     在Nginx中,仅使用了IO—CMD_ PREAD命令,这是因为目前仅支持文件的异步I/O读
 取,不支持异步I/O的写入.这其中一个重要的原因是文件的异步I/O无法利用缓存,而写
-文件操作通常是落到缓存中的,Linux存在统一将缓存中“脏”数据刷新到磁盘的机制.
+文件操作通常是落到缓存中的,Linux存在统一将缓存中"脏"数据刷新到磁盘的机制.
     这样,使用io submit向内核提交了文件异步I/O操作的事件后,再使用io_ cancel则可
 以将已经提交的事件取消.
-    如何获取已经完成的异步I/O事件呢？io_getevents方法可以做到,它相当于epoll中的
+    如何获取已经完成的异步I/O事件呢?io_getevents方法可以做到,它相当于epoll中的
 epoll_wait方法,这里用到了io一event结构体,下面看一下它的定义.
 struct io event  {
     ／／与提交事件时对应的iocb结构体中的aio_ data是一致的
@@ -197,9 +197,9 @@ U int32 t aio resfd;
     IO_CMD_NOOP=6,
     )  io_iocb_cmd_t
     在Nginx中,仅使用了IO_CMD_PREAD命令,这是因为目前仅支持文件的异步I/O读取,不支持异步I/O的写入.这其中一个重要的原因是文件的
-异步I/O无法利用缓存,而写文件操作通常是落到缓存中的,Linux存在统一将缓存中“脏”数据刷新到磁盘的机制.
+异步I/O无法利用缓存,而写文件操作通常是落到缓存中的,Linux存在统一将缓存中"脏"数据刷新到磁盘的机制.
     这样,使用io submit向内核提交了文件异步I/O操作的事件后,再使用io_cancel则可以将已经提交的事件取消.
-    如何获取已经完成的异步I/O事件呢？io_getevents方法可以做到,它相当于epoll中的epoll_wait方法,这里用到了io_event结构体,下面看一下它的定义.
+    如何获取已经完成的异步I/O事件呢?io_getevents方法可以做到,它相当于epoll中的epoll_wait方法,这里用到了io_event结构体,下面看一下它的定义.
 struct io event  {
     ／／与提交事件时对应的iocb结构体中的aio_data是一致的
     uint64 t  data;
@@ -213,7 +213,7 @@ struct io event  {
 */
 
 /*
-怎样向异步I/O上下文中提交异步I/O操作呢？ngx_linux_aio read.c文件中的ngx_file_aio read方法,在打开文件异步I/O后,这个方法将会负责磁盘文件的读取
+怎样向异步I/O上下文中提交异步I/O操作呢?ngx_linux_aio read.c文件中的ngx_file_aio read方法,在打开文件异步I/O后,这个方法将会负责磁盘文件的读取
 */
 /*
 ngx_epoll_aio_init初始化aio事件列表, ngx_file_aio_read添加读文件事件,当读取完毕后epoll会触发

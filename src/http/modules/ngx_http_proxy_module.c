@@ -403,9 +403,9 @@ location  /name/ {
   proxy_pass   http://127.0.0.1;
 }这些情况下URI并没有被映射传递.
 此外,需要标明一些标记以便URI将以和客户端相同的发送形式转发,而不是处理过的形式,在其处理期间:
-■两个以上的斜杠将被替换为一个: ”//” – ”/”;
-■删除引用的当前目录:”/./” – ”/”;
-■删除引用的先前目录:”/dir /../” – ”/“.
+■两个以上的斜杠将被替换为一个: "//" – "/";
+■删除引用的当前目录:"/./" – "/";
+■删除引用的先前目录:"/dir /../" – "/".
 如果在服务器上必须以未经任何处理的形式发送URI,那么在proxy_pass指令中必须使用未指定URI的部分:
 location  /some/path/ {
   proxy_pass   http://127.0.0.1;
@@ -462,7 +462,7 @@ location /one/ {
 语法:proxy_redirect [ default|off|redirect replacement ];
 默认值:proxy_redirect default;
 使用字段:http, server, location
-这个指令为被代理服务器应答中必须改变的应答头:”Location”和”Refresh”设置值.
+这个指令为被代理服务器应答中必须改变的应答头:"Location"和"Refresh"设置值.
 我们假设被代理的服务器返回的应答头字段为:Location: http://localhost:8000/two/some/uri/.
 指令:
 proxy_redirect http://localhost:8000/two/ http://frontend/one/;会将其重写为:Location: http://frontend/one/some/uri/.
@@ -520,8 +520,8 @@ proxy_redirect   /   /;
     语法:proxy_store [on | off | path]
     默认值:proxy_store off
     使用字段:http, server, location
-    这个指令设置哪些传来的文件将被存储,参数”on”保持文件与alias或root指令指定的目录一致,参数”off”将关闭存储,路径名中可以使用变量:
-    proxy_store   /data/www$original_uri;应答头中的”Last-Modified”字段设置了文件最后修改时间,为了文件的安全,可以使用proxy_temp_path指定一个临时文件目录.
+    这个指令设置哪些传来的文件将被存储,参数"on"保持文件与alias或root指令指定的目录一致,参数"off"将关闭存储,路径名中可以使用变量:
+    proxy_store   /data/www$original_uri;应答头中的"Last-Modified"字段设置了文件最后修改时间,为了文件的安全,可以使用proxy_temp_path指定一个临时文件目录.
     这个指令为那些不是经常使用的文件做一份本地拷贝.从而减少被代理服务器负载.
 
     location /images/ {
@@ -555,7 +555,7 @@ proxy_redirect   /   /;
     }注意proxy_store不是一个缓存,它更像是一个镜像.
     nginx的存储系统分两类,一类是通过proxy_store开启的,存储方式是按照url中的文件路径,存储在本地.比如/file/2013/0001/en/test.html,
     那么nginx就会在指定的存储目录下依次建立各个目录和文件.另一类是通过proxy_cache开启,这种方式存储的文件不是按照url路径来组织的,
-    而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢？
+    而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢?
    按url路径存储文件的方式,程序处理起来比较简单,但是性能不行.首先有的url巨长,我们要在本地文件系统上建立如此深的目录,那么文件的打开
    和查找都很会很慢(回想kernel中通过路径名查找inode的过程吧).如果使用自定义方式来处理模式,尽管也离不开文件和路径,但是它不会因url长度
    而产生复杂性增加和性能的降低.从某种意义上说这是一种用户态文件系统,最典型的应该算是squid中的CFS.nginx使用的方式相对简单,主要依靠
@@ -564,7 +564,7 @@ proxy_redirect   /   /;
         /*
           nginx的存储系统分两类,一类是通过proxy_store开启的,存储方式是按照url中的文件路径,存储在本地.比如/file/2013/0001/en/test.html,
         那么nginx就会在指定的存储目录下依次建立各个目录和文件.另一类是通过proxy_cache开启,这种方式存储的文件不是按照url路径来组织的,
-        而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢？
+        而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢?
        按url路径存储文件的方式,程序处理起来比较简单,但是性能不行.首先有的url巨长,我们要在本地文件系统上建立如此深的目录,那么文件的打开
        和查找都很会很慢(回想kernel中通过路径名查找inode的过程吧).如果使用自定义方式来处理模式,尽管也离不开文件和路径,但是它不会因url长度
        而产生复杂性增加和性能的降低.从某种意义上说这是一种用户态文件系统,最典型的应该算是squid中的CFS.nginx使用的方式相对简单,主要依靠
@@ -705,9 +705,9 @@ nginx忽略被代理服务器的应答数目和所有应答的大小,接受proxy
    proxy_set_header在指定的字段中没有定义时会从它的上级字段继承.
    默认只有两个字段可以重新定义:
    proxy_set_header Host $proxy_host;
-   proxy_set_header Connection Close;未修改的请求头“Host”可以用如下方式传送:
+   proxy_set_header Connection Close;未修改的请求头"Host"可以用如下方式传送:
    proxy_set_header Host $http_host;但是如果这个字段在客户端的请求头中不存在,那么不发送数据到被代理服务器.
-   这种情况下最好使用$Host变量,它的值等于请求头中的”Host”字段或服务器名:
+   这种情况下最好使用$Host变量,它的值等于请求头中的"Host"字段或服务器名:
    proxy_set_header Host $host;此外,可以将被代理的端口与服务器名称一起传递:
    proxy_set_header Host $host:$proxy_port;如果设置为空字符串,则不会传递头部到后端,例如下列设置将禁止后端使用gzip压缩:
    proxy_set_header  Accept-Encoding  "";
@@ -805,7 +805,7 @@ proxy_buffer_size
    且状态为established后等待读取后端数据的事件.
        相对于proxy_connect_timeout,这个时间可以扑捉到一台将你的连接放入连接池延迟处理并且没有数据传送的服务器,注意不要将此值设置太低,
    某些情况下代理服务器将花很长的时间来获得页面应答(例如如当接收一个需要很多计算的报表时),当然你可以在不同的location里面设置不同的值.
-   可以通过指定时间单位以免引起混乱,支持的时间单位有”s”(秒), “ms”(毫秒), “y”(年), “M”(月), “w”(周), “d”(日), “h”(小时),和 “m”(分钟).
+   可以通过指定时间单位以免引起混乱,支持的时间单位有"s"(秒), "ms"(毫秒), "y"(年), "M"(月), "w"(周), "d"(日), "h"(小时),和 "m"(分钟).
    这个值不能大于597小时.
    */
         { ngx_string("proxy_read_timeout"), //读取后端数据的超时时间
@@ -854,7 +854,7 @@ proxy_buffer_size
         /*
        nginx的存储系统分两类,一类是通过proxy_store开启的,存储方式是按照url中的文件路径,存储在本地.比如/file/2013/0001/en/test.html,
      那么nginx就会在指定的存储目录下依次建立各个目录和文件.另一类是通过proxy_cache开启,这种方式存储的文件不是按照url路径来组织的,
-     而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢？
+     而是使用一些特殊方式来管理的(这里称为自定义方式),自定义方式就是我们要重点分析的.那么这两种方式各有什么优势呢?
     按url路径存储文件的方式,程序处理起来比较简单,但是性能不行.首先有的url巨长,我们要在本地文件系统上建立如此深的目录,那么文件的打开
     和查找都很会很慢(回想kernel中通过路径名查找inode的过程吧).如果使用自定义方式来处理模式,尽管也离不开文件和路径,但是它不会因url长度
     而产生复杂性增加和性能的降低.从某种意义上说这是一种用户态文件系统,最典型的应该算是squid中的CFS.nginx使用的方式相对简单,主要依靠
@@ -947,12 +947,12 @@ Proxy_cache_path:缓存的存储路径和索引信息;
 语法: proxy_cache_bypass line […];
 默认值: off
 使用字段: http, server, location
-这个指令指定不使用缓存返回应答的条件,如果指定的变量中至少有一个为非空,或者不等于“0”,这个应答将不从缓存中返回:
+这个指令指定不使用缓存返回应答的条件,如果指定的变量中至少有一个为非空,或者不等于"0",这个应答将不从缓存中返回:
  proxy_cache_bypass $cookie_nocache $ arg_nocache$arg_comment;
  proxy_cache_bypass $http_pragma $http_authorization;可以结合proxy_no_cache使用.
 
 Defines conditions under which the response will not be taken from a cache. If at least one value of the string parameters is not
-empty and is not equal to “0” then the response will not be taken from the cache:
+empty and is not equal to "0" then the response will not be taken from the cache:
 */ //注意proxy_no_cache和proxy_cache_proxy的区别
         { ngx_string("proxy_cache_bypass"),
                 //proxy_cache_bypass  xx1 xx2设置的xx2不为空或者不为0,则不会从缓存中取,而是直接冲后端读取  但是这些请求的后端响应数据依然可以被 upstream 模块缓存.
@@ -968,12 +968,12 @@ empty and is not equal to “0” then the response will not be taken from the c
 确定在何种情况下缓存的应答将不会使用,示例:
 proxy_no_cache $cookie_nocache  $arg_nocache$arg_comment;
 proxy_no_cache $http_pragma     $http_authorization;如果为空字符串或者等于0,表达式的值等于false,例如,在上述例子中,如果在
-请求中设置了cookie “nocache”,请求将总是穿过缓存而被传送到后端.
+请求中设置了cookie "nocache",请求将总是穿过缓存而被传送到后端.
 注意:来自后端的应答依然有可能符合缓存条件,有一种方法可以快速的更新缓存中的内容,那就是发送一个拥有你自己定义的请求头部字段
 的请求.例如:My-Secret-Header,那么在proxy_no_cache指令中可以这样定义:
 proxy_no_cache $http_my_secret_header;
 Defines conditions under which the response will not be saved to a cache. If at least one value of the string parameters is
-not empty and is not equal to “0” then the response will not be saved(注意是not be saved):
+not empty and is not equal to "0" then the response will not be saved(注意是not be saved):
 */ //注意proxy_no_cache和proxy_cache_proxy的区别
 
         //proxy_cache_bypass  xx1 xx2设置的xx2不为空或者不为0,则不会从缓存中取,而是直接冲后端读取
@@ -1152,7 +1152,7 @@ proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示
          NULL},
         /*
     语法:proxy_temp_file_write_size size;
-    默认值:proxy_temp_file_write_size [”#proxy buffer size”] * 2;
+    默认值:proxy_temp_file_write_size ["#proxy buffer size"] * 2;
     使用字段:http, server, location, if
     设置在写入proxy_temp_path时数据的大小,在预防一个工作进程在传递文件时阻塞太长.
     */
@@ -1250,7 +1250,7 @@ location /files/ {
     默认值:none
     使用字段:http, server, location
     这个指令(0.7.54+) 禁止处理来自代理服务器的应答.
-    可以指定的字段为”X-Accel-Redirect”, “X-Accel-Expires”, “Expires”或”Cache-Control”.
+    可以指定的字段为"X-Accel-Redirect", "X-Accel-Expires", "Expires"或"Cache-Control".
     */
         {ngx_string("proxy_ignore_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
@@ -1459,7 +1459,7 @@ static ngx_keyval_t ngx_http_proxy_cache_headers[] = {
 /*
 该模块中包含一些内置变量,可以用于proxy_set_header指令中以创建头部.
 $proxy_add_x_forwarded_for
-包含客户端的请求头“X-Forwarded-For”与$remote_addr,用逗号分开,如果不存在X-Forwarded-For请求头,则$proxy_add_x_forwarded_for等于$remote_addr.
+包含客户端的请求头"X-Forwarded-For"与$remote_addr,用逗号分开,如果不存在X-Forwarded-For请求头,则$proxy_add_x_forwarded_for等于$remote_addr.
 $proxy_host
 被代理服务器的主机名与端口号.
 $proxy_internal_body_length
@@ -1631,11 +1631,11 @@ ngx_http_proxy_handler(ngx_http_request_t *r) {
 ngx_http_read_client_request_body(r,ngx_http_upstream_init);,这表示读取完用户请求的HTTP包体后才会调用ngx_http_upstream_init方法
 启动upstream机制.由于ngx_http_read_client_request_body的第一行有效语句是r->maln->count++,所以HTTP反向代理模块不能
 再次在其代码中执行r->main->count++.
-这个过程看起来似乎让人困惑.为什么有时需要把引用计数加1,有时却不需要呢？因为ngx_http_read- client_request_body读取请求包体是
+这个过程看起来似乎让人困惑.为什么有时需要把引用计数加1,有时却不需要呢?因为ngx_http_read- client_request_body读取请求包体是
 一个异步操作(需要epoll多次调度方能完成的可称其为异步操作),ngx_http_upstream_init方法启用upstream机制也是一个异步操作,因此,
 从理论上来说,每执行一次异步操作应该把引用计数加1,而异步操作结束时应该调用ngx_http_finalize_request方法把引用计数减1.另外,
 ngx_http_read_client_request_body方法内是加过引用计数的,而ngx_http_upstream_init方法内却没有加过引用计数(或许Nginx将来会修改
-这个问题).在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用“ngx_http_read- client_request_body(r,ngx_http_upstream_init);”
+这个问题).在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用"ngx_http_read- client_request_body(r,ngx_http_upstream_init);"
 语句同时启动了两个异步操作,注意,这行语句中只加了一次引用计数.执行这行语句的ngx_http_proxy_handler方法返回时只调用
 ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一样,务必要保证对引用计数的增加和减少是配对进行的.
 */

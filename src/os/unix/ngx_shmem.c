@@ -42,7 +42,7 @@ mmap配对的munmap为例来说明.
     {
     ／／使用ngx_shm_t中的addr和size参数调用munmap释放共享内存即可
     if  (munmap( (void*)  shm->addr,  shm- >size)  ==~1)  (
-    ngx_log_error (NGX—LOG__  ALERT,  shm- >log,    ngx_errno,  ”munmap(%p,  %uz)
+    ngx_log_error (NGX—LOG__  ALERT,  shm- >log,    ngx_errno,  "munmap(%p,  %uz)
 failed",  shm- >addr,   shm- >size)j
     )
     )

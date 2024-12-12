@@ -221,8 +221,8 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc) {
     /*
        针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
    返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
-   通常被设置成EAGAIN(意为“再来一次”)或者EWOULDBLOCK(意为“期待阻塞”):对conncct而言,errno则被
-   设置成EINPROGRESS(意为“在处理中").
+   通常被设置成EAGAIN(意为"再来一次")或者EWOULDBLOCK(意为"期待阻塞"):对conncct而言,errno则被
+   设置成EINPROGRESS(意为"在处理中").
      */ //connect的时候返回成功后使用的sock就是socket创建的sock,这和服务器端accept成功返回一个新的sock不一样
     //上面的ngx_add_conn已经把读写事件一起添加到了epoll中
     rc = connect(s, pc->sockaddr, pc->socklen);

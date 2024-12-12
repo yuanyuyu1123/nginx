@@ -87,7 +87,7 @@ struct ngx_log_s {
      * their types all the time
      */
     /* 表示当前的动作.实际上,action与data是一样的,只有在实现了handler回调方法后才会使用.
-     * 例如,HTTP框架就在handler方法中检查action是否为NULL,如果不为NULL,就会在日志后加入“while”+action,
+     * 例如,HTTP框架就在handler方法中检查action是否为NULL,如果不为NULL,就会在日志后加入"while"+action,
      * 以此表示当前日志是在进行什么操作,帮助定位问题*/
     char *action;
     //ngx_log_insert插入,在ngx_log_error_core找到对应级别的日志配置进行输出,因为可以配置error_log不同级别的日志存储在不同的日志文件中

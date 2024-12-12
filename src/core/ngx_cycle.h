@@ -46,7 +46,7 @@ struct ngx_cycle_s {
 
     /*例如http核心模块的conf_ctx[ngx_http_module->index]=ngx_http_conf_ctx_t,见ngx_conf_handler,ngx_http_block
     见ngx_init_cycle  conf.ctx = cycle->conf_ctx; //这样下面的ngx_conf_param解析配置的时候,里面对conf.ctx赋值操作,实际上就是对cycle->conf_ctx[i]
-    可如何由ngx_cycle_t核心结构体中找到main级别的配置结构体呢？Nginx提供的ngx_http_cycle_get_module_main_conf宏可以实现这个功能*/
+    可如何由ngx_cycle_t核心结构体中找到main级别的配置结构体呢?Nginx提供的ngx_http_cycle_get_module_main_conf宏可以实现这个功能*/
     void ****conf_ctx; //有多少个模块就会有多少个指向这些模块的指针,见ngx_init_cycle   ngx_max_module
     ngx_pool_t *pool; // 内存池
     /*日志模块中提供了生成基本ngx_log_t日志对象的功能,这里的log实际上是在还没有执行ngx_init_cycle方法前,
@@ -121,7 +121,7 @@ struct ngx_cycle_s {
     /*事件是不需要创建的,因为Nginx在启动时已经在ngx_cycle_t的read_events成员中预分配了所有的读事件,并在write_events成员中预分配了所有的写事件
    在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,相同序号下这
    3个数组中的元素是配合使用的.图9-1中还显示了事件池,Nginx认为每一个连接一定至少需要一个读事件和一个写事件,有多少连接就分配多少个读、
-   写事件.怎样把连接池中的任一个连接与读事件、写事件对应起来呢？很简单.由于读事件、写事件、连接池是由3个大小相同的数组组成,所以根据数组
+   写事件.怎样把连接池中的任一个连接与读事件、写事件对应起来呢?很简单.由于读事件、写事件、连接池是由3个大小相同的数组组成,所以根据数组
    序号就可将每一个连接、读事件、写事件对应起来,这个对应关系在ngx_event_core_module模块的初始化过程中就已经决定了(参见9.5节).这3个数组
    的大小都是由cycle->connection_n决定.*/
     //预分配的读写事件空间,类型ngx_event_t  //子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应

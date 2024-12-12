@@ -515,7 +515,7 @@ ngx_show_version_info(void) {
 }
 
 /*
-在执行不重启服务升级Nginx的操作时,老的Nginx进程会通过环境变量“NGINX”来传递需要打开的监听端口,
+在执行不重启服务升级Nginx的操作时,老的Nginx进程会通过环境变量"NGINX"来传递需要打开的监听端口,
 新的Nginx进程会通过ngx_add_inherited_sockets方法来使用已经打开的TCP监听端口,不采用这种方式的话会报错,说该端口已经bind
 ngx_add_inherited_sockets 函数通过环境变量NGINX完成socket的继承,继承来的socket将会放到init_cycle的listening数组中.在NGINX环
 境变量中,每个socket中间用冒号或分号隔开.完成继承同时设置全局变量ngx_inherited为1

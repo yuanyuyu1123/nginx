@@ -40,7 +40,7 @@ NGX_HTTP_VAR_CHANGEABLE表示变量是可以更改的.就例如set命令定义�
 50:    set $file t_a;
 51:    set $file t_b;
     此时,set指令会重复添加变量$file(其实,第51行并不会新增变量$file,因为在新增的过程中发现已经有该变量了,并且是NGX_HTTP_VAR_CHANGEABLE
-的,所以就返回该变量使刚),并且其最终值将为t_b.如果新增一个不是NGX_HTTP_VAR_CHANGEABLE的变量$t_var,那么Nginx将提示the duplicate”t_var”variable后退出执行.
+的,所以就返回该变量使刚),并且其最终值将为t_b.如果新增一个不是NGX_HTTP_VAR_CHANGEABLE的变量$t_var,那么Nginx将提示the duplicate"t_var"variable后退出执行.
 */
 #define NGX_HTTP_VAR_CHANGEABLE   1
 /*
@@ -73,7 +73,7 @@ NGX HTTP_VAR_INDEXED、NGXHTTP_VARNOHASH、变量cmcf->variables_hash以及取�
 由 ngx_http_rewrite_module 提供的 set 指令定义的自定义变量由其配置解析函数 ngx_http_rewrite_set 进行定义:
 获取变量的值
 脚本引擎
-什么是引擎？从机械工程上说,是把能量转化成机械运动的设备.在计算科学领域,引擎一般是指将输入数据转换成其它格式或形式的输出的软件模块.
+什么是引擎?从机械工程上说,是把能量转化成机械运动的设备.在计算科学领域,引擎一般是指将输入数据转换成其它格式或形式的输出的软件模块.
     Nginx 将包含变量的配置项参数转换成一系列脚本,并在合适的时机,通过脚本引擎运行这些脚本,得到参数的最终值.换句话说,脚本引擎负责将参
 数中的变量在合适的时机取值并和参数中的固定字符串拼接成最终字符串.
     对参数的脚本化工作,也在配置项解析过程中完成.为了表达具体,选用下面的一条配置语句进行分析.此配置项使 Nginx 在拿到请求对应的 Host
@@ -99,7 +99,7 @@ struct ngx_http_variable_s { //ngx_http_add_variable  ngx_http_get_variable_inde
         set_handlerr()回调目前只在使用set配置指令构造脚本引擎时才会用到,而那里直接使用cmcf->variables_keys里对应变量的该字段,并
     且一旦配置文件解析完毕,set_handlerr()回调也就用不上了
     set_handler0,这个回调目前只被使用在set指令里,组成脚本引擎的一个步骤,提供给用户在配置文件里可以修改内置变量的值,带有set_handler0接口的变量非常少,
-如变量$args、$limitrate．且这类变量一定会带上NGX_HTTP_VAR_CHANGEABLE标记,否则这个接口毫无意义,因为既然不能修改,何必提供修改接口？也会带上NGX_HTTP
+如变量$args、$limitrate．且这类变量一定会带上NGX_HTTP_VAR_CHANGEABLE标记,否则这个接口毫无意义,因为既然不能修改,何必提供修改接口?也会带上NGX_HTTP
 VAR_NOCACHEABLE标记,因为既然会被修改,自然也是不可缓存的
      */ //
     ngx_http_set_variable_pt      set_handler; //
@@ -117,7 +117,7 @@ VAR_NOCACHEABLE标记,因为既然会被修改,自然也是不可缓存的
     /*
     举个例子,Nginx内部变量$args表示的是客户端GET请求时uri里的参数,结构体ngxhttp_request_t有一个ngx_str_t类型字段为
 args,内存放的就是GET请求参数,所以内部变量$args的这个data字段就是指向变量r里的args字段,表示其数据来之这里.这是直接的情况,那么间接的
-情况呢？看Nginx内部变量$remoteport,这个变量表示客户端端口号,这个值在结构体ngxhttprequest_t内没有直接的字段对应,但足肯定同样也是来自
+情况呢?看Nginx内部变量$remoteport,这个变量表示客户端端口号,这个值在结构体ngxhttprequest_t内没有直接的字段对应,但足肯定同样也是来自
 ngxhttp_request_t变量r里,怎么去获取就看gethandler函数的实现,此时data数据字段没什么作用,值为0.
      */
     uintptr_t                     data;//例如:在args中data的值是offsetof(ngx_http_request_t, args),这个就是args在ngx_http_request_t中的偏移.

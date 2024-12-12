@@ -118,7 +118,7 @@ nginx配置expire后会在应答头部行中添加这几个Cache-Control、Last-
 };
 
 /*
-ngx_http_headers_module模块提供了两个重要的指令add_header和expires,来添加 “Expires” 和 “Cache-Control” 头字段,对响应头添
+ngx_http_headers_module模块提供了两个重要的指令add_header和expires,来添加 "Expires" 和 "Cache-Control" 头字段,对响应头添
 加任何域字段.add_header可以用来标示请求访问到哪台服务器上,这个也可以通过nginx模块nginx-http-footer-filter研究使用来实现.
 expires指令用来对浏览器本地缓存的控制.
 */
@@ -139,7 +139,7 @@ location ~ .*\.(js|css)$
 expires epoch | max | off;
 默认值: expires off;
 配置段: http, server, location, if in location
-在对响应代码为200,201,204,206,301,302,303,304,或307头部中是否开启对“Expires”和“Cache-Control”的增加和修改操作.
+在对响应代码为200,201,204,206,301,302,303,304,或307头部中是否开启对"Expires"和"Cache-Control"的增加和修改操作.
 可以指定一个正或负的时间值,Expires头中的时间根据目前时间和指令中指定的时间的和来获得.
 epoch表示自1970年一月一日00:00:01 GMT的绝对时间,max指定Expires的值为2037年12月31日23:59:59,Cache-Control的值为10 years.
 Cache-Control头的内容随预设的时间标识指定:
@@ -171,18 +171,18 @@ default:  expires off;
 
 context:  http, server, location
 
-Enables or disables adding or modifying the “Expires” and “Cache-Control” response header fields. A parameter can be a positive
+Enables or disables adding or modifying the "Expires" and "Cache-Control" response header fields. A parameter can be a positive
 or negative time.
-A time in the “Expires” field is computed as a sum of the current time and time specified in the directive. If the modified parameter
+A time in the "Expires" field is computed as a sum of the current time and time specified in the directive. If the modified parameter
 is used (0.7.0, 0.6.32) then time is computed as a sum of the file’s modification time and time specified in the directive.
-In addition, it is possible to specify a time of the day using the “@” prefix (0.7.9, 0.6.34):
+In addition, it is possible to specify a time of the day using the "@" prefix (0.7.9, 0.6.34):
 expires @15h30m;
-The epoch parameter corresponds to the absolute time “Thu, 01 Jan 1970 00:00:01 GMT”. The contents of the “Cache-Control” field
+The epoch parameter corresponds to the absolute time "Thu, 01 Jan 1970 00:00:01 GMT". The contents of the "Cache-Control" field
 depends on the sign of the specified time:
-? time is negative — “Cache-Control: no-cache”.
-? time is positive or zero — “Cache-Control: max-age=t”, where t is a time specified in the directive, in seconds.
-The max parameter sets “Expires” to the value “Thu, 31 Dec 2037 23:55:55 GMT”, and “Cache-Control” to 10 years.
-The off parameter disables adding or modifying the “Expires” and “Cache-Control” response header fields.
+? time is negative — "Cache-Control: no-cache".
+? time is positive or zero — "Cache-Control: max-age=t", where t is a time specified in the directive, in seconds.
+The max parameter sets "Expires" to the value "Thu, 31 Dec 2037 23:55:55 GMT", and "Cache-Control" to 10 years.
+The off parameter disables adding or modifying the "Expires" and "Cache-Control" response header fields.
 */  //该配置会修改应答头中的Cache-Control头部行,从而浏览器可以获取到该文件的缓存时间,如果在这段时间内点击浏览器再次获取该文件,
 //如果浏览器支持expires,则自己判断没有过期,浏览器不会发送请求到nginx,浏览器使用本地缓存.也就是浏览器根据该时间段内直接获取本地浏览器缓存,而不是从nginx从新获取,从而提高效率
 //如果浏览器不支持,携带请求过来,我们可以直接回应304 Not Modified,表示没变动.这样浏览器就判断直接使用浏览器本地缓存
@@ -285,7 +285,7 @@ static ngx_http_module_t ngx_http_headers_filter_module_ctx = {
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.5.5.2节详细介绍过该过滤模块.它仅应用于     ┃
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
-┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
+┃                                    ┃能够有序,所谓的"有序"是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
@@ -306,7 +306,7 @@ static ngx_http_module_t ngx_http_headers_filter_module_ctx = {
 */
 
 /*
-ngx_http_headers_module模块提供了两个重要的指令add_header和expires,来添加 “Expires” 和 “Cache-Control” 头字段,对响应头添
+ngx_http_headers_module模块提供了两个重要的指令add_header和expires,来添加 "Expires" 和 "Cache-Control" 头字段,对响应头添
 加任何域字段.add_header可以用来标示请求访问到哪台服务器上,这个也可以通过nginx模块nginx-http-footer-filter研究使用来实现.
 expires指令用来对浏览器本地缓存的控制.
  */
@@ -875,15 +875,15 @@ expires
 语法: expires [time|epoch|max|off]
 默认值: expires off
 作用域: http, server, location
-使用本指令可以控制HTTP应答中的“Expires”和“Cache-Control”的头标,(起到控制页面缓存的作用).
-可以在time值中使用正数或负数.“Expires”头标的值将通过当前系统时间加上您设定的 time 值来获得.
-epoch 指定“Expires”的值为 1 January, 1970, 00:00:01 GMT.
-max 指定“Expires”的值为 31 December 2037 23:59:59 GMT,“Cache-Control”的值为10年.
--1 指定“Expires”的值为 服务器当前时间 -1s,即永远过期
-“Cache-Control”头标的值由您指定的时间来决定:
+使用本指令可以控制HTTP应答中的"Expires"和"Cache-Control"的头标,(起到控制页面缓存的作用).
+可以在time值中使用正数或负数."Expires"头标的值将通过当前系统时间加上您设定的 time 值来获得.
+epoch 指定"Expires"的值为 1 January, 1970, 00:00:01 GMT.
+max 指定"Expires"的值为 31 December 2037 23:59:59 GMT,"Cache-Control"的值为10年.
+-1 指定"Expires"的值为 服务器当前时间 -1s,即永远过期
+"Cache-Control"头标的值由您指定的时间来决定:
 负数:Cache-Control: no-cache
 正数或零:Cache-Control: max-age = #, # 为您指定时间的秒数.
-"off" 表示不修改“Expires”和“Cache-Control”的值
+"off" 表示不修改"Expires"和"Cache-Control"的值
 */
 
 /*
@@ -900,18 +900,18 @@ default:  expires off;
 
 context:  http, server, location
 
-Enables or disables adding or modifying the “Expires” and “Cache-Control” response header fields. A parameter can be a positive
+Enables or disables adding or modifying the "Expires" and "Cache-Control" response header fields. A parameter can be a positive
 or negative time.
-A time in the “Expires” field is computed as a sum of the current time and time specified in the directive. If the modified parameter
+A time in the "Expires" field is computed as a sum of the current time and time specified in the directive. If the modified parameter
 is used (0.7.0, 0.6.32) then time is computed as a sum of the file’s modification time and time specified in the directive.
-In addition, it is possible to specify a time of the day using the “@” prefix (0.7.9, 0.6.34):
+In addition, it is possible to specify a time of the day using the "@" prefix (0.7.9, 0.6.34):
 expires @15h30m;
-The epoch parameter corresponds to the absolute time “Thu, 01 Jan 1970 00:00:01 GMT”. The contents of the “Cache-Control” field
+The epoch parameter corresponds to the absolute time "Thu, 01 Jan 1970 00:00:01 GMT". The contents of the "Cache-Control" field
 depends on the sign of the specified time:
-? time is negative — “Cache-Control: no-cache”.
-? time is positive or zero — “Cache-Control: max-age=t”, where t is a time specified in the directive, in seconds.
-The max parameter sets “Expires” to the value “Thu, 31 Dec 2037 23:55:55 GMT”, and “Cache-Control” to 10 years.
-The off parameter disables adding or modifying the “Expires” and “Cache-Control” response header fields.
+? time is negative — "Cache-Control: no-cache".
+? time is positive or zero — "Cache-Control: max-age=t", where t is a time specified in the directive, in seconds.
+The max parameter sets "Expires" to the value "Thu, 31 Dec 2037 23:55:55 GMT", and "Cache-Control" to 10 years.
+The off parameter disables adding or modifying the "Expires" and "Cache-Control" response header fields.
 */
 static char *
 ngx_http_headers_expires(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) { //expires xx配置存储函数为ngx_http_headers_expires,真正组包生效函数为ngx_http_set_expires

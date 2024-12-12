@@ -90,7 +90,7 @@ ngx_signal_t signals[] = {
         {0, NULL,                     "", NULL}
 };
 
-/*master进程怎样启动一个子进程呢？其实很简单,fork系统调用即可以完成.ngx_spawn_process方法封装了fork系统调用,
+/*master进程怎样启动一个子进程呢?其实很简单,fork系统调用即可以完成.ngx_spawn_process方法封装了fork系统调用,
 并且会从ngx_processes数组中选择一个还未使用的ngx_process_t元素存储这个子进程的相关信息.如果所有1024个数纽元素中已经没有空
 余的元素,也就是说,子进程个数超过了最大值1024,那么将会返回NGX_INVALID_PID.
  因此,ngx_processes数组中元素的初始化将在ngx_spawn_process方法中进行.*/
@@ -609,19 +609,19 @@ kill -s SIGTERM 10800
 或者:
 kill -s SIGINT 10800
 上述两条命令的效果与执行/usr/local/nginx/sbin/nginx -s stop是完全一样的.
-(10）“优雅”地停止服务
+(10）"优雅"地停止服务
 如果希望Nginx服务可以正常地处理完当前所有请求再停止服务,那么可以使用-s quit参数来停止服务.例如:
 /usr/local/nginx/sbin/nginx -s quit
-该命令与快速停止Nginx服务是有区别的.当快速停止服务时,worker进程与master进程在收到信号后会立刻跳出循环,退出进程.而“优雅”地停止服务时,
+该命令与快速停止Nginx服务是有区别的.当快速停止服务时,worker进程与master进程在收到信号后会立刻跳出循环,退出进程.而"优雅"地停止服务时,
 首先会关闭监听端口,停止接收新的连接,然后把当前正在处理的连接全部处理完,最后再退出进程.
 与快速停止服务相似,可以直接发送QUIT信号给master进程来停止服务,其效果与执行-s quit命令是一样的.例如:
 kill -s SIGQUIT <nginx master pid>
-如果希望“优雅”地停止某个worker进程,那么可以通过向该进程发送WINCH信号来停止服务.例如:
+如果希望"优雅"地停止某个worker进程,那么可以通过向该进程发送WINCH信号来停止服务.例如:
 kill -s SIGWINCH <nginx worker pid>
 (11）使运行中的Nginx重读配置项并生效
 使用-s reload参数可以使运行中的Nginx服务重新加载nginx.conf文件.例如:
 /usr/local/nginx/sbin/nginx -s reload
-事实上,Nginx会先检查新的配置项是否有误,如果全部正确就以“优雅”的方式关闭,再重新启动Nginx来实现这个目的.类似的,-s是发送信号,
+事实上,Nginx会先检查新的配置项是否有误,如果全部正确就以“优雅"的方式关闭,再重新启动Nginx来实现这个目的.类似的,-s是发送信号,
 仍然可以用kill命令发送HUP信号来达到相同的效果.
 kill -s SIGHUP <nginx master pid>
 (12）日志文件回滚
@@ -637,7 +637,7 @@ kill -s SIGUSR1 <nginx master pid>
 kill -s SIGUSR2 <nginx master pid>
 这时,运行中的Nginx会将pid文件重命名,如将/usr/local/nginx/logs/nginx.pid重命名为/usr/local/nginx/logs/nginx.pid.oldbin,这样新的Nginx才有可能启动成功.
 2）启动新版本的Nginx,可以使用以上介绍过的任意一种启动方法.这时通过ps命令可以发现新旧版本的Nginx在同时运行.
-3）通过kill命令向旧版本的master进程发送SIGQUIT信号,以“优雅”的方式关闭旧版本的Nginx.随后将只有新版本的Nginx服务运行,此时平滑升级完毕.
+3）通过kill命令向旧版本的master进程发送SIGQUIT信号,以“优雅"的方式关闭旧版本的Nginx.随后将只有新版本的Nginx服务运行,此时平滑升级完毕.
 (14）显示命令行帮助
 使用-h或者-?参数会显示支持的所有命令行参数.
 */

@@ -262,7 +262,7 @@ ngx_create_hashed_filename(ngx_path_t *path, u_char *file, size_t len) {
 
     file[path->name.len + path->len] = '/';
     /*levels=1:2,意思是说使用两级目录,第一级目录名是一个字符,第二级用两个字符.但是nginx最大支持3级目录,即levels=xxx:xxx:xxx.
-     那么构成目录名字的字符哪来的呢？假设我们的存储目录为/cache,levels=1:2,那么对于上面的文件 就是这样存储的:
+     那么构成目录名字的字符哪来的呢?假设我们的存储目录为/cache,levels=1:2,那么对于上面的文件 就是这样存储的:
      /cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致*/
     for (n = 0; n < NGX_MAX_PATH_LEVEL; n++) { //拷贝最后面的MD5值字符串中的最后level[i]个字节到level所处位置
         level = path->level[n];
@@ -393,7 +393,7 @@ typedef struct {
  } ngx_path_t ;
 其中,name成员存储着字符串形式的路径,而level数组就舍存储着第2、第3、第4
 个参数(如果存在的话).这里用ngx_http_mytest_conf_t结构中的ngx_path_t* my_path;来
-存储配置项“test_path”后的参数值.
+存储配置项"test_path"后的参数值.
 static ngx_command_t  ngx_http_mytest_commands []  =
    {   ngx_string ( " test_path" ) ,
               NGX_HTTP_LOC_CONF I NGX_CONF_TAKE1234,  '
@@ -508,7 +508,7 @@ ngx_conf_merge_path_value(ngx_conf_t *cf, ngx_path_t **path, ngx_path_t *prev,
 /*
 ngx_conf_set_access_slot 用于设置读／写权限,配置项后可以掳带1～3个参数,因此,
 在ngx_command_t中的type成员要包含NGX—CONF TAKE123.参数的取值可参见表4-2.
-这里用ngx_http_mytest_conf_t结构中的ngx_uint_t my_access;来存储配置项“test_access”
+这里用ngx_http_mytest_conf_t结构中的ngx_uint_t my_access;来存储配置项"test_access"
 后的参数值,如下所示.
 static: ngx_command_t  ngx_http_mytest_commands []  = {
     {   ngx_string ( " test_access " ) ,

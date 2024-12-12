@@ -51,7 +51,7 @@ struct ngx_event_s {
     //应的读事件中的accept标志位才会是l  ngx_event_process_init中置1
     unsigned         accept:1;
 
-    /*这个标志位用于区分当前事件是否是过期的,它仅仅是给事件驱动模块使用的,而事件消费模块可不用关心.为什么需要这个标志位呢？
+    /*这个标志位用于区分当前事件是否是过期的,它仅仅是给事件驱动模块使用的,而事件消费模块可不用关心.为什么需要这个标志位呢?
     当开始处理一批事件时,处理前面的事件可能会关闭一些连接,而这些连接有可能影响这批事件中还未处理到的后面的事件.这时,
     可通过instance标志位来避免处理后面的已经过期的事件.将详细描述ngx_epoll_module是如何使用instance标志位区分
     过期事件的,这是一个巧妙的设计方法
@@ -167,7 +167,7 @@ struct ngx_event_s {
      */
 
     int available; //ngx_event_accept中  ev->available = ecf->multi_accept;
-    /*每一个事件最核心的部分是handler回调方法,它将由每一个事件消费模块实现,以此决定这个事件究竟如何“消费”*/
+    /*每一个事件最核心的部分是handler回调方法,它将由每一个事件消费模块实现,以此决定这个事件究竟如何"消费"*/
 
     /*1.event可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event),通过读写事件触发
 

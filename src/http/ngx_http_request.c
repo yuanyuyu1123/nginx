@@ -1264,7 +1264,7 @@ ngx_http_process_request_line(ngx_event_t *rev) { //ngx_http_process_request_lin
         //表示该行内容不够,例如recv读取的时候,没有把整行数据读取出来,返回后继续recv,然后接着上次解析的位置继续解析直到请求行解析完毕
         /*如果ngx_http_parse_request_line方法返回NGX_AGAIN,则表示需要接收更多的字符流,这时需要对header_in缓冲区做判断,检查
          是否还有空闲的内存,如果还有未使用的内存可以继续接收字符流,检查缓冲区是否有未解析的字符流,否则调用
-         ngx_http_alloc_large_header_buffer方法分配更大的接收缓冲区.到底分配多大呢？这由nginx.conf文件中的large_client_header_buffers配置项指定.
+         ngx_http_alloc_large_header_buffer方法分配更大的接收缓冲区.到底分配多大呢?这由nginx.conf文件中的large_client_header_buffers配置项指定.
           */
         if (r->header_in->pos == r->header_in->end) {
 
@@ -1697,7 +1697,7 @@ ngx_http_read_request_header(ngx_http_request_t *r) {
 //从新分配空间,并把之前的空间内容拷贝到新空间中,所以,这意味着可变长度的HTTP请求行加上HTTP头部的长度总和不能超过large_client_ header_
 //buffers指定的字节数,否则Nginx将会报错.
 */
-//ngx_http_alloc_large_header_buffer方法分配更大的接收缓冲区.到底分配多大呢？这由nginx.conf文件中的large_client_header_buffers配置项指定.
+//ngx_http_alloc_large_header_buffer方法分配更大的接收缓冲区.到底分配多大呢?这由nginx.conf文件中的large_client_header_buffers配置项指定.
 static ngx_int_t
 ngx_http_alloc_large_header_buffer(ngx_http_request_t *r,
                                    ngx_uint_t request_line) {
@@ -4030,7 +4030,7 @@ ngx_http_close_request(ngx_http_request_t *r, ngx_int_t rc) {
     在HTTP模块中每进行一类新的操作,包括为一个请求添加新的事件,或者把一些已绎由定时器、epoll中移除的事件重新加入其中,都需要把这个
     请求的引用计数加1.这是因为需要让HTTP框架知道,HTTP模块对于该请求有独立的异步处理机制,将由该HTTP模块决定这个操作什么时候结束,防
     止在这个操作还未结束时HTTP框架却把这个请求销毁了(如其他HTTP模块通过调用ngx_http_finalize_request方法要求HTTP框架结束请求),导致
-    请求出现不可知的严重错误.这就要求每个操作在“认为”自身的动作结束时,都得最终调用到ngx_http_close_request方法,该方法会自动检查引用
+    请求出现不可知的严重错误.这就要求每个操作在"认为"自身的动作结束时,都得最终调用到ngx_http_close_request方法,该方法会自动检查引用
     计数,当引用计数为0时才真正地销毁请求
         由ngx_http_request_t结构体的main成员中取出对应的原始请求(当然,可能就是这个请求本身),再取出count引用计数并减l.
    然后,检查count引用计数是否已经为0,以及blocked标志位是否为0.如果count已经为O,则证明请求没有其他动作要使用了,同时blocked标
@@ -4158,7 +4158,7 @@ ngx_http_free_request(ngx_http_request_t *r, ngx_int_t rc) { //释放request的�
        close的成功返回仅告诉我们发送的数据(和FIN)已由对方TCP确认,它并不能告诉我们对方应用进程是否已读了数据.如果套接口设为非阻塞的,它将不等待close完成.
 
     第一种情况其实和不设置没有区别,第二种情况可以用于避免TIME_WAIT状态,但在Linux上测试的时候,并未发现发送了RST选项,而是正常进行了四步关闭流程,
-    初步推断是“只有在丢弃数据的时候才发送RST”,如果没有丢弃数据,则走正常的关闭流程.
+    初步推断是"只有在丢弃数据的时候才发送RST",如果没有丢弃数据,则走正常的关闭流程.
     查看Linux源码,确实有这么一段注释和源码:
     =====linux-2.6.37 net/ipv4/tcp.c 1915=====
     / * As outlined in RFC 2525, section 2.17, we send a RST here because

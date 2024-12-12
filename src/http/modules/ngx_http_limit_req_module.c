@@ -119,7 +119,7 @@ static ngx_conf_num_bounds_t ngx_http_limit_req_status_bounds = {
 /* ngx_http_limit_conn_module限定同一时刻客户端的连接数, ngx_http_limit_req_commands限制请求处理的频率,也就是单位时间最多有多少个连接 */
 /*
 ngx_http_limit_req_module模块可以通过定义的 键值来限制请求处理的频率.特别的,它可以限制来自单个IP地址的请求处理频率. 限制的
-方法是通过一种“漏桶”的方法——固定每秒处理的请求数,推迟过多的请求处理
+方法是通过一种"漏桶"的方法——固定每秒处理的请求数,推迟过多的请求处理
 */
 static ngx_command_t ngx_http_limit_req_commands[] = {
         /*
@@ -128,7 +128,7 @@ static ngx_command_t ngx_http_limit_req_commands[] = {
 上下文:  http
 设置一块共享内存限制域的参数,它可以用来保存键值的状态. 它特别保存了当前超出请求的数量. 键的值就是指定的变量(空值不会被计算). 示例用法:
 limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
-这里,状态被存在名为“one”,最大10M字节的共享内存里面.对于这个限制域来说 平均处理的请求频率不能超过每秒一次.
+这里,状态被存在名为"one",最大10M字节的共享内存里面.对于这个限制域来说 平均处理的请求频率不能超过每秒一次.
 键值是客户端的IP地址. 如果不使用$remote_addr变量,而用$binary_remote_addr变量, 可以将每条状态记录的大小减少到64个字节,这样1M
 的内存可以保存大约1万6千个64字节的记录. 如果限制域的存储空间耗尽了,对于后续所有请求,服务器都会返回 503 (Service Temporarily Unavailable)错误.
 请求频率可以设置为每秒几次(r/s).如果请求的频率不到每秒一次, 你可以设置每分钟几次(r/m).比如每秒半次就是30r/m.
@@ -165,7 +165,7 @@ limit_req zone=one burst=5 nodelay;
          NULL},
         /*
 设置你所希望的日志级别,当服务器因为频率过高拒绝或者延迟处理请求时可以记下相应级别的日志. 延迟记录的日志级别比拒绝的低一个级别;
-比如, 如果设置“limit_req_log_level notice”, 延迟的日志就是info级别.
+比如, 如果设置"limit_req_log_level notice", 延迟的日志就是info级别.
 */
         {ngx_string("limit_req_log_level"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,

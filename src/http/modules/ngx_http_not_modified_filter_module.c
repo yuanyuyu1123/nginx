@@ -74,7 +74,7 @@ static ngx_http_module_t ngx_http_not_modified_filter_module_ctx = {
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.5.5.2节详细介绍过该过滤模块.它仅应用于     ┃
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
-┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
+┃                                    ┃能够有序,所谓的"有序"是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
@@ -144,15 +144,15 @@ static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 {
 http响应Last-Modified和ETag
 　　基础知识
-1) 什么是”Last-Modified”?
+1) 什么是"Last-Modified"?
 　　    在浏览器第一次请求某一个URL时,服务器端的返回状态会是200,内容是你请求的资源,同时有一个Last-Modified的属性标记此文件在服务期端
     最后被修改的时间,格式类似这样:Last-Modified: Fri, 12 May 2006 18:53:33 GMT
 　　客户端第二次请求此URL时,根据 HTTP 协议的规定,浏览器会向服务器传送 If-Modified-Since 报头,询问该时间之后文件是否有被修改过:
 　　If-Modified-Since: Fri, 12 May 2006 18:53:33 GMT
 　　如果服务器端的资源没有变化,则自动返回 HTTP 304 (Not Changed.)状态码,内容为空,这样就节省了传输数据量.当服务器端代码发生改
     变或者重启服务器时,则重新发出资源,返回和第一次请求时类似.从而保证不向客户端重复发出资源,也保证当服务器有变化时,客户端能够得到最新的资源.
-2) 什么是”Etag”?
-　　HTTP 协议规格说明定义ETag为“被请求变量的实体值” (参见 —— 章节 14.19). 另一种说法是,ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:
+2) 什么是"Etag"?
+　　HTTP 协议规格说明定义ETag为"被请求变量的实体值" (参见 —— 章节 14.19). 另一种说法是,ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:
 　　ETag: "50b1c1d4f775c61:df3"
 　　客户端的查询更新格式是这样的:
 　　If-None-Match: W/"50b1c1d4f775c61:df3"

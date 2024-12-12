@@ -128,10 +128,10 @@ ngx_atomic_t         *ngx_stat_waiting = &ngx_stat_waiting0;
 
 /*
 可以看到,ngx_events_module_ctx实现的接口只是定义了模块名字而已,ngx_core_module_t接口中定义的create_onf方法没有实现(NULL空指针即为不实现),
-为什么呢？这是因为ngx_events_module模块并不会解析配置项的参数,只是在出现events配置项后会调用各事件模块去解析eventso()块内的配置项,
+为什么呢?这是因为ngx_events_module模块并不会解析配置项的参数,只是在出现events配置项后会调用各事件模块去解析eventso()块内的配置项,
 自然就不需要实现create_conf方法来创建存储配置项参数的结构体.
 */
-//一旦在nginx.conf配置文件中找到ngx_events_module感兴趣的“events{},ngx_events_module模块就开始工作了
+//一旦在nginx.conf配置文件中找到ngx_events_module感兴趣的"events{},ngx_events_module模块就开始工作了
 //除了对events配置项的解析外,该模块没有做其他任何事情
 static ngx_command_t ngx_events_commands[] = {
 
@@ -261,7 +261,7 @@ ngx_module_t ngx_event_core_module = {
 //则会走到ngx_http_read_request_header中的ngx_http_finalize_request(r, NGX_HTTP_BAD_REQUEST);从而关闭连接
 
 /*
-在说nginx前,先来看看什么是“惊群”？简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
+在说nginx前,先来看看什么是"惊群"？简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
 这些线程/进程被同时唤醒,就是惊群.可以想见,效率很低下,许多进程被内核重新调度唤醒,同时去响应这一个事件,当然只有一个进程能处理
 事件成功,其他的进程在处理该事件失败后重新休眠(也有其他选择).这种性能浪费现象就是惊群.
 nginx就是这样,master进程监听端口号(例如80),所有的nginx worker进程开始用epoll_wait来处理新事件(linux下),如果不加任何保护,一个
@@ -1151,7 +1151,7 @@ ngx_send_lowat(ngx_connection_t *c, size_t lowat) {
     /*
     SO_RCVLOWAT SO_SNDLOWAT
     每个套接口都有一个接收低潮限度和一个发送低潮限度.
-    接收低潮限度:对于TCP套接口而言,接收缓冲区中的数据必须达到规定数量,内核才通知进程“可读”.比如触发select或者epoll,返回“套接口可读”.
+    接收低潮限度:对于TCP套接口而言,接收缓冲区中的数据必须达到规定数量,内核才通知进程"可读".比如触发select或者epoll,返回"套接口可读".
     发送低潮限度:对于TCP套接口而言,和接收低潮限度一个道理*/
     if (setsockopt(c->fd, SOL_SOCKET, SO_SNDLOWAT,
                    (const void *) &sndlowat, sizeof(int))
