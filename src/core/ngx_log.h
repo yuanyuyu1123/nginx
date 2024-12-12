@@ -14,7 +14,7 @@
 
 
 //stderr (0)>= emerg(1) >= alert(2) >= crit(3) >= err(4)>= warn(5) >= notice(6) >= info(7) >= debug(8)
-//debug级别最低,stderr级别最高；圆括号中的数据是对应日志等级的值.
+//debug级别最低,stderr级别最高;圆括号中的数据是对应日志等级的值.
 //log->log_level中的低4位取值为NGX_LOG_STDERR等  5-12位取值为位图,表示对应模块的日志   另外NGX_LOG_DEBUG_CONNECTION NGX_LOG_DEBUG_ALL对应connect日志和所有日志
 //下面这些通过ngx_log_error输出  对应err_levels[]参考ngx_log_set_levels
 #define NGX_LOG_STDERR            0

@@ -89,7 +89,7 @@ struct ngx_event_s {
     /* the ready event; in aio mode 0 means that no operation can be posted */
     /*标志位,为1时表示当前事件已经淮备就绪,也就是说,允许这个事件的消费模块处理这个事件.在
     HTTP框架中,经常会检查事件的ready标志位以确定是否可以接收请求或者发送响应
-    ready标志位,如果为1,则表示在与客户端的TCP连接上可以发送数据；如果为0,则表示暂不可发送数据.*/
+    ready标志位,如果为1,则表示在与客户端的TCP连接上可以发送数据;如果为0,则表示暂不可发送数据.*/
     //如果来自对端的数据内核缓冲区没有数据(返回NGX_EAGAIN),或者连接断开置0,见ngx_unix_recv
     //在发送数据的时候,ngx_unix_send中的时候,如果希望发送1000字节,但是实际上send只返回了500字节(说明内核协议栈缓冲区满,需要通过epoll再次促发write的时候才能写),或者链接异常,则把ready置0
     unsigned         ready:1; //在ngx_epoll_process_events中置1,读事件触发并读取数据后ngx_unix_recv中置0
@@ -509,7 +509,7 @@ extern ngx_uint_t ngx_use_epoll_rdhup;
 #define ngx_del_event        ngx_event_actions.del
 #define ngx_add_conn         ngx_event_actions.add_conn //connect和accept返回的时候用到  已经channel读的时候用
 #define ngx_del_conn         ngx_event_actions.del_conn
-//ngx_notify为事件模块的通知函数,主要是使用该通知函数触发某任务已经执行完成；
+//ngx_notify为事件模块的通知函数,主要是使用该通知函数触发某任务已经执行完成;
 //ngx_notify通告主线程,该任务处理完毕,ngx_thread_pool_handler由主线程执行,也就是进程cycle{}通过epoll_wait返回执行,而不是由线程池中的线程执行
 #define ngx_notify           ngx_event_actions.notify
 

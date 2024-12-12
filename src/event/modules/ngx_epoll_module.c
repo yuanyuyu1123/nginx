@@ -59,7 +59,7 @@ read/write就要阻塞掉.而如果是非阻塞socket,read/write立即返回-1, 
 写:忽略掉errno = EAGAIN的错误,下次继续写
 对于select和epoll的LT模式,这种读写方式是没有问题的.但对于epoll的ET模式,这种方式还有漏洞.
 epoll的两种模式LT和ET
-二者的差异在于level-trigger模式下只要某个socket处于readable/writable状态,无论什么时候进行epoll_wait都会返回该socket；
+二者的差异在于level-trigger模式下只要某个socket处于readable/writable状态,无论什么时候进行epoll_wait都会返回该socket;
 而edge-trigger模式下只有某个socket从unreadable变为readable或从unwritable变为writable时,epoll_wait才会返回该socket.
 所以,在epoll的ET模式下,正确的读写方式为:
 读:只要可读,就一直读,直到返回0,或者 errno = EAGAIN
@@ -103,7 +103,7 @@ while ((conn_sock = accept(listenfd,(struct sockaddr *) &remote, (size_t *)&addr
      if (errno != EAGAIN && errno != ECONNABORTED && errno != EPROTO && errno != EINTR)
      perror("accept");
  } 一道腾讯后台开发的面试题
-使用Linuxepoll模型,水平触发模式；当socket可写时,会不停的触发socket可写的事件,如何处理？
+使用Linuxepoll模型,水平触发模式;当socket可写时,会不停的触发socket可写的事件,如何处理？
 第一种最普遍的方式:
 需要向socket写数据的时候才把socket加入epoll,等待可写事件.
 接受到可写事件后,调用write或者send发送数据.
@@ -267,7 +267,7 @@ struct eventpoll  (
     struct rb_root rbr;
     ／／双向链表rdllist倮存着将要通过epoll_wait返回给用户的、满足条件的事件
     struct list__ head rdllist;
-)；
+);
     每一个epoll对象都有一个独立的eventpoll结构体,这个结构体会在内核空间中创造独
 立的内存,用于存储使用epoll_ctl方法向epoll对象中添加进来的事件.这些事件都会挂到
 rbr红黑树中,这样,重复添加的事件就可以通过红黑树而高效地识别出来(epoll_ctl方法会
@@ -299,7 +299,7 @@ struct eventpoll *ep;
 效的,它可以轻易地处理百万级别的并发连接.
 采用select poll的时候,每次获取到数据后还得重新FD_ZERO FD_SET,这样会增加应用层和内核态的数据拷贝,影响性能.
 Epoll的高效和其数据结构的设计是密不可分的,这个下面就会提到.
-首先回忆一下select模型,当有I/O事件到来时,select通知应用程序有事件到了快去处理,而应用程序必须轮询所有的FD集合,测试每个FD是否有事件发生,并处理事件；代码像下面这样:
+首先回忆一下select模型,当有I/O事件到来时,select通知应用程序有事件到了快去处理,而应用程序必须轮询所有的FD集合,测试每个FD是否有事件发生,并处理事件;代码像下面这样:
 int res = select(maxfd+1, &readfds, NULL, NULL, 120);
 if(res > 0)
 {
@@ -352,7 +352,7 @@ struct eventpoll  (
     struct rb_root rbr;
     ／／双向链表rdllist倮存着将要通过epoll_wait返回给用户的、满足条件的事件
     struct list__ head rdllist;
-)；
+);
     每一个epoll对象都有一个独立的eventpoll结构体,这个结构体会在内核空间中创造独
 立的内存,用于存储使用epoll_ctl方法向epoll对象中添加进来的事件.这些事件都会挂到
 rbr红黑树中,这样,重复添加的事件就可以通过红黑树而高效地识别出来(epoll_ctl方法会
@@ -466,7 +466,7 @@ ep011采用LT模式工作,这时可以处理阻塞和非阻塞套接字,而表9�
 可以将一个事件改为ET模式.ET模式的效率要比LT模式高,它只支持非阻塞套接字.ET
 模式与LT模式的区别在于,当一个新的事件到来时,ET模式下当然可以从epoU．wait调用
 中获取到这个事件,可是加果这次没有把这个事件对应的套接字缓冲区处理完,在这个套接
-字没有新的事件再次到来时,在ET模式下是无法再次从epoll__Wait调用中获取这个事件的；
+字没有新的事件再次到来时,在ET模式下是无法再次从epoll__Wait调用中获取这个事件的;
 而LT模式则相反,只要一个事件对应的套接字缓冲区还有数据,就总能从epoll-wait中获
 取这个事件.因此,在LT模式下开发基于epoll的应用要简单一些,不太容易出错,而在
 ET模式下事件发生时,如果没有彻底地将缓冲区数据处理完,则会导致缓冲区中的用户请
@@ -479,19 +479,19 @@ ET模式下事件发生时,如果没有彻底地将缓冲区数据处理完,则�
    函数声明:int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
    该函数用于控制某个文件描述符上的事件,可以注册事件,修改事件,删除事件.
 参数:
-   epfd:由 epoll_create 生成的epoll专用的文件描述符；
-   op:要进行的操作,可能的取值EPOLL_CTL_ADD 注册、EPOLL_CTL_MOD 修改、   EPOLL_CTL_DEL 删除；
-   fd:关联的文件描述符；
-   event:指向epoll_event的指针；
+   epfd:由 epoll_create 生成的epoll专用的文件描述符;
+   op:要进行的操作,可能的取值EPOLL_CTL_ADD 注册、EPOLL_CTL_MOD 修改、   EPOLL_CTL_DEL 删除;
+   fd:关联的文件描述符;
+   event:指向epoll_event的指针;
    如果调用成功则返回0,不成功则返回-1.
 3)、epoll_wait函数
    函数声明:int epoll_wait(int epfd,struct epoll_event * events,int maxevents,int timeout)
    该函数用于轮询I/O事件的发生.
    参数:
-   epfd:由epoll_create 生成的epoll专用的文件描述符；
-   epoll_event:用于回传代处理事件的数组；
-   maxevents:每次能处理的事件数；
-   timeout:等待I/O事件发生的超时值；
+   epfd:由epoll_create 生成的epoll专用的文件描述符;
+   epoll_event:用于回传代处理事件的数组;
+   maxevents:每次能处理的事件数;
+   timeout:等待I/O事件发生的超时值;
 */
 #if (NGX_TEST_BUILD_EPOLL)
 /* epoll declarations */
@@ -823,10 +823,10 @@ ngx_module_t ngx_epoll_module = {
 ┃                                        ┃result表示这个操作的执行结果        ┃O表示成功                     ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
 ┃                I                       ┃  ctx是文件异步1/0的上下文描述      ┃                              ┃
-┃int io_getevents(aio_context_t ctx,     ┃符；min_nr表示至少要获取mln_ nr个   ┃                              ┃
-┃long min_nr, lon, g nr,                 ┃事件；而nr表示至多获取nr个事件,    ┃  从已经完成的文件异步I/O操   ┃
+┃int io_getevents(aio_context_t ctx,     ┃符;min_nr表示至少要获取mln_ nr个   ┃                              ┃
+┃long min_nr, lon, g nr,                 ┃事件;而nr表示至多获取nr个事件,    ┃  从已经完成的文件异步I/O操   ┃
 ┃struct io  event "*events, struct       ┃它与events数组的个数一般是相同的:  ┃作队列中读取操作              ┃
-┃timespec *timeout)                      ┃events是执行完成的事件数组；tlmeout ┃                              ┃
+┃timespec *timeout)                      ┃events是执行完成的事件数组;tlmeout ┃                              ┃
 ┃         I "                            ┃是超时时间,也就是在获取mm- nr个    ┃                              ┃
 ┃                                        ┃事件前的等待时间                    ┃                              ┃
 ┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -858,7 +858,7 @@ int64 t aio offset;
 u int64七aio reserved2;
     ／+表示可以设置为IOCB FLAG RESFD,它会告诉内核当有异步I/O请求处理完成时使用eventfd进
 行通知,可与epoll配合使用+／
-    u int32七aio_flags；
+    u int32七aio_flags;
 ／／表示当使用IOCB FLAG RESFD标志位时,用于进行事件通知的句柄
 U int32 t aio resfd;
     因此,在设置好iocb结构体后,就可以向异步I/O提交事件了.aio_lio_opcode操作码
@@ -885,12 +885,12 @@ struct io event  {
     ／／与提交事件时对应的iocb结构体中的aio_data是一致的
     uint64 t  data;
     ／／指向提交事件时对应的iocb结构体
-    uint64_t   obj；
+    uint64_t   obj;
     ／／异步I/O请求的结构.res大于或等于0时表示成功,小于0时表示失败
-    int64一t    res；
+    int64一t    res;
     ／7保留卑段
     int64一七    res2 j
-)；
+);
     这样,根据获取的io—event结构体数组,就可以获得已经完成的异步I/O操作了,特别是iocb结构体中的aio data成员和io_event中的data,可
 用于传递指针,也就是说,业务中的数据结构、事件完成后的回调方法都在这里.
     进程退出时需要调用io_destroy方法销毁异步I/O上下文,这相当于调用close关闭epoll的描述符.

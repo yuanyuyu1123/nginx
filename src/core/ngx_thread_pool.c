@@ -615,7 +615,7 @@ ngx_thread_pool_get(ngx_cycle_t *cycle, ngx_str_t *name) {
     return NULL;
 }
 
-//在ngx_thread_pool_init_worker和 ngx_thread_pool_exit_worker分别会创建每一个线程池和销毁每一个线程池；
+//在ngx_thread_pool_init_worker和 ngx_thread_pool_exit_worker分别会创建每一个线程池和销毁每一个线程池;
 static ngx_int_t
 ngx_thread_pool_init_worker(ngx_cycle_t *cycle) {
     ngx_uint_t i;
@@ -647,7 +647,7 @@ ngx_thread_pool_init_worker(ngx_cycle_t *cycle) {
     return NGX_OK;
 }
 
-//在ngx_thread_pool_init_worker和 ngx_thread_pool_exit_worker分别会创建每一个线程池和销毁每一个线程池；
+//在ngx_thread_pool_init_worker和 ngx_thread_pool_exit_worker分别会创建每一个线程池和销毁每一个线程池;
 static void
 ngx_thread_pool_exit_worker(ngx_cycle_t *cycle) {
     ngx_uint_t i;

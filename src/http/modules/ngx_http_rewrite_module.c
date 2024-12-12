@@ -707,7 +707,7 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
     判断一个条件,如果条件成立,则后面的大括号内的语句将执行,相关配置从上级继承.
     可以在判断语句中指定下列值:
 
-    ·一个变量的名称；不成立的值为:空字符传""或者一些用“0”开始的字符串.
+    ·一个变量的名称;不成立的值为:空字符传""或者一些用“0”开始的字符串.
     ·一个使用=或者!=运算符的比较语句.
     ·使用符号~*和~模式匹配的正则表达式:
     ·~为区分大小写的匹配.
@@ -1037,9 +1037,9 @@ ngx_http_rewrite_init(ngx_conf_t *cf) {
 
 
 /*
-1. 解析正则表达式,提取子模式,命名子模式存入variables等；
+1. 解析正则表达式,提取子模式,命名子模式存入variables等;
 2.	解析第四个参数last,break等.
-3.调用ngx_http_script_compile将目标字符串解析为结构化的codes句柄数组,以便解析时进行计算；
+3.调用ngx_http_script_compile将目标字符串解析为结构化的codes句柄数组,以便解析时进行计算;
 4.根据第三步的结果,生成lcf->codes 组,后续rewrite时,一组组的进行匹配即可.失败自动跳过本组,到达下一组rewrite
 */ //ngx_http_rewrite_handler中会执行该函数中的相关code
 static char *
@@ -1212,7 +1212,7 @@ ngx_http_rewrite(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return NGX_CONF_OK;
 }
 
-//return code；
+//return code;
 //注册code为ngx_http_script_return_code
 static char *
 ngx_http_rewrite_return(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {

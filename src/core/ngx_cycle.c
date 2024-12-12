@@ -1180,10 +1180,10 @@ ngx_delete_pidfile(ngx_cycle_t *cycle) {
 
 /*
 该函数作用:
-读取ngx_core_module模块的配置结构ngx_core_conf_t；
-根据配置结构找到其工作进程文件,如"/usr/local/nginx/logs/nginx.pid"(该文件保存nginx进程ID,即pid)；
-打开该文件,读取pid；
-调用ngx_os_signal_process()发送信号；
+读取ngx_core_module模块的配置结构ngx_core_conf_t;
+根据配置结构找到其工作进程文件,如"/usr/local/nginx/logs/nginx.pid"(该文件保存nginx进程ID,即pid);
+打开该文件,读取pid;
+调用ngx_os_signal_process()发送信号;
 */
 ngx_int_t
 ngx_signal_process(ngx_cycle_t *cycle, char *sig) {
@@ -1421,7 +1421,7 @@ ngx_shared_memory_add(ngx_conf_t *cf, ngx_str_t *name, size_t size, void *tag) {
             continue;
         }
 
-        if (tag != shm_zone[i].tag) { //例如proxy_cache abc, fastcgi abc；同时配置,就会报错
+        if (tag != shm_zone[i].tag) { //例如proxy_cache abc, fastcgi abc;同时配置,就会报错
             ngx_conf_log_error(NGX_LOG_EMERG, cf, 0,
                                "the shared memory zone \"%V\" is "
                                "already declared for a different use",

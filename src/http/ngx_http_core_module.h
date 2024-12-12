@@ -49,10 +49,10 @@ typedef struct ngx_thread_pool_s  ngx_thread_pool_t;
 ┃              ┃  与all相反,参数为any时意味着在NGX—HTTP__ ACCESS—PHASE阶段只要有任意一个             ┃
 ┃              ┃HTTP模块认为请求合法,就不用再调用其他HTTP模块继续检查了,可以认为请求是具有访问      ┃
 ┃              ┃权限的.实际上,这时的情况有些复杂:如果其中任何一个handler方法返回NGX二OK,则认为    ┃
-┃              ┃请求具有访问权限；如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
+┃              ┃请求具有访问权限;如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
 ┃any           ┃                                                                                      ┃
 ┃              ┃需要检查NGX—HTTP—ACCESS—PHASE阶段的其他handler方法.也就是说,any配置项下任           ┃
-┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行；如   ┃
+┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行;如   ┃
 ┃              ┃果其中一个handler方法认为没有访问权限,则未必以此为准,还需要检测其他的hanlder方法.  ┃
 ┃              ┃all和any有点像“&&”和“¨”的关系                                                         ┃
 ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -109,7 +109,7 @@ deferred, ipv6only, or so_keepalive parameters are used then for a given address
 2.2.2.2:2的到第二个bind,其他的到第三个.
 一般在设备listen中设置了bind setfib, backlog, rcvbuf, sndbuf, accept_filter, deferred, ipv6only, or so_keepalive(这些选项只有在bind后才能setsockops)这些参数后会把bind和set一起置1
 */ //见ngx_http_core_listen
-    unsigned                   bind:1; //listen *:80；配置项的通配符也可能在ngx_http_init_listening中置1
+    unsigned                   bind:1; //listen *:80;配置项的通配符也可能在ngx_http_init_listening中置1
     unsigned wildcard: 1;
     /*
 被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议下,例如:
@@ -165,7 +165,7 @@ ngx_http_handler_pt处理方法.这样做的好处是,ngx_http_handler_pt处理�
 (也就是mytest配置项所在的location)才会被调用.
     这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
 段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
-向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法；反之,如果希望这个方式
+向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
 仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t
 结构体的handler中.
     注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,
@@ -177,7 +177,7 @@ handler指针的方式优先级更高,而第一种方式设置的ngx_http_handle
 NGX_HTTP_CONTENT_PHASE阶段的checker方法是ngx_http_core_content_phase.ngx_http_handler_pt处理方法的返回值在以上两种方式下具备了不同意义.
     在第一种方式下,ngx_http_handler_pt处理方法无论返回任何值,都会直接调用ngx_http_finalize_request方法结束请求.当然,
 ngx_http_finalize_request方法根据返回值的不同未必会直接结束请求,这在第11章中会详细介绍.
-    在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法；如果返回其他值,
+    在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法;如果返回其他值,
 则调用ngx_http_finalize_request方法结束请求.
 */
 
@@ -268,7 +268,7 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
  ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时(也就是mytest配置项所在的location)才会被调用.
 这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
 段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
-向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法；反之,如果希望这个方式
+向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
 仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t
 结构体的handler中.
  注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,
@@ -473,7 +473,7 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
     ngx_array_t               *ports;//没解析到一个listen配置项,就添加一个ngx_http_conf_port_t  赋值见ngx_http_add_listen,存储的是ngx_http_conf_port_t结构
     /*
 在ngx_http_core_main_conf_t中关于HTTP阶段有两个成员:phase_engine和phases,其中phase_engine控制运行过程中一个HTTP请求所要
-经过的HTTP处理阶段,它将配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段)；
+经过的HTTP处理阶段,它将配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段);
 而phases数组更像一个临时变量,它实际上仅会在Nginx启动过程中用到,它的唯一使命是按照11个阶段的概念初始化phase_engine中的handlers数组
  */
 /*
@@ -505,7 +505,7 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 location 优先级官方文档
 1.Directives with the = prefix that match the query exactly. If found, searching stops.
 2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
@@ -808,7 +808,7 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 location 优先级官方文档
 1.Directives with the = prefix that match the query exactly. If found, searching stops.
 2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
@@ -936,7 +936,7 @@ location @fallback {
     ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时(也就是mytest配置项所在的location)才会被调用.
 这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
 段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
-向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法；反之,如果希望这个方式
+向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
 仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t
 结构体的handler中.
     注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,

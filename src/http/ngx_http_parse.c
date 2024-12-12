@@ -112,8 +112,8 @@ Accept-Encoding:gzip,deflate.
 //ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body
 
 /*
-返回值主要有3类:返回NGX—OK表示成功地解析到完整的HTTP请求行；返回NGX AGAIN表示目前接收到的字符流不足以构成完成的请求行,还需要
-接收更多的字符流；返回NGX_HTTP_PARSE_INVALID_REQUEST或者NGX_HTTP_PARSE_INVALID_09_METHOD等其他值时表示接收到非法的请求行.
+返回值主要有3类:返回NGX—OK表示成功地解析到完整的HTTP请求行;返回NGX AGAIN表示目前接收到的字符流不足以构成完成的请求行,还需要
+接收更多的字符流;返回NGX_HTTP_PARSE_INVALID_REQUEST或者NGX_HTTP_PARSE_INVALID_09_METHOD等其他值时表示接收到非法的请求行.
 */
 ngx_int_t
 ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b) {

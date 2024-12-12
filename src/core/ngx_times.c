@@ -111,7 +111,7 @@ static char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 ┃                                ┃                                  ┃实际时间后,已经超过当前时间,那么就          ┃
 ┃                                ┃                                  ┃返回when合并到实际时间后的秒数(相            ┃
 ┃time_t ngx_next_time            ┃    when表不期待过期的时间,它    ┃对于格林威治时间1970年1月1日凌晨O             ┃
-┃(time_t when)    :              ┃仅表示一天内的秒数                ┃点O分O秒到某一时间的耖数)；                  ┃
+┃(time_t when)    :              ┃仅表示一天内的秒数                ┃点O分O秒到某一时间的耖数);                  ┃
 ┃                                ┃                                  ┃  ②反之,如果合并后的时间早于当前            ┃
 ┃                                ┃                                  ┃时间,则返回下一天的同一时刻(当天时          ┃
 ┃                                ┃                                  ┃刻)的时间.它目前仅具有与expires配置         ┃
@@ -142,8 +142,8 @@ ngx_time_init(void) { //初始化nginx环境的当前时间
 /*ngx_time_update()函数在master进程中的ngx_master_process_cycle()主循环中被调用,
 具体位置为sigsuspend()函数之后,也就是说master进程捕捉到并处理完一个信号返回的时候会更新时间缓存*/
 /*更新时间缓存
-为避免每次都调用OS的gettimeofday,nginx采用时间缓存,每个worker进程都能自行维护；为控制并发访问,每次更新时间缓存前需申请锁,而读时间缓存无须加锁；
-为避免分裂读,即某worker进程读时间缓存过程中接受中断请求,期间时间缓存被其他worker更新,导致前后读取时间不一致；nginx引入时间缓存数组(共64个成员),每次都更新数组中的下一个元素；
+为避免每次都调用OS的gettimeofday,nginx采用时间缓存,每个worker进程都能自行维护;为控制并发访问,每次更新时间缓存前需申请锁,而读时间缓存无须加锁;
+为避免分裂读,即某worker进程读时间缓存过程中接受中断请求,期间时间缓存被其他worker更新,导致前后读取时间不一致;nginx引入时间缓存数组(共64个成员),每次都更新数组中的下一个元素;
 更新时间通过ngx_time_update()实现
 ngx_time_update()调用最频繁的是在worker进程处理事件时
 ngx_worker_process_cycle -- ngx_process_events_and_timers -- ngx_process_events
@@ -156,7 +156,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
         ngx_time_update();
     }
 nginx使用了原子变量ngx_time_lock来对时间变量进行写加锁,而且nginx考虑到读时间的操作比较多,出于性能的原因没有对读进行加锁,而是采用维护多个时间
-slot的方式来尽量减少读访问冲突,基本原理就是,当读操作和写操作同时发生时(1,多线程时可能发生；2,当进程正在读时间缓存时,被一信号中断去执行
+slot的方式来尽量减少读访问冲突,基本原理就是,当读操作和写操作同时发生时(1,多线程时可能发生;2,当进程正在读时间缓存时,被一信号中断去执行
 信号处理函数,信号处理函数中会更新时间缓存),也就是读操作正在进行时(比如刚拷贝完ngx_cached_time->sec,或者拷贝ngx_cached_http_time.data进行
 到一半时),如果写操作改变了读操作的时间,读操作最终得到的时间就变混乱了.nginx这里采用了64个slot时间,也就是每次更新时间的时候都是更新下一个
 slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变,当然这里只能是尽量减少了时间混乱的几率,因为slot的个数不是无限的,slot是循环的,
@@ -192,7 +192,7 @@ ngx_time_update(void) {
 
     tp = &cached_time[slot]; //读当前时间缓存
 
-    if (tp->sec == sec) { //如果缓存的时间秒=当前时间秒,直接更新当前slot元素的msec并返回,否则更新下一个slot数组元素；
+    if (tp->sec == sec) { //如果缓存的时间秒=当前时间秒,直接更新当前slot元素的msec并返回,否则更新下一个slot数组元素;
         tp->msec = msec;
         ngx_unlock(&ngx_time_lock);
         return;

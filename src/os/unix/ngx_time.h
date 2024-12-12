@@ -58,7 +58,7 @@ typedef ngx_rbtree_key_int_t ngx_msec_int_t;
 ┃                                ┃                                  ┃实际时间后,已经超过当前时间,那么就          ┃
 ┃                                ┃                                  ┃返回when合并到实际时间后的秒数(相            ┃
 ┃time_t ngx_next_time            ┃    when表不期待过期的时间,它    ┃对于格林威治时间1970年1月1日凌晨O             ┃
-┃(time_t when)    :              ┃仅表示一天内的秒数                ┃点O分O秒到某一时间的耖数)；                  ┃
+┃(time_t when)    :              ┃仅表示一天内的秒数                ┃点O分O秒到某一时间的耖数);                  ┃
 ┃                                ┃                                  ┃  ②反之,如果合并后的时间早于当前            ┃
 ┃                                ┃                                  ┃时间,则返回下一天的同一时刻(当天时          ┃
 ┃                                ┃                                  ┃刻)的时间.它目前仅具有与expires配置         ┃
@@ -89,9 +89,9 @@ struct   tm{
     int tm_wday;
     从每年的1月1日开始的天数一取值区间为[0,365】,其中0代表1月1日,1代表1月2日依此类推
     int tm_yday;
-    夏令时标识符.在实行夏令时的时候,tm_isdst为正；不实行夏令时的时候,tm_isdst为o在不了解情况时,tm_ isdst为负
+    夏令时标识符.在实行夏令时的时候,tm_isdst为正;不实行夏令时的时候,tm_isdst为o在不了解情况时,tm_ isdst为负
     int tm isdst,
-    )；
+    );
     ngx_tmj与tm用法是完全一致的,如下所示.
 typedef struct tm    ngx_tm_t;
 #define ngx_tm_sec

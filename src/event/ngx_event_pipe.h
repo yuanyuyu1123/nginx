@@ -39,7 +39,7 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
     //ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
     //ngx_http_write_filter把in中的数据拼接到out后面,然后调用writev发送,没有发送出去的数据buf还是会留在out链表中
     ngx_chain_t       *in;//每次读取数据后,调用input_filter对协议格式进行解析,解析完后的数据部分放到in里面形成一个链表.参考ngx_http_fastcgi_input_filter
-    /*关于p->in和shadow,in指向一堆chain链表,每个链表指向一块实实在在的fcgi DATA数据,多个这样的php等代码块共享一块大的裸FCGI数据块；
+    /*关于p->in和shadow,in指向一堆chain链表,每个链表指向一块实实在在的fcgi DATA数据,多个这样的php等代码块共享一块大的裸FCGI数据块;
     属于某个大的裸FCGI数据块的最后一个数据节点的last_shadow成员为1,表示我是这个大FCGI数据块的最后一个,并且我的shadow指针指向这个裸FCGI数据块的buf指针
 	释放这些大数据块的时候,可以参考ngx_event_pipe_drain_chains进行释放.
     */ // 指向刚收到的一个缓冲区

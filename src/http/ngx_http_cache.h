@@ -249,7 +249,7 @@ body_start: [ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY
     size_t                           body_start;//写缓冲区头部内容封装过程参考:ngx_http_file_cache_set_header
     off_t                            length;//缓存文件的大小,见ngx_http_file_cache_open
     off_t                            fs_size;//文件ngx_http_file_cache_t->bsize字节对齐,见ngx_http_file_cache_open
-//c->min_uses = u->conf->cache_min_uses; //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存；
+//c->min_uses = u->conf->cache_min_uses; //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存;
 
     ngx_uint_t min_uses;
     ngx_uint_t error;
@@ -399,7 +399,7 @@ ngx_http_file_cache_node_t在ngx_http_file_cache_expire进行失效判断.
 
 /*所有的ngx_http_file_cache_node_t除了添加到上面的rbtree红黑树外,还会添加到队列queue中,红黑树用于按照key来查找对应的node节点,参考
     ngx_http_file_cache_lookup.queue用于快速获取最先添加到queue对了和最后添加queue对了的node节点用于删除跟新等,参考ngx_http_file_cache_expire*/
-typedef struct { //用于保存缓存节点 和 缓存的当前状态 (是否正在从磁盘加载、当前缓存大小等)；
+typedef struct { //用于保存缓存节点 和 缓存的当前状态 (是否正在从磁盘加载、当前缓存大小等);
     //以ngx_http_cache_t->key字符串中的最前面4字节为key来在红黑树中变量,见ngx_http_file_cache_lookup
     ngx_rbtree_t                     rbtree; //红黑树初始化在ngx_http_file_cache_init
     //红黑树初始化在ngx_http_file_cache_init
@@ -439,7 +439,7 @@ ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_fil
 
 //获取该结构ngx_http_upstream_cache_get,实际上是通过proxy_cache xxx或者fastcgi_cache xxx来获取共享内存块名的,因此必须设置proxy_cache或者fastcgi_cache
 struct ngx_http_file_cache_s { //ngx_http_file_cache_set_slot中创建空间,保存在ngx_http_proxy_main_conf_t->caches数组中
-    //sh 维护 LRU 结构用于保存缓存节点 和 缓存的当前状态 (是否正在从磁盘加载、当前缓存大小等)；
+    //sh 维护 LRU 结构用于保存缓存节点 和 缓存的当前状态 (是否正在从磁盘加载、当前缓存大小等);
     ngx_http_file_cache_sh_t        *sh; //ngx_http_file_cache_init中分配空间
     //shpool是用于管理共享内存的 slab allocator ,所有缓存节点占用空间都由它进行分配
     ngx_slab_pool_t                 *shpool;

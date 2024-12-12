@@ -2226,7 +2226,7 @@ ngx_http_file_cache_delete(ngx_http_file_cache_t *cache, ngx_queue_t *q,
 
 /*
 在Nginx中,如果启用了proxy(fastcgi) cache功能,master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
-存和磁盘的缓存个体.第一个进程的功能是定期检查缓存,并将过期的缓存删除；第二个进程的作用是在启动的时候将磁盘中已经缓存的个
+存和磁盘的缓存个体.第一个进程的功能是定期检查缓存,并将过期的缓存删除;第二个进程的作用是在启动的时候将磁盘中已经缓存的个
 体映射到内存中(目前Nginx设定为启动以后60秒),然后退出.
 具体的,在这两个进程的ngx_process_events_and_timers()函数中,会调用ngx_event_expire_timers().Nginx的ngx_event_timer_rbtree(红黑树)里
 面按照执行的时间的先后存放着一系列的事件.每次取执行时间最早的事件,如果当前时间已经到了应该执行该事件,就会调用事件的handler.两个
@@ -2329,7 +2329,7 @@ ngx_http_file_cache_manager(void *data) //每次nginx退出的时候,例如kill 
 在nginx启动1分钟之后,会启动一个名为cache loader process的进程,该进程运行了一段时间之后,该进程就会结束消失.
 在该进程运行期间主要做了以下事情:遍历配置文件中proxy_cache_path命令指定的路径中的所有的缓存文件,并且针对遍历到的各个缓存文件
 的MD5编码先遍历红黑树和相应的ngx_http_file_cache_node_t节点,如果不存在就创建新的ngx_http_file_cache_node_t,并将该对象中的rbnode
-和queue分别插入到红黑树和过期队列；如果存在,则更新相应的属性.
+和queue分别插入到红黑树和过期队列;如果存在,则更新相应的属性.
 */
 //ngx_cache_loader_process_handler->ngx_http_file_cache_loader
 static void
@@ -2603,15 +2603,15 @@ ngx_http_file_cache_valid(ngx_array_t *cache_valid, ngx_uint_t status) {
 
 
 /*
-Proxy_cache_path:缓存的存储路径和索引信息；
-  path 缓存文件的根目录；
-  level=N:N在目录的第几级hash目录缓存数据；
-  keys_zone=name:size 缓存索引重建进程建立索引时用于存放索引的内存区域名和大小；
-  interval=time强制更新缓存时间,规定时间内没有访问则从内存中删除,默认10s；
-  max_size=size硬盘中缓存数据的上限,由cache manager管理,超出则根据LRU策略删除；
-  loader_sleep=time索引重建进程在两次遍历间的暂停时长,默认50ms；
+Proxy_cache_path:缓存的存储路径和索引信息;
+  path 缓存文件的根目录;
+  level=N:N在目录的第几级hash目录缓存数据;
+  keys_zone=name:size 缓存索引重建进程建立索引时用于存放索引的内存区域名和大小;
+  interval=time强制更新缓存时间,规定时间内没有访问则从内存中删除,默认10s;
+  max_size=size硬盘中缓存数据的上限,由cache manager管理,超出则根据LRU策略删除;
+  loader_sleep=time索引重建进程在两次遍历间的暂停时长,默认50ms;
   loader_files=number重建索引时每次加载数据元素的上限,进程递归遍历读取硬盘上的缓存目录和文件,对每个文件在内存中建立索引,每
-  建立一个索引称为加载一个数据元素,每次遍历时可同时加载多个数据元素,默认100；
+  建立一个索引称为加载一个数据元素,每次遍历时可同时加载多个数据元素,默认100;
    //loader_files这个值也就是一个阈值,当load的文件个数大于这个值之后,load进程会短暂的休眠(时间位loader_sleep)
     //loader_sleep和上面的loader_files配合使用,当文件个数大于loader_files,就会休眠
     //loader_threshold配合上面的last,也就是loader遍历的休眠间隔.
@@ -2680,7 +2680,7 @@ ngx_http_file_cache_set_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) { /
 levels=1:2,意思是说使用两级目录,第一级目录名是一个字符,第二级用两个字符.但是nginx最大支持3级目录,即levels=xxx:xxx:xxx.
 那么构成目录名字的字符哪来的呢？假设我们的存储目录为/cache,levels=1:2,那么对于上面的文件 就是这样存储的:
 /cache/0/8d/8ef9229f02c5672c747dc7a324d658d0  注意后面的8d0和cache后面的/0/8d一致*/
-        if (ngx_strncmp(value[i].data, "levels=", 7) == 0) { //level=N:N在目录的第几级hash目录缓存数据；
+        if (ngx_strncmp(value[i].data, "levels=", 7) == 0) { //level=N:N在目录的第几级hash目录缓存数据;
 
             p = value[i].data + 7;
             last = value[i].data + value[i].len;

@@ -145,8 +145,8 @@ if ($invalid_referer) {return 403;}
 三:使用第三方模块ngx_http_accesskey_module实现Nginx防盗链
 实现方法如下:
 实现方法如下:
-1. 下载NginxHttpAccessKeyModule模块文件:Nginx-accesskey-2.0.3.tar.gz；
-2. 解压此文件后,找到nginx-accesskey-2.0.3下的config文件.编辑此文件:替换其中的”$HTTP_ACCESSKEY_MODULE”为”ngx_http_accesskey_module”；
+1. 下载NginxHttpAccessKeyModule模块文件:Nginx-accesskey-2.0.3.tar.gz;
+2. 解压此文件后,找到nginx-accesskey-2.0.3下的config文件.编辑此文件:替换其中的”$HTTP_ACCESSKEY_MODULE”为”ngx_http_accesskey_module”;
 3. 用一下参数重新编译nginx:
 ./configure --add-module=path/to/nginx-accesskey
 4. 修改nginx的conf文件,添加以下几行:
@@ -157,9 +157,9 @@ location /download {
   accesskey_signature   "mypass$remote_addr";
 }
 其中:
-accesskey为模块开关；
-accesskey_hashmethod为加密方式MD5或者SHA-1；
-accesskey_arg为url中的关键字参数；
+accesskey为模块开关;
+accesskey_hashmethod为加密方式MD5或者SHA-1;
+accesskey_arg为url中的关键字参数;
 accesskey_signature为加密值,此处为mypass和访问IP构成的字符串.
 访问测试脚本download.php:
 <?

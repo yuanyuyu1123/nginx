@@ -56,7 +56,7 @@ typedef struct {
 数中的变量在合适的时机取值并和参数中的固定字符串拼接成最终字符串.
     对参数的脚本化工作,也在配置项解析过程中完成.为了表达具体,选用下面的一条配置语句进行分析.此配置项使 Nginx 在拿到请求对应的 Host
 信息后,比如,"example.com",经脚本引擎处理拼接成 "example.com/access.log" 作用后续 access log 的目标文件名.
-    access_log  ${host}/access.log;            变量获取,脚本处理过程可以参考ngx_http_script_compile_t；变量定义过程见ngx_http_variable_s相关章节
+    access_log  ${host}/access.log;            变量获取,脚本处理过程可以参考ngx_http_script_compile_t;变量定义过程见ngx_http_variable_s相关章节
 */
 
 /*
@@ -205,7 +205,7 @@ typedef struct {
 
 typedef struct { //创建空间赋值见ngx_http_rewrite
     //当前的code,第一个函数,为ngx_http_script_regex_start_code
-    ngx_http_script_code_pt     code; //rewrite xxx bbb break；的时候为ngx_http_script_regex_start_code,if配置的时候为ngx_http_script_regex_start_code
+    ngx_http_script_code_pt     code; //rewrite xxx bbb break;的时候为ngx_http_script_regex_start_code,if配置的时候为ngx_http_script_regex_start_code
     ngx_http_regex_t           *regex;//解析后的正则表达式.
     //以rewrite为例,如果后面部分是简单字符串比如 rewrite ^(.*)$ http://chenzhenianqing.cn break;则length为NULL
     ngx_array_t                *lengths; //我这个正则表达式对应的lengths.依靠它来解析 第二部分 rewrite ^(.*)$ http://$http_host.mp4 break;

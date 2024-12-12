@@ -786,3 +786,22 @@ Accept-Ranges: bytes
 2024/12/06 23:08:43 [debug] 1120557#0: free: 000055CE4D557B50, unused: 0
 2024/12/06 23:08:43 [debug] 1120557#0: free: 000055CE4D55F070, unused: 0
 2024/12/06 23:08:43 [debug] 1120557#0: free: 000055CE4D563080, unused: 456
+2024/12/12 20:13:05 [debug] 290443#0: bind() 0.0.0.0:8080 #7 
+2024/12/12 20:13:05 [notice] 290443#0: using the "epoll" event method
+2024/12/12 20:13:05 [notice] 290443#0: nginx/1.21.6
+2024/12/12 20:13:05 [notice] 290443#0: built by gcc 13.2.0 (Ubuntu 13.2.0-23ubuntu4) 
+2024/12/12 20:13:05 [notice] 290443#0: OS: Linux 5.15.167.4-microsoft-standard-WSL2
+2024/12/12 20:13:05 [notice] 290443#0: getrlimit(RLIMIT_NOFILE): 1024:1048576
+2024/12/12 20:13:05 [debug] 290443#0: write: 8, 00007FFFFFFFC810, 7, 0
+2024/12/12 20:13:05 [debug] 290443#0: add cleanup: 00005555556C3CC0
+2024/12/12 20:13:05 [debug] 290443#0: malloc: 000055555569DEF0:8
+2024/12/12 20:13:05 [debug] 290443#0: notify eventfd: 8
+2024/12/12 20:13:05 [debug] 290443#0: eventfd: 9
+2024/12/12 20:13:05 [debug] 290443#0: testing the EPOLLRDHUP flag: success
+2024/12/12 20:13:05 [debug] 290443#0: malloc: 00005555556AD4E0:6144
+2024/12/12 20:13:05 [debug] 290443#0: malloc: 00007FFFF7C71010:229376
+2024/12/12 20:13:05 [debug] 290443#0: malloc: 00005555556C62D0:98304
+2024/12/12 20:13:05 [debug] 290443#0: malloc: 00005555556DE2E0:98304
+2024/12/12 20:13:05 [debug] 290443#0: epoll add event: fd:7 op:1 ev:00002001
+2024/12/12 20:13:05 [debug] 290443#0: worker cycle
+2024/12/12 20:13:05 [debug] 290443#0: epoll timer: -1

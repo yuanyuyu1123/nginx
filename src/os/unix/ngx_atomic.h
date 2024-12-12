@@ -291,7 +291,7 @@ typedef volatile ngx_atomic_uint_t  ngx_atomic_t;
 #define NGX_ATOMIC_T_LEN            (sizeof("-2147483648") - 1)
 
 /*
-ngx_atomic_cmp_set万法会将old参数与原子变量lock的值做比较,如果它们相等,则把lock设为参数set,同时方法返回1；如果它们不相等,则不做任何修改,返回0
+ngx_atomic_cmp_set万法会将old参数与原子变量lock的值做比较,如果它们相等,则把lock设为参数set,同时方法返回1;如果它们不相等,则不做任何修改,返回0
 */
 static ngx_inline ngx_atomic_uint_t
 ngx_atomic_cmp_set(ngx_atomic_t *lock, ngx_atomic_uint_t old,

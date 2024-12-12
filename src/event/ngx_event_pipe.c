@@ -111,9 +111,9 @@ ngx_event_pipe(ngx_event_pipe_t *p, ngx_int_t do_write) {//注意走到这里的
 }
 
 /*
-1.从preread_bufs,free_raw_bufs或者ngx_create_temp_buf寻找一块空闲的或部分空闲的内存；
+1.从preread_bufs,free_raw_bufs或者ngx_create_temp_buf寻找一块空闲的或部分空闲的内存;
 2.调用p->upstream->recv_chain==ngx_readv_chain,用writev的方式读取FCGI的数据,填充chain.
-3.对于整块buf都满了的chain节点调用input_filter(ngx_http_fastcgi_input_filter)进行upstream协议解析,比如FCGI协议,解析后的结果放入p->in里面；
+3.对于整块buf都满了的chain节点调用input_filter(ngx_http_fastcgi_input_filter)进行upstream协议解析,比如FCGI协议,解析后的结果放入p->in里面;
 4.对于没有填充满的buffer节点,放入free_raw_bufs以待下次进入时从后面进行追加.
 5.当然了,如果对端发送完数据FIN了,那就直接调用input_filter处理free_raw_bufs这块数据.
 */
@@ -589,7 +589,7 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
     flushed = 0;
 
     for (;;) {
-        if (p->downstream_error) { //如果客户端连接出错了.drain=排水；流干,
+        if (p->downstream_error) { //如果客户端连接出错了.drain=排水;流干,
             return ngx_event_pipe_drain_chains(p); //清空upstream发过来的,解析过格式后的HTML数据.将其放入free_raw_bufs里面.
         }
         //upstream_eof表示内核缓冲区数据已经读完 如果upstream的连接已经关闭了,或出问题了,或者发送完毕了,那就可以发送了.
@@ -727,7 +727,7 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
                                cl->buf->pos,
                                cl->buf->last - cl->buf->pos);
                 //1.对于在in里面的数据,如果其需要回收;
-                //2.并且又是某一块大FCGI buf的最后一个有效html数据节点；
+                //2.并且又是某一块大FCGI buf的最后一个有效html数据节点;
                 //3.而且当前的没法送的大小大于busy_size, 那就需要回收一下了,因为我们有buffer机制
                 if (cl->buf->recycled && prev_last_shadow) {
                     if (bsize + cl->buf->end - cl->buf->start > p->busy_size) {

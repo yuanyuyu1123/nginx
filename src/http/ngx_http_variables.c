@@ -315,7 +315,7 @@ $remote_user 表示使用Auth Basic Module时定义的用户名
 $request_filename 表示用户请求中的URI经过root或alias转换后的文件路径
 $request_body 表示HTTP请求中的包体,该参数只在proxy_pass或fastcgi_pass中有意义
 $request_body_file 表示HTTP请求中的包体存储的临时文件名
-$request_completion 当请求已经全部完成时,其值为“ok”.若没有完成,就要返回客户端,则其值为空字符串；或者在断点续传等情况下使用HTTP range访问的并不是文件的最后一块,那么其值也是空字符串
+$request_completion 当请求已经全部完成时,其值为“ok”.若没有完成,就要返回客户端,则其值为空字符串;或者在断点续传等情况下使用HTTP range访问的并不是文件的最后一块,那么其值也是空字符串
 $request_method 表示HTTP请求的方法名,如GET、PUT、POST等
 $scheme 表示HTTP scheme,如在请求https://nginx.com/中表示https
 $server_addr 表示服务器地址
@@ -577,16 +577,16 @@ static ngx_uint_t ngx_http_variable_depth = 100;
 /*
 其中name是变量的名称
 flags是变量的标志:
-NGX_HTTP_VAR_CHANGEABLE:允许重复定义；
-NGX_HTTP_VAR_NOCACHEABLE:变量值不可以被缓存,每次使用必须计算；
-NGX_HTTP_VAR_INDEXED:指示变量值存储在数组中,当使用ngx_http_get_variable函数获取变量时不会每次都为变量分配值空间；
+NGX_HTTP_VAR_CHANGEABLE:允许重复定义;
+NGX_HTTP_VAR_NOCACHEABLE:变量值不可以被缓存,每次使用必须计算;
+NGX_HTTP_VAR_INDEXED:指示变量值存储在数组中,当使用ngx_http_get_variable函数获取变量时不会每次都为变量分配值空间;
 NGX_HTTP_VAR_NOHASH:配置解析完以后,变量名不进hash索引,处理请求时不可以用变量名访问变量.
 创建了变量以后,需要设置变量的get_handler和set_handler,以及data.比如map是这样设置的:
     var->get_handler = ngx_http_map_variable;
     var->data = (uintptr_t) map;
 
 变量的get_handler和set_handler体现了两种使用策略,
-get_handler体现的是lazy_handle的策略,只有使用到变量,才会计算变量值；
+get_handler体现的是lazy_handle的策略,只有使用到变量,才会计算变量值;
 set_handler体现的是active_handle的策略,每执行一个请求,都会计算变量值.
 同时设置get_handler和set_handler回调函数是没有意义的,必须根据变量的使用特点,确定使用其中某一种回调函数.一般来说,get_handler更通用一些.
 而这里设置的data将会作为将来调用get_handler或者set_handler的参数.

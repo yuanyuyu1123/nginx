@@ -62,11 +62,11 @@ INADEQUATE_SECURITY (12) : 基础传输包含属性不满足文档或者终端�
 /* settings fields */  /* setting帧组包在ngx_http_v2_send_settings,解析生效判断见ngx_http_v2_state_settings_params */
 #define NGX_HTTP_V2_HEADER_TABLE_SIZE_SETTING    0x1
 #define NGX_HTTP_V2_ENABLE_PUSH_SETTING          0x2
-//发送者允许可打开流的最大值,建议值100,默认可不用设置；0值为禁止创建新流
+//发送者允许可打开流的最大值,建议值100,默认可不用设置;0值为禁止创建新流
 #define NGX_HTTP_V2_MAX_STREAMS_SETTING          0x3
-/* 发送端流控窗口大小,接收到客户端setting中携带有该类型后,需要做流控窗口调整,默认值2^16-1 (65,535)个字节大小；最大值为2^31-1个字节大小,若溢出需要报FLOW_CONTROL_ERROR错误 */
+/* 发送端流控窗口大小,接收到客户端setting中携带有该类型后,需要做流控窗口调整,默认值2^16-1 (65,535)个字节大小;最大值为2^31-1个字节大小,若溢出需要报FLOW_CONTROL_ERROR错误 */
 #define NGX_HTTP_V2_INIT_WINDOW_SIZE_SETTING     0x4
-/* 单帧负载最大值,默认为2^14(16384)个字节,两端所发送帧都会收到此设定影响；值区间为2^14(16384）-2^24-1(16777215)  */
+/* 单帧负载最大值,默认为2^14(16384)个字节,两端所发送帧都会收到此设定影响;值区间为2^14(16384）-2^24-1(16777215)  */
 #define NGX_HTTP_V2_MAX_FRAME_SIZE_SETTING       0x5
 //SETTING帧FRAME_SIZE的取值
 #define NGX_HTTP_V2_FRAME_BUFFER_SIZE            24

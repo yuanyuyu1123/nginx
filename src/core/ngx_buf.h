@@ -24,8 +24,7 @@ typedef struct ngx_buf_s ngx_buf_t; //从内存池中分配ngx_buf_t空间,通�
 ngx_buf_t *b = ngx_create_temp_buf(r->pool, 128);
 分配完内存后,可以向这段内存写入数据.*/
 struct ngx_buf_s { //可以参考ngx_create_temp_buf 函数空间在ngx_create_temp_buf创建,让指针指向这些空间
-    /*pos通常是用来告诉使用者本次应该从pos这个位置开始处理内存中的数据,这样设置是因为同一个ngx_buf_t可能被多次反复处理.
-      当然,pos的含义是由使用它的模块定义的*/
+    /*pos通常是用来告诉使用者本次应该从pos这个位置开始处理内存中的数据,这样设置是因为同一个ngx_buf_t可能被多次反复处理.当然,pos的含义是由使用它的模块定义的*/
     //它的pos成员和last成员指向的地址之间的内存就是接收到的还未解析的字符流
     u_char *pos; //pos指针指向从内存池里分配的内存. pos为已扫描的内存端中,还未解析的内存的尾部
     u_char *last; /*last通常表示有效的内容到此为止,注意,pos与last之间的内存是希望nginx处理的内容*/
@@ -75,7 +74,7 @@ ngx_buf_t结构体指向了同一块内存,它们之间的关系就通过shadow�
     //遇到有flush字段被设置为1的的buf的chain,则该chain的数据即便不是最后结束的数据(last_buf被设置,标志所有要输出的内容都完了),
     //也会进行输出,不会受postpone_output配置的限制,但是会受到发送速率等其他条件的限制.
     //置1了表示该buf需要马上发送出去,参考ngx_http_write_filter -> if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
-    unsigned flush: 1; //标志位,为1时表示需要执行flush操作  标示需要立即发送缓冲的所有数据；
+    unsigned flush: 1; //标志位,为1时表示需要执行flush操作  标示需要立即发送缓冲的所有数据;
     /*标志位,对于操作这块缓冲区时是否使用同步方式,需谨慎考虑,这可能会阻塞Nginx进程,Nginx中所有操作几乎都是异步的,这是
     它支持高并发的关键.有些框架代码在sync为1时可能会有阻塞的方式进行I/O操作,它的意义视使用它的Nginx模块而定*/
     unsigned sync: 1;
@@ -110,7 +109,7 @@ struct ngx_chain_s {
 
 //表示num个size空间大小  如 4 8K,表示4个8K空间,可以参考ngx_conf_set_bufs_slot
 typedef struct { //通过output_buffers命令配置
-    ngx_int_t num; //通过output_buffers命令配置outpu链表的个数
+    ngx_int_t num; //通过output_buffers命令配置output链表的个数
     size_t size;
 } ngx_bufs_t; //proxy_buffers  fastcgi_buffers 4 4K赋值见ngx_event_pipe_read_upstream
 
@@ -123,8 +122,6 @@ typedef void (*ngx_output_chain_aio_pt)(ngx_output_chain_ctx_t *ctx,
                                         ngx_file_t *file);
 
 struct ngx_output_chain_ctx_s { //ngx_http_copy_filter中创建空间和赋值
-    /*ngx_output_chain_copy_bufc中tx->in中的内存数据或者缓存文件数据会拷贝到dst中,也就是ctx->buf,然后在ngx_output_chain_copy_buf函数
-    外层会重新把ctx->buf赋值给新的chain,然后write出去*/
 
     /* 保存临时的buf */
     //实际buf指向的内存空间在ngx_output_chain_align_file_buf或者ngx_output_chain_get_buf 开辟的
@@ -149,13 +146,11 @@ struct ngx_output_chain_ctx_s { //ngx_http_copy_filter中创建空间和赋值
          Ngx_http_gzip_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
          Ngx_http_mp4_module.c (src\http\modules):    b->file->directio = of.is_directio;
          Ngx_http_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
-        只会在上面这几个模块中才有可能置1,因为of.is_directio只有在文件大小大于directio 512配置的大小时才会置1,见ngx_open_and_stat_file中会置1
-     */
+        只会在上面这几个模块中才有可能置1,因为of.is_directio只有在文件大小大于directio 512配置的大小时才会置1,见ngx_open_and_stat_file中会置1*/
+
     /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
        并且文件大小大于directio xxx中的大小才可能置1,见ngx_output_chain_align_file_buf  ngx_output_chain_as_is */
     unsigned directio: 1; /* directio标记 */ //如果没有启用direction的情况下,ngx_output_chain_align_file_buf 中置1
-    /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio;这几个模块,
-        并且文件大小大于directio xxx中的大小 */
     unsigned unaligned: 1; //如果没有启用direction的情况下,则在ngx_output_chain_align_file_buf中置1
     /* 是否需要在内存中保存一份(使用sendfile的话,内存中没有文件的拷贝的,而我们有时需要处理文件,此时就需要设置这个标记) */
     unsigned need_in_memory: 1;
@@ -191,8 +186,7 @@ struct ngx_output_chain_ctx_s { //ngx_http_copy_filter中创建空间和赋值
     //真正判断生效在ngx_output_chain
     ngx_bufs_t bufs; //赋值见ngx_http_upstream_init_request  对应loc_conf中设置的bufs
     ngx_buf_tag_t tag; //标识自己所属的模块,例如参考ngx_http_fastcgi_handler  模块标记,主要用于buf回收
-    /*
-    如果是fastcgi_pass,并且不需要缓存客户端包体,则output_filter=ngx_http_fastcgi_body_output_filter
+    /*如果是fastcgi_pass,并且不需要缓存客户端包体,则output_filter=ngx_http_fastcgi_body_output_filter
     如果是proxy_pass,并且不需要缓存客户端包体,并且internal_chunked ==1,则output_filter=ngx_http_proxy_body_output_filter
     其他情况默认在ngx_http_upstream_init_request设置为ngx_chain_writer*/
     //copy_filter模块的outpu_filter=ngx_http_next_body_filter
@@ -245,10 +239,8 @@ ngx_chain_t *ngx_create_chain_of_bufs(ngx_pool_t *pool, ngx_bufs_t *bufs);
 
 ngx_chain_t *ngx_alloc_chain_link(ngx_pool_t *pool);
 
-/*
-pool 中的 chain 指向一个 ngx_chain_t 数据,其值是由宏 ngx_free_chain 进行赋予的,指向之前用完了的,
-可以释放的ngx_chain_t数据.由函数ngx_alloc_chain_link进行使用.
-*/
+/*pool 中的 chain 指向一个 ngx_chain_t 数据,其值是由宏 ngx_free_chain 进行赋予的,指向之前用完了的,
+可以释放的ngx_chain_t数据.由函数ngx_alloc_chain_link进行使用.*/
 #define ngx_free_chain(pool, cl)                                             \
     (cl)->next = (pool)->chain;                                              \
     (pool)->chain = (cl)

@@ -38,10 +38,10 @@
 ┃                                        ┃result表示这个操作的执行结果        ┃O表示成功                     ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
 ┃                I                       ┃  ctx是文件异步I/O的上下文描述      ┃                              ┃
-┃int io_getevents(aio_context_t ctx,     ┃符；min_nr表示至少要获取mln_ nr个   ┃                              ┃
-┃long min_nr, lon, g nr,                 ┃事件；而nr表示至多获取nr个事件,    ┃  从已经完成的文件异步I/O操   ┃
+┃int io_getevents(aio_context_t ctx,     ┃符;min_nr表示至少要获取mln_ nr个   ┃                              ┃
+┃long min_nr, lon, g nr,                 ┃事件;而nr表示至多获取nr个事件,    ┃  从已经完成的文件异步I/O操   ┃
 ┃struct io  event "*events, struct       ┃它与events数组的个数一般是相同的:  ┃作队列中读取操作              ┃
-┃timespec *timeout)                      ┃events是执行完成的事件数组；tlmeout ┃                              ┃
+┃timespec *timeout)                      ┃events是执行完成的事件数组;tlmeout ┃                              ┃
 ┃         I "                            ┃是超时时间,也就是在获取mm- nr个    ┃                              ┃
 ┃                                        ┃事件前的等待时间                    ┃                              ┃
 ┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -75,7 +75,7 @@ int64 t aio offset;
 u int64七aio reserved2;
     ／+表示可以设置为IOCB FLAG RESFD,它会告诉内核当有异步I/O请求处理完成时使用eventfd进
 行通知,可与epoll配合使用+／
-    u int32七aio_flags；
+    u int32七aio_flags;
 ／／表示当使用IOCB FLAG RESFD标志位时,用于进行事件通知的句柄
 U int32 t aio resfd;
     因此,在设置好iocb结构体后,就可以向异步I/O提交事件了.aio_lio_opcode操作码
@@ -105,12 +105,12 @@ struct io event  {
     ／／与提交事件时对应的iocb结构体中的aio_ data是一致的
     uint64 t  data;
     ／／指向提交事件时对应的iocb结构体
-    uint64_t   obj；
+    uint64_t   obj;
     ／／异步I/O请求的结构.res大于或等于0时表示成功,小于0时表示失败
-    int64一t    res；
+    int64一t    res;
     ／7保留卑段
     int64一七    res2 j
-)；
+);
     这样,根据获取的io—event结构体数组,就可以获得已经完成的异步I/O操作了,特别
 是iocb结构体中的aio data成员和io—event中的data,可用于传递指针,也就是说,业务中
 的数据结构、事件完成后的回调方法都在这里.
@@ -177,7 +177,7 @@ int64 t aio offset;
 u int64七aio reserved2;
     ／+表示可以设置为IOCB FLAG RESFD,它会告诉内核当有异步I/O请求处理完成时使用eventfd进
 行通知,可与epoll配合使用+／
-    u int32七aio_flags；
+    u int32七aio_flags;
 ／／表示当使用IOCB FLAG RESFD标志位时,用于进行事件通知的句柄
 U int32 t aio resfd;
     因此,在设置好iocb结构体后,就可以向异步I/O提交事件了.aio_lio_opcode操作码
@@ -204,12 +204,12 @@ struct io event  {
     ／／与提交事件时对应的iocb结构体中的aio_data是一致的
     uint64 t  data;
     ／／指向提交事件时对应的iocb结构体
-    uint64_t   obj；
+    uint64_t   obj;
     ／／异步I/O请求的结构.res大于或等于0时表示成功,小于0时表示失败
-    int64一t    res；
+    int64一t    res;
     ／7保留卑段
     int64一七    res2 j
-)；
+);
 */
 
 /*

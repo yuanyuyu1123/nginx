@@ -346,7 +346,7 @@ merge_slashes
 语法:merge_slashes on | off;
 默认:merge_slashes on;
 配置块:http、server、location
-此配置项表示是否合并相邻的“/”,例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt；如果配置为off,则不会匹配,URI将仍然是//test///a.txt.
+此配置项表示是否合并相邻的“/”,例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt;如果配置为off,则不会匹配,URI将仍然是//test///a.txt.
 */
         {ngx_string("merge_slashes"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
@@ -650,7 +650,7 @@ HTTP请求包体的最大值
          NULL},
         /*
   读取HTTP包体的超时时间
-  语法:client_body_timeout time(默认单位:秒)；
+  语法:client_body_timeout time(默认单位:秒);
   默认:client_body_timeout 60;
   配置块:http、server、location
   此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效.
@@ -906,7 +906,7 @@ tcp_nopush
         /*
     在元数据操作等小包传送时,发现性能不好,通过调试发现跟socket的TCP_NODELAY有很大关系.
     TCP_NODELAY 和 TCP_CORK,
-    这两个选项都对网络连接的行为具有重要的作用.许多UNIX系统都实现了TCP_NODELAY选项,但是,TCP_CORK则是Linux系统所独有的而且相对较新；它首先在内核版本2.4上得以实现.
+    这两个选项都对网络连接的行为具有重要的作用.许多UNIX系统都实现了TCP_NODELAY选项,但是,TCP_CORK则是Linux系统所独有的而且相对较新;它首先在内核版本2.4上得以实现.
     此外,其他UNIX系统版本也有功能类似的选项,值得注意的是,在某种由BSD派生的系统上的 TCP_NOPUSH选项其实就是TCP_CORK的一部分具体实现.
     TCP_NODELAY和TCP_CORK基本上控制了包的“Nagle化”,Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,
     后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly
@@ -1105,10 +1105,10 @@ HTTP请求中的keepalive功能是为了让多个请求复用一个HTTP长连接
        ┃              ┃  与all相反,参数为any时意味着在NGX—HTTP__ ACCESS—PHASE阶段只要有任意一个           ┃
        ┃              ┃HTTP模块认为请求合法,就不用再调用其他HTTP模块继续检查了,可以认为请求是具有访问      ┃
        ┃              ┃权限的.实际上,这时的情况有些复杂:如果其中任何一个handler方法返回NGX二OK,则认为    ┃
-       ┃              ┃请求具有访问权限；如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
+       ┃              ┃请求具有访问权限;如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
        ┃any           ┃                                                                                      ┃
        ┃              ┃需要检查NGX—HTTP—ACCESS—PHASE阶段的其他handler方法.也就是说,any配置项下任        ┃
-       ┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行；如   ┃
+       ┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行;如   ┃
        ┃              ┃果其中一个handler方法认为没有访问权限,则未必以此为准,还需要检测其他的hanlder方法.  ┃
        ┃              ┃all和any有点像“&&”和“¨”的关系                                                    ┃
        ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -1189,7 +1189,7 @@ lingering_timeout
 默认:lingering_timeout 5s;
 配置块:http、server、location
 lingering_close生效后,在关闭连接前,会检测是否有用户发送的数据到达服务器,如果超过lingering_timeout时间后还没有数据可读,
-就直接关闭连接；否则,必须在读取完连接缓冲区上的数据并丢弃掉后才会关闭连接.
+就直接关闭连接;否则,必须在读取完连接缓冲区上的数据并丢弃掉后才会关闭连接.
 */
         {ngx_string("lingering_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -1654,7 +1654,7 @@ ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
 
     r->connection->log->action = NULL;
     /*
-    检查ngx_http_request_t结构体的internal标志位,如果internal为0,则从头部phase_handler执行；如果internal标志位为1,则表示请求当前需要做内部跳转,
+    检查ngx_http_request_t结构体的internal标志位,如果internal为0,则从头部phase_handler执行;如果internal标志位为1,则表示请求当前需要做内部跳转,
 将要把结构体中的phase_handler序号置为server_rewrite_index.注意ngx_http_phase_engine_t结构体中的handlers动态数组中保存了请求需要经历的所有
 回调方法,而server_rewrite_index则是handlers数组中NGX_HTTP_SERVER_REWRITE_PHASE处理阶段的第一个ngx_http_phase_handler_t回调方法所处的位置.
     究竟handlers数组是怎么使用的呢？事实上,它要配合着ngx_http_request_t结构体的phase_handler序号使用,由phase_handler指定着请求将要执行
@@ -1763,7 +1763,7 @@ ngx_http_core_run_phases(ngx_http_request_t *r) { //执行该请求对于的阶�
 handler方法其实仅能在checker方法中被调用,而且checker方法由HTTP框架实现,所以可以控制各HTTP模块实现的处理方法在不同的阶段中采用不同的调用行为
 ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶段,以及下一阶段应当执行哪个HTTP模块实现的内容.可以看到请求的phase_handler成员
 会被重置,而HTTP框架实现的checker穷法也会修改phase_handler成员的值
-当checker方法的返回值非NGX_OK时,意味着向下执行phase_engine中的各处理方法；反之,当任何一个checker方法返回NGX_OK时,意味着把控制权交还
+当checker方法的返回值非NGX_OK时,意味着向下执行phase_engine中的各处理方法;反之,当任何一个checker方法返回NGX_OK时,意味着把控制权交还
 给Nginx的事件模块,由它根据事件(网络事件、定时器事件、异步I/O事件等)再次调度请求.然而,一个请求多半需要Nginx事件模块多次地调度HTTP模
 块处理,也就是在该函数外设置的读/写事件的回调方法ngx_http_request_handler
 */
@@ -1785,7 +1785,7 @@ ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶�
 ┃              ┃  执行下一个ngx_http_phases阶段中的第一个ngx_http_handler_pt处理方法.这意味着两  ┃
 ┃              ┃点:①即使当前阶段中后续还有一曲HTTP模块设置了ngx_http_handler_pt处理方法,返回   ┃
 ┃NGX_OK        ┃                                                                                  ┃
-┃              ┃NGX_OK之后它们也是得不到执行机会的；②如果下一个ngx_http_phases阶段中没有任何     ┃
+┃              ┃NGX_OK之后它们也是得不到执行机会的;②如果下一个ngx_http_phases阶段中没有任何     ┃
 ┃              ┃HTTP模块设置了ngx_http_handler_pt处理方法,将再次寻找之后的阶段,如此循环下去     ┃
 ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃NGX_DECLINED  ┃  按照顺序执行下一个ngx_http_handler_pt处理方法.这个顺序就是ngx_http_phase_      ┃
@@ -2072,7 +2072,7 @@ ngx_http_core_post_rewrite_phase(ngx_http_request_t *r,
 ┃NGX HTTP FORBIDDEN    ┃  如果在nginx.conf中配置了satisfy any,那么将ngx_http_request_t中的         ┃
 ┃                      ┃access code成员设为返回值,按照顺序执行下一个ngx_http_handler_pt处理方      ┃
 ┣━━━━━━━━━━━┫                                                                            ┃
-┃                      ┃法；如果在nginx.conf中配置了satisfy all,那么调用ngx_http_finalize_request  ┃
+┃                      ┃法;如果在nginx.conf中配置了satisfy all,那么调用ngx_http_finalize_request  ┃
 ┃NGX HTTP UNAUTHORIZED ┃                                                                            ┃
 ┃                      ┃结束请求                                                                    ┃
 ┣━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -2144,10 +2144,10 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
 ┃              ┃  与all相反,参数为any时意味着在NGX—HTTP__ ACCESS—PHASE阶段只要有任意一个           ┃
 ┃              ┃HTTP模块认为请求合法,就不用再调用其他HTTP模块继续检查了,可以认为请求是具有访问      ┃
 ┃              ┃权限的.实际上,这时的情况有些复杂:如果其中任何一个handler方法返回NGX二OK,则认为    ┃
-┃              ┃请求具有访问权限；如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
+┃              ┃请求具有访问权限;如果某一个handler方法返回403戎者401,则认为请求没有访问权限,还     ┃
 ┃any           ┃                                                                                      ┃
 ┃              ┃需要检查NGX—HTTP—ACCESS—PHASE阶段的其他handler方法.也就是说,any配置项下任        ┃
-┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行；如   ┃
+┃              ┃何一个handler方法一旦认为请求具有访问权限,就认为这一阶段执行成功,继续向下执行;如   ┃
 ┃              ┃果其中一个handler方法认为没有访问权限,则未必以此为准,还需要检测其他的hanlder方法.  ┃
 ┃              ┃all和any有点像“&&”和“¨”的关系                                                    ┃
 ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
@@ -2312,7 +2312,7 @@ ngx_http_handler_pt处理方法.这样做的好处是,ngx_http_handler_pt处理�
 (也就是mytest配置项所在的location)才会被调用.
     这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
 段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
-向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法；反之,如果希望这个方式
+向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
 仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t
 结构体的handler中.
     注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,
@@ -2324,7 +2324,7 @@ handler指针的方式优先级更高,而第一种方式设置的ngx_http_handle
 NGX_HTTP_CONTENT_PHASE阶段的checker方法是ngx_http_core_content_phase.ngx_http_handler_pt处理方法的返回值在以上两种方式下具备了不同意义.
     在第一种方式下,ngx_http_handler_pt处理方法无论返回任何值,都会直接调用ngx_http_finalize_request方法结束请求.当然,
 ngx_http_finalize_request方法根据返回值的不同未必会直接结束请求,这在第11章中会详细介绍.
-    在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法；如果返回其他值,
+    在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法;如果返回其他值,
 则调用ngx_http_finalize_request方法结束请求.
 */ //所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
@@ -3521,13 +3521,13 @@ DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->da
     (5)  ngx_http_post_subrequest_t *ps
     ngx_http_post_subrequest_t结构体地址,它指出子请求结束时必须回调的处理方法.
     (6) ngx_uint_t flags
-        flag的取值范围包括:①0在没有特殊需求的情况下都应该填写它；②NGX_HTTP_SUBREQUEST_IN_MEMORY.
+        flag的取值范围包括:①0在没有特殊需求的情况下都应该填写它;②NGX_HTTP_SUBREQUEST_IN_MEMORY.
     这个宏会将子请求的subrequest_in_memory标志位置为1,这意味着如果子请求使用upstream访问上游服务器,
-    那么上游服务器的响应都将会在内存中处理；③NGX_HTTP_SUBREQUEST_WAITED.这个宏会将子请求的waited标志位置为1,
+    那么上游服务器的响应都将会在内存中处理;③NGX_HTTP_SUBREQUEST_WAITED.这个宏会将子请求的waited标志位置为1,
     当子请求提前结束时,有个done标志位会置为1,但目前HTTP框架并没有针对这两个标志位做任何实质性处理.注意,
     flag是按比特位操作的,这样可以同时含有上述3个值.
     (7)返回值
-    返回NGX OK表示成功建立子请求；返回NGX_ERROR表示建立子请求失败.
+    返回NGX OK表示成功建立子请求;返回NGX_ERROR表示建立子请求失败.
     该函数主要是创建一个子请求结构ngx_http_request_t,然后把父请求r的相关值赋给子请求r
 */
 ngx_int_t
@@ -3637,7 +3637,7 @@ ngx_http_subrequest(ngx_http_request_t *r,
     sr->main = r->main;
     sr->parent = r;
     sr->post_subrequest = ps; /* 保存回调handler及数据,在子请求执行完,将会调用 */
- /* 读事件handler赋值为不做任何事的函数,因为子请求不用再读数据或者检查连接状态；
+ /* 读事件handler赋值为不做任何事的函数,因为子请求不用再读数据或者检查连接状态;
        写事件handler为ngx_http_handler,它会重走phase */
     sr->read_event_handler = ngx_http_request_empty_handler;
     sr->write_event_handler = ngx_http_handler;
@@ -4594,7 +4594,7 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图�
     = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
     普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
     ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-    最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+    最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 
     location 优先级官方文档
 

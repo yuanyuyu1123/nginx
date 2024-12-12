@@ -317,8 +317,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     }
     /*
  首先检查连接上写事件的标志位delayed,如果delayed为1,则表示这一次的epoll调度中请求仍需要减速,是不可以发送响应的,delayed为1
- 指明了响应需要延迟发送；如果delayed为0,表示本次不需要减速,那么再检查ngx_http_request_t结构体中的limit_rate
- 发送响应的速率,如果limit_rate为0,表示这个请求不需要限制发送速度；如果limit rate大干0,则说明发送响应的速度不能超过limit_rate指定的速度.
+ 指明了响应需要延迟发送;如果delayed为0,表示本次不需要减速,那么再检查ngx_http_request_t结构体中的limit_rate
+ 发送响应的速率,如果limit_rate为0,表示这个请求不需要限制发送速度;如果limit rate大干0,则说明发送响应的速度不能超过limit_rate指定的速度.
  */
     if (c->write->delayed) { //在后面的限速中置1
         //将客户端对应的buffered标志位放上NGX_HTTP_WRITE_BUFFERED宏,同时返回NGX AGAIN,这是在告诉HTTP框架out缓冲区中还有响应等待发送.
@@ -366,7 +366,7 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
         /*
    ngx_time()方法,它取出了当前时间,而start sec表示开始接收到客户端请求内容的时间,c->sent表示这条连接上已经发送了的HTTP响
    应长度,这样计算出的变量limit就表示本次可以发送的字节数了.如果limit小于或等于0,它表示这个连接上的发送响应速度已经超出
-   了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行；如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应.
+   了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行;如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应.
      */
         limit = (off_t) r->limit_rate * (ngx_time() - r->start_sec + 1)
                 - (c->sent - r->limit_rate_after); //实际上这发送过程中就比实际的limit_rate多发送limit_rate_after,也就是先发送limit_rate_after后才开始计算是否超速了
@@ -450,7 +450,7 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     }
     /*
     重置ngx_http_request_t结构体的out缓冲区,把已经发送成功的缓冲区归还给内存池.如果out链表中还有剩余的没有发送出去的缓冲区,
-    则添加到out链表头部；如果已经将out链表中的所有缓冲区都发送给客户端了,则r->out链上为空
+    则添加到out链表头部;如果已经将out链表中的所有缓冲区都发送给客户端了,则r->out链上为空
     */
     for (cl = r->out; cl && cl != chain; /* void */) {  //chain为r->out中还未发送的数据不符
         ln = cl;

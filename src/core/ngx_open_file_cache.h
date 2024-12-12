@@ -65,7 +65,7 @@ Ngx_http_script.c (src\http):    of.test_only = 1;
     unsigned is_link: 1;
     unsigned is_exec: 1;
     //注意这里如果文件大小大于direction设置,则置1,后面会使能direct I/O方式,生效见ngx_directio_on
-    unsigned is_directio: 1; //当文件大小大于directio xxx；中的配置时ngx_open_and_stat_file中会置1
+    unsigned is_directio: 1; //当文件大小大于directio xxx;中的配置时ngx_open_and_stat_file中会置1
     ngx_event_t *event;
 } ngx_open_file_info_t;
 

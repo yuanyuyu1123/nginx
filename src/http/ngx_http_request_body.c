@@ -100,7 +100,7 @@ ngx_http_read_client_request_body(ngx_http_request_t *r,
     //因为执行该函数一般都是向后端转发,例如可以参考ngx_http_read_client_request_body(r, ngx_http_upstream_init);,在ngx_http_upstream_init没有执行count++操作,实际上在这里
 
     /*
-  检查请求ngx_http_request_t结构体中的request_body成员,如果它已经被分配过了,证明已经读取过HTTP包体了,不需要再次读取一遍；
+  检查请求ngx_http_request_t结构体中的request_body成员,如果它已经被分配过了,证明已经读取过HTTP包体了,不需要再次读取一遍;
 再检查请求ngx_http_request_t结构体中的discard_body标志位,如果discard_body为1,则证明曾经执行过丢弃包体的方法,现在包体正在被丢弃中.
 只有这两个条件都不满足,才说明真正需要接收HTTP包体.
    */
@@ -410,7 +410,7 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
 
         for (;;) {
             /*
-             首先检查请求的request_body成员中的buf缓冲区,如果缓冲区还有空闲的空间,则跳过该if{}去读取内核中套接字缓冲区里的TCP字符流；
+             首先检查请求的request_body成员中的buf缓冲区,如果缓冲区还有空闲的空间,则跳过该if{}去读取内核中套接字缓冲区里的TCP字符流;
              如果缓冲区已经写满,则调用ngx_http_write_request_body方法把缓冲区中的字符流写入文件.不管有没有配置request_body_in_file_only置1
               */
             if (rb->rest == 0) {
@@ -794,7 +794,7 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
     ngx_event_t *rev;
     /*
      首先检查当前请求是一个子请求还是原始请求.为什么要检查这个呢？因为对于子请求而言,它不是来自客户端的请求,所以不存在处理HTTP
-     请求包体的概念.如果当前请求是原始请求,则继续执行；如果它是子请求,则直接返回NGX_OK表示丢弃包体成功.检查ngx_http_request_t结构
+     请求包体的概念.如果当前请求是原始请求,则继续执行;如果它是子请求,则直接返回NGX_OK表示丢弃包体成功.检查ngx_http_request_t结构
      体的request_body成员,如果它已经被赋值过且不再为NULL空指针,则说明已经接收过包体了,这时也需要返回NGX_OK表示成功.
      */
     if (r != r->main || r->discard_body || r->request_body) {

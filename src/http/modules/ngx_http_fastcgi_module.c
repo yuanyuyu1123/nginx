@@ -1122,7 +1122,7 @@ ngx_http_fastcgi_eval(ngx_http_request_t *r, ngx_http_fastcgi_loc_conf_t *flcf) 
 
     url.no_resolve = 1;
 
-    if (ngx_parse_url(r->pool, &url) != NGX_OK) { //对u参数里面的url,unix,inet6等地址进行简析；
+    if (ngx_parse_url(r->pool, &url) != NGX_OK) { //对u参数里面的url,unix,inet6等地址进行简析;
         if (url.err) {
             ngx_log_error(NGX_LOG_ERR, r->connection->log, 0,
                           "%s in upstream \"%V\"", url.err, &url.url);
@@ -1292,7 +1292,7 @@ ngx_http_fastcgi_create_request(ngx_http_request_t *r) { //ngx_http_upstream_ini
 #endif
 
     //和ngx_http_fastcgi_init_params配合阅读 //ngx_http_fastcgi_create_request和ngx_http_fastcgi_init_params配对阅读
-    if (params->lengths) { //获取fastcgi_params配置的所有变量长度,也就是所有的fastcgi_params key value；中的key字符串长度,如果有多个配置,则是多个key之和
+    if (params->lengths) { //获取fastcgi_params配置的所有变量长度,也就是所有的fastcgi_params key value;中的key字符串长度,如果有多个配置,则是多个key之和
         ngx_memzero(&le, sizeof(ngx_http_script_engine_t));
 
         ngx_http_script_flush_no_cacheable_variables(r, params->flushes);

@@ -126,12 +126,12 @@ typedef struct { //ngx_http_upstream_srv_conf_s->servers[]中的成员   创建�
 } ngx_http_upstream_server_t;
 
 /*
- l  NGX_HTTP_UPSTREAM_CREATE:创建标志,如果含有创建标志的话,nginx会检查重复创建,以及必要参数是否填写；
-l  NGX_HTTP_UPSTREAM_MAX_FAILS:可以在server中使用max_fails属性；
-l  NGX_HTTP_UPSTREAM_FAIL_TIMEOUT:可以在server中使用fail_timeout属性；
-l  NGX_HTTP_UPSTREAM_DOWN:可以在server中使用down属性；
+ l  NGX_HTTP_UPSTREAM_CREATE:创建标志,如果含有创建标志的话,nginx会检查重复创建,以及必要参数是否填写;
+l  NGX_HTTP_UPSTREAM_MAX_FAILS:可以在server中使用max_fails属性;
+l  NGX_HTTP_UPSTREAM_FAIL_TIMEOUT:可以在server中使用fail_timeout属性;
+l  NGX_HTTP_UPSTREAM_DOWN:可以在server中使用down属性;
 此外还有下面属性:
-l  NGX_HTTP_UPSTREAM_WEIGHT:可以在server中使用weight属性；
+l  NGX_HTTP_UPSTREAM_WEIGHT:可以在server中使用weight属性;
 l  NGX_HTTP_UPSTREAM_BACKUP:可以在server中使用backup属性.
 */
 #define NGX_HTTP_UPSTREAM_CREATE        0x0001
@@ -257,7 +257,7 @@ store_access表示所创建的目录、文件的权限
     ngx_uint_t                       next_upstream_tries;
 /*
 决定转发响应方式的标志位,buffering为1时表示打开缓存,这时认为上游的网速快于下游的网速,会尽量地在内存或者磁盘中缓存来自上游的
-响应；如果buffering为0,仅会开辟一块固定大小的内存块作为缓存来转发响应
+响应;如果buffering为0,仅会开辟一块固定大小的内存块作为缓存来转发响应
 */ //默认为1  request_buffering是否缓存客户端到后端的包体  buffering是否缓存后端到客户端浏览器的包体
     ngx_flag_t                       buffering; //见xxx_buffering如fastcgi_buffering  是否换成后端服务器应答回来的包体
     //默认1  request_buffering是否缓存客户端到后端的包体  buffering是否缓存后端到客户端浏览器的包体
@@ -313,7 +313,7 @@ ngx_http_upstream_hide_headers hash方法来初始化hide_headers,但仅可用�
     ngx_shm_zone_t                  *cache_zone; //如果只设置xxx_cache abc(proxy fascgi_cache)则,ngx_shm_zone_t->data为NULL,必须xxx_cache_path再次设置下该abc,否则会出错
 //如果proxy_cache xxx$ss配置中带有变量等则配置的value字符串保存在cache_value中,见ngx_http_proxy_cache
     ngx_http_complex_value_t        *cache_value; //依赖proxy_cache_path 见ngx_http_upstream_cache_get
-    //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存；
+    //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存;
     ngx_uint_t                       cache_min_uses; //cache_min_uses
     //nginx何时从代理缓存中提供一个过期的响应,可以配合ngx_http_upstream_cache阅读
     /*
@@ -506,9 +506,9 @@ typedef void (*ngx_http_upstream_handler_pt)(ngx_http_request_t *r,
 upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉
 upstream使用哪一种方式处理上游的响应包体呢？当请求的ngx_http_request_t结构体中
 subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体
-到下游,由HTTP模块实现的input_filter方法处理包体；当subrequest_in_memory为0时,
+到下游,由HTTP模块实现的input_filter方法处理包体;当subrequest_in_memory为0时,
 upstream会转发响应包体.当ngx_http_upstream_conf t配置结构体中的buffering标志位为1
-畸,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；当buffering
+畸,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;当buffering
 为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
     注意  上述的8个回调方法中,只有create_request、process_header、finalize_request
 是必须实现的,其余5个回调方法-input_filter init、input_filter、reinit_request、abort
@@ -586,8 +586,8 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
     /*
     buffer成员存储接收自上游服务器发来的响应内容,由于它会被复用,所以具有下列多种意义:
     a)在使用process_header方法解析上游响应的包头时,buffer中将会保存完整的响应包头:
-    b)当下面的buffering成员为1,而且此时upstream是向下游转发上游的包体时,buffer没有意义；
-    c)当buffering标志住为0时,buffer缓冲区会被用于反复地接收上游的包体,进而向下游转发；
+    b)当下面的buffering成员为1,而且此时upstream是向下游转发上游的包体时,buffer没有意义;
+    c)当buffering标志住为0时,buffer缓冲区会被用于反复地接收上游的包体,进而向下游转发;
     d)当upstream并不用于转发上游包体时,buffer会被用于反复接收上游的包体,HTTP模块实现的input_filter方法需要关注它
     接收上游服务器响应包头的缓冲区,在不需要把响应直接转发给客户端,或者buffering标志位为0的情况下转发包体时,接收包体的缓冲
 区仍然使用buffer.注意,如果没有自定义input_filter方法处理包体,将会使用buffer存储全部的包体,这时buf fer必须足够大！它的大小
@@ -804,9 +804,9 @@ ngx_http_upstream_process_headers方法将会最终调用rewrite_redirect方法
     /*
   upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
   当请求的ngx_http_request_t结构体中subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体到下游,由HTTP模
-      块实现的input_filter方法处理包体；
+      块实现的input_filter方法处理包体;
   当subrequest_in_memory为0时,upstream会转发响应包体.
-  当ngx_http_upstream_conf t配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；
+  当ngx_http_upstream_conf t配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;
       会先buffer后端FCGI发过来的数据,等达到一定量(比如buffer满)再传送给最终客户端
   当buffering为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
 
@@ -820,7 +820,7 @@ ngx_http_upstream_process_headers方法将会最终调用rewrite_redirect方法
     /*
      如果开启缓冲,那么Nginx将尽可能多地读取后端服务器的响应数据,等达到一定量(比如buffer满)再传送给最终客户端.如果关闭,
      那么Nginx对数据的中转就是一个同步的过程,即从后端服务器接收到响应数据就立即将其发送给客户端.
-     buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；当buffering
+     buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;当buffering
      为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
      */ //buffering方式和非buffering方式在函数ngx_http_upstream_send_response分叉
     //见xxx_buffering如fastcgi_buffering  proxy_buffering  是否缓存后端服务器应答回来的包体

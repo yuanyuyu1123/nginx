@@ -964,7 +964,7 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
 #if (NGX_HTTP_SSL)
         u->ssl_name = u->resolved->host;
 #endif
-        //下面开始查找域名,因为fcgi_pass后面不是ip:port,而是url；
+        //下面开始查找域名,因为fcgi_pass后面不是ip:port,而是url;
         host = &u->resolved->host; //获取host信息.
         // 接下来就要开始查找域名
         umcf = ngx_http_get_module_main_conf(r, ngx_http_upstream_module);
@@ -1141,7 +1141,7 @@ ngx_http_upstream_cache(ngx_http_request_t *r, ngx_http_upstream_t *u) {
         c = r->cache;
         /* 后续会进行调整 */
         c->body_start = u->conf->buffer_size; //xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)
-        c->min_uses = u->conf->cache_min_uses; //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存；
+        c->min_uses = u->conf->cache_min_uses; //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存;
         c->file_cache = cache;
         /*
           根据配置文件中 ( fastcgi_cache_bypass ) 缓存绕过条件和请求信息,判断是否应该
@@ -1610,7 +1610,7 @@ ngx_http_upstream_handler(ngx_event_t *ev) {
         ev->delayed = 0;
         ev->timedout = 0;
     }
-    //当ev为ngx_connection_t->write 默认write为1；当ev为ngx_connection_t->read 默认write为0
+    //当ev为ngx_connection_t->write 默认write为1;当ev为ngx_connection_t->read 默认write为0
     if (ev->write) { //说明是c->write事件
         u->write_event_handler(r, u); //ngx_http_upstream_send_request_handler
 
@@ -1888,7 +1888,7 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
                    "http upstream connect: %i", rc);
 
     if (rc == NGX_ERROR) {
-        //若 rc = NGX_ERROR,表示发起连接失败,则调用ngx_http_upstream_finalize_request 方法关闭连接请求,并 return 从当前函数返回；
+        //若 rc = NGX_ERROR,表示发起连接失败,则调用ngx_http_upstream_finalize_request 方法关闭连接请求,并 return 从当前函数返回;
         ngx_http_upstream_finalize_request(r, u,
                                            NGX_HTTP_INTERNAL_SERVER_ERROR);
         return;
@@ -1897,14 +1897,14 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     u->state->peer = u->peer.name;
 
     if (rc == NGX_BUSY) {
-        //若 rc = NGX_BUSY,表示当前上游服务器处于不活跃状态,则调用 ngx_http_upstream_next 方法根据传入的参数尝试重新发起连接请求,并 return 从当前函数返回；
+        //若 rc = NGX_BUSY,表示当前上游服务器处于不活跃状态,则调用 ngx_http_upstream_next 方法根据传入的参数尝试重新发起连接请求,并 return 从当前函数返回;
         ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "no live upstreams");
         ngx_http_upstream_next(r, u, NGX_HTTP_UPSTREAM_FT_NOLIVE);
         return;
     }
 
     if (rc == NGX_DECLINED) {
-        //若 rc = NGX_DECLINED,表示当前上游服务器负载过重,则调用 ngx_http_upstream_next 方法尝试与其他上游服务器建立连接,并 return 从当前函数返回；
+        //若 rc = NGX_DECLINED,表示当前上游服务器负载过重,则调用 ngx_http_upstream_next 方法尝试与其他上游服务器建立连接,并 return 从当前函数返回;
         ngx_http_upstream_next(r, u, NGX_HTTP_UPSTREAM_FT_ERROR);
         return;
     }
@@ -1919,7 +1919,7 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     /*
 设置上游连接 ngx_connection_t 结构体的读事件、写事件的回调方法 handler 都为 ngx_http_upstream_handler,设置 ngx_http_upstream_t
 结构体的写事件 write_event_handler 的回调为 ngx_http_upstream_send_request_handler,读事件 read_event_handler 的回调方法为
-ngx_http_upstream_process_header；
+ngx_http_upstream_process_header;
 */
     c->write->handler = ngx_http_upstream_handler;
     c->read->handler = ngx_http_upstream_handler;
@@ -2037,7 +2037,7 @@ ngx_http_upstream_process_header；
           */
         /*
           若 rc = NGX_AGAIN,表示当前已经发起连接,但是没有收到上游服务器的确认应答报文,即上游连接的写事件不可写,则需调用 ngx_add_timer
-          方法将上游连接的写事件添加到定时器中,管理超时确认应答；
+          方法将上游连接的写事件添加到定时器中,管理超时确认应答;
 
           这一步处理非阻塞的连接尚未成功建立时的动作.实际上,在ngx_event_connect_peer中,套接字已经加入到epoll中监控了,因此,
           这一步将调用ngx_add_timer方法把写事件添加到定时器中,超时时间为ngx_http_upstream_conf_t结构体中的connect_timeout
@@ -2046,7 +2046,7 @@ ngx_http_upstream_process_header；
         ngx_add_timer(c->write, u->conf->connect_timeout);
         return; //大部分情况通过这里返回,然后通过ngx_http_upstream_send_request_handler来执行epoll write事件
     }
-//若 rc = NGX_OK,表示成功建立连接,则调用 ngx_http_upsream_send_request 方法向上游服务器发送请求；
+//若 rc = NGX_OK,表示成功建立连接,则调用 ngx_http_upsream_send_request 方法向上游服务器发送请求;
 #if (NGX_HTTP_SSL)
 
     if (u->ssl && c->ssl == NULL) {
@@ -2476,7 +2476,7 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
 
     if (rc == NGX_ERROR) {
         /*  若返回值rc=NGX_ERROR,表示当前连接上出错, 将错误信息传递给ngx_http_upstream_next方法, 该方法根据错误信息决定
-       是否重新向上游其他服务器发起连接； 并return从当前函数返回； */
+       是否重新向上游其他服务器发起连接; 并return从当前函数返回; */
         ngx_http_upstream_next(r, u, NGX_HTTP_UPSTREAM_FT_ERROR);
         return;
     }
@@ -2487,7 +2487,7 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
     }
     /*
         若返回值rc = NGX_AGAIN,表示请求数据并未完全发送, 即有剩余的请求数据保存在output中,但此时,写事件已经不可写,
-        则调用ngx_add_timer方法把当前连接上的写事件添加到定时器机制, 并调用ngx_handle_write_event方法将写事件注册到epoll事件机制中；
+        则调用ngx_add_timer方法把当前连接上的写事件添加到定时器机制, 并调用ngx_handle_write_event方法将写事件注册到epoll事件机制中;
     */ //通过ngx_http_upstream_read_request_handler进行再次epoll write
     if (rc == NGX_AGAIN) { //协议栈缓冲区已满,需要等待发送数据出去后出发epoll可写,从而继续write
         if (!c->write->ready || u->request_body_blocked) {
@@ -2569,7 +2569,7 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
           */
         ngx_del_timer(c->write);
     }
-    /* 若返回值 rc = NGX_OK,表示已经发送完全部请求数据, 准备接收来自上游服务器的响应报文,则执行以下程序；  */
+    /* 若返回值 rc = NGX_OK,表示已经发送完全部请求数据, 准备接收来自上游服务器的响应报文,则执行以下程序;  */
     if (c->tcp_nopush == NGX_TCP_NOPUSH_SET) {
         if (ngx_tcp_push(c->fd) == -1) {
             ngx_log_error(NGX_LOG_CRIT, c->log, ngx_socket_errno,
@@ -4161,7 +4161,7 @@ ngx_http_upstream_process_non_buffered_request(ngx_http_request_t *r,
                     return;
                 }
                 //就是把ngx_http_output_filter调用后未发送完毕的数据buf添加到busy_bufs中,如果下次再次调用ngx_http_output_filter后把busy_bufs中上一次没有发送完的发送出去了,则把对应的buf移除添加到free中
-                //下面将out_bufs的元素移动到busy_bufs的后面；将已经发送完毕的busy_bufs链表元素移动到free_bufs里面
+                //下面将out_bufs的元素移动到busy_bufs的后面;将已经发送完毕的busy_bufs链表元素移动到free_bufs里面
                 ngx_chain_update_chains(r->pool, &u->free_bufs, &u->busy_bufs,
                                         &u->out_bufs, u->output.tag);
             }

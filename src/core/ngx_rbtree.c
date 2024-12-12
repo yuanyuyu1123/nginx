@@ -27,22 +27,22 @@ static ngx_inline void ngx_rbtree_right_rotate(ngx_rbtree_node_t **root,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃数据节点的关键字都是唯一的,  ┃
-┃ngx_rbtree_node_t *node,            ┃的指针；sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
+┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃时哨兵节点的指针                      ┃的问题                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针；node是      ┃                              ┃
+┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针;node是      ┃                              ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃  向红黑树添加数据节点,每个  ┃
 ┃ngx_rbtree_node_t *node,            ┃的指针,它对应的关键字是时间或者      ┃数据节点的关键字表示时间戎者  ┃
-┃                                    ┃时间差,可能是负数；sentinel是这棵    ┃时间差                        ┃
+┃                                    ┃时间差,可能是负数;sentinel是这棵    ┃时间差                        ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃红黑树初始化时的哨兵节点              ┃                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *temp,           ┃待添加元素的ngx_str_node_t成员的      ┃数据节点的关键字可以不是唯一  ┃
 ┃ngx_rbtree_node_t *node,            ┃指针(ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
-┃                                    ┃化为ngx_str_node_t类型)；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
+┃                                    ┃化为ngx_str_node_t类型);sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
 ┃ngx_rbtree_node t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃这棵红黑树初始化时哨兵节点的指针      ┃结构体的str成员中             ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -56,16 +56,16 @@ static ngx_inline void ngx_rbtree_right_rotate(ngx_rbtree_node_t **root,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                    ┃    执行意义                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  tree是红黑树容器的指针；s是   ┃  初始化红黑树,包括初始化根节      ┃
-┃                                    ┃哨兵节点的指针；i是ngx_rbtree_  ┃                                    ┃
+┃                                    ┃  tree是红黑树容器的指针;s是   ┃  初始化红黑树,包括初始化根节      ┃
+┃                                    ┃哨兵节点的指针;i是ngx_rbtree_  ┃                                    ┃
 ┃ngx_rbtree_init(tree, s, i)         ┃                                ┃点、哨兵节点、ngx_rbtree_insert_pt  ┃
 ┃                                    ┃insert_pt类型的节点添加方法,具 ┃节点添加方法                        ┃
 ┃                                    ┃体见表7-4                       ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  向红黑树中添加节点,该方法会      ┃
+┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  向红黑树中添加节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是需要添加到红黑树的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  从红黑树中删除节点,该方法会      ┃
+┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  从红黑树中删除节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是红黑树中需要删除的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
     在初始化红黑树时,需要先分配好保存红黑树的ngx_rbtree_t结构体,以及ngx_rbtree_
@@ -97,7 +97,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 ┃                                 I  ┃nodej类型的节点指针               ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_rbtree_node_t *                 ┃  node是红黑树中ngx_rbtree_node_  ┃                                      ┃
-┃ngx_rbtree_min                      ┃t类型的节点指针；sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
+┃ngx_rbtree_min                      ┃t类型的节点指针;sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
 ┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃(按照key关键字)                     ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                  ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
@@ -231,22 +231,22 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node) {
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃数据节点的关键字都是唯一的,  ┃
-┃ngx_rbtree_node_t *node,            ┃的指针；sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
+┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃时哨兵节点的指针                      ┃的问题                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针；node是      ┃                              ┃
+┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针;node是      ┃                              ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃  向红黑树添加数据节点,每个  ┃
 ┃ngx_rbtree_node_t *node,            ┃的指针,它对应的关键字是时间或者      ┃数据节点的关键字表示时间戎者  ┃
-┃                                    ┃时间差,可能是负数；sentinel是这棵    ┃时间差                        ┃
+┃                                    ┃时间差,可能是负数;sentinel是这棵    ┃时间差                        ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃红黑树初始化时的哨兵节点              ┃                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *temp,           ┃待添加元素的ngx_str_node_t成员的      ┃数据节点的关键字可以不是唯一  ┃
 ┃ngx_rbtree_node_t *node,            ┃指针(ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
-┃                                    ┃化为ngx_str_node_t类型)；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
+┃                                    ┃化为ngx_str_node_t类型);sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
 ┃ngx_rbtree_node t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃这棵红黑树初始化时哨兵节点的指针      ┃结构体的str成员中             ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -260,16 +260,16 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node) {
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                    ┃    执行意义                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  tree是红黑树容器的指针；s是   ┃  初始化红黑树,包括初始化根节      ┃
-┃                                    ┃哨兵节点的指针；i是ngx_rbtree_  ┃                                    ┃
+┃                                    ┃  tree是红黑树容器的指针;s是   ┃  初始化红黑树,包括初始化根节      ┃
+┃                                    ┃哨兵节点的指针;i是ngx_rbtree_  ┃                                    ┃
 ┃ngx_rbtree_init(tree, s, i)         ┃                                ┃点、哨兵节点、ngx_rbtree_insert_pt  ┃
 ┃                                    ┃insert_pt类型的节点添加方法,具 ┃节点添加方法                        ┃
 ┃                                    ┃体见表7-4                       ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  向红黑树中添加节点,该方法会      ┃
+┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  向红黑树中添加节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是需要添加到红黑树的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  从红黑树中删除节点,该方法会      ┃
+┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  从红黑树中删除节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是红黑树中需要删除的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
     在初始化红黑树时,需要先分配好保存红黑树的ngx_rbtree_t结构体,以及ngx_rbtree_
@@ -299,7 +299,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 ┃                                 I  ┃nodej类型的节点指针               ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_rbtree_node_t *                 ┃  node是红黑树中ngx_rbtree_node_  ┃                                      ┃
-┃ngx_rbtree_min                      ┃t类型的节点指针；sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
+┃ngx_rbtree_min                      ┃t类型的节点指针;sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
 ┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃(按照key关键字)                     ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                  ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
@@ -387,22 +387,22 @@ ngx_rbtree_insert_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃数据节点的关键字都是唯一的,  ┃
-┃ngx_rbtree_node_t *node,            ┃的指针；sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
+┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃时哨兵节点的指针                      ┃的问题                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针；node是      ┃                              ┃
+┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针;node是      ┃                              ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃  向红黑树添加数据节点,每个  ┃
 ┃ngx_rbtree_node_t *node,            ┃的指针,它对应的关键字是时间或者      ┃数据节点的关键字表示时间戎者  ┃
-┃                                    ┃时间差,可能是负数；sentinel是这棵    ┃时间差                        ┃
+┃                                    ┃时间差,可能是负数;sentinel是这棵    ┃时间差                        ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃红黑树初始化时的哨兵节点              ┃                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *temp,           ┃待添加元素的ngx_str_node_t成员的      ┃数据节点的关键字可以不是唯一  ┃
 ┃ngx_rbtree_node_t *node,            ┃指针(ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
-┃                                    ┃化为ngx_str_node_t类型）；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
+┃                                    ┃化为ngx_str_node_t类型）;sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
 ┃ngx_rbtree_node t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃这棵红黑树初始化时哨兵节点的指针      ┃结构体的str成员中             ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -416,16 +416,16 @@ ngx_rbtree_insert_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                    ┃    执行意义                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  tree是红黑树容器的指针；s是   ┃  初始化红黑树,包括初始化根节      ┃
-┃                                    ┃哨兵节点的指针；i是ngx_rbtree_  ┃                                    ┃
+┃                                    ┃  tree是红黑树容器的指针;s是   ┃  初始化红黑树,包括初始化根节      ┃
+┃                                    ┃哨兵节点的指针;i是ngx_rbtree_  ┃                                    ┃
 ┃ngx_rbtree_init(tree, s, i)         ┃                                ┃点、哨兵节点、ngx_rbtree_insert_pt  ┃
 ┃                                    ┃insert_pt类型的节点添加方法,具 ┃节点添加方法                        ┃
 ┃                                    ┃体见表7-4                       ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  向红黑树中添加节点,该方法会      ┃
+┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  向红黑树中添加节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是需要添加到红黑树的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  从红黑树中删除节点,该方法会      ┃
+┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  从红黑树中删除节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是红黑树中需要删除的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
     在初始化红黑树时,需要先分配好保存红黑树的ngx_rbtree_t结构体,以及ngx_rbtree_
@@ -455,7 +455,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 ┃                                 I  ┃nodej类型的节点指针               ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_rbtree_node_t *                 ┃  node是红黑树中ngx_rbtree_node_  ┃                                      ┃
-┃ngx_rbtree_min                      ┃t类型的节点指针；sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
+┃ngx_rbtree_min                      ┃t类型的节点指针;sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
 ┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃(按照key关键字）                     ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                  ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
@@ -555,22 +555,22 @@ ngx_rbtree_insert_timer_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃数据节点的关键字都是唯一的,  ┃
-┃ngx_rbtree_node_t *node,            ┃的指针；sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
+┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃时哨兵节点的指针                      ┃的问题                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针；node是      ┃                              ┃
+┃void ngx_rbtree_insert_timer_value  ┃  root是红黑树容器的指针;node是      ┃                              ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃  向红黑树添加数据节点,每个  ┃
 ┃ngx_rbtree_node_t *node,            ┃的指针,它对应的关键字是时间或者      ┃数据节点的关键字表示时间戎者  ┃
-┃                                    ┃时间差,可能是负数；sentinel是这棵    ┃时间差                        ┃
+┃                                    ┃时间差,可能是负数;sentinel是这棵    ┃时间差                        ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃红黑树初始化时的哨兵节点              ┃                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *temp,           ┃待添加元素的ngx_str_node_t成员的      ┃数据节点的关键字可以不是唯一  ┃
 ┃ngx_rbtree_node_t *node,            ┃指针(ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
-┃                                    ┃化为ngx_str_node_t类型）；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
+┃                                    ┃化为ngx_str_node_t类型）;sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
 ┃ngx_rbtree_node t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃这棵红黑树初始化时哨兵节点的指针      ┃结构体的str成员中             ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
@@ -584,16 +584,16 @@ ngx_rbtree_insert_timer_value(ngx_rbtree_node_t *temp, ngx_rbtree_node_t *node,
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                    ┃    执行意义                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  tree是红黑树容器的指针；s是   ┃  初始化红黑树,包括初始化根节      ┃
-┃                                    ┃哨兵节点的指针；i是ngx_rbtree_  ┃                                    ┃
+┃                                    ┃  tree是红黑树容器的指针;s是   ┃  初始化红黑树,包括初始化根节      ┃
+┃                                    ┃哨兵节点的指针;i是ngx_rbtree_  ┃                                    ┃
 ┃ngx_rbtree_init(tree, s, i)         ┃                                ┃点、哨兵节点、ngx_rbtree_insert_pt  ┃
 ┃                                    ┃insert_pt类型的节点添加方法,具 ┃节点添加方法                        ┃
 ┃                                    ┃体见表7-4                       ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  向红黑树中添加节点,该方法会      ┃
+┃void ngx_rbtree_insert(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  向红黑树中添加节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是需要添加到红黑树的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针；node  ┃  从红黑树中删除节点,该方法会      ┃
+┃void ngx_rbtree_delete(ngx_rbtree_t ┃  tree是红黑树容器的指针;node  ┃  从红黑树中删除节点,该方法会      ┃
 ┃*tree, ngx_rbtree node_t *node)     ┃是红黑树中需要删除的节点指针    ┃通过旋转红黑树保持树的平衡          ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
     在初始化红黑树时,需要先分配好保存红黑树的ngx_rbtree_t结构体,以及ngx_rbtree_
@@ -622,7 +622,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 ┃                                 I  ┃nodej类型的节点指针               ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_rbtree_node_t *                 ┃  node是红黑树中ngx_rbtree_node_  ┃                                      ┃
-┃ngx_rbtree_min                      ┃t类型的节点指针；sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
+┃ngx_rbtree_min                      ┃t类型的节点指针;sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
 ┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃(按照key关键字）                     ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                  ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫

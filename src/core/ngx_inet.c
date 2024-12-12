@@ -677,7 +677,7 @@ ngx_parse_addr_port(ngx_pool_t *pool, ngx_addr_t *addr, u_char *text,
 ?gethostbyname()函数就是通过域名获取IP的函数
 */
 ngx_int_t
-ngx_parse_url(ngx_pool_t *pool, ngx_url_t *u) { //对u参数里面的url,unix,inet6等地址进行简析；
+ngx_parse_url(ngx_pool_t *pool, ngx_url_t *u) { //对u参数里面的url,unix,inet6等地址进行简析;
     u_char *p;
     size_t len;
 

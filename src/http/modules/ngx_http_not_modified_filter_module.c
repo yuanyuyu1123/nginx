@@ -139,7 +139,7 @@ static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 }
 {
     ETags和If-None-Match是一种常用的判断资源是否改变的方法.类似于Last-Modified和HTTP-If-Modified-Since.但是有所不同的是Last-Modified和HTTP-If-Modified-Since只判断资源的最后修改时间,而ETags和If-None-Match可以是资源任何的任何属性.
-    ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息(ETags的值).如果服务器验证资源的ETags没有改变(该资源没有改变),将返回一个304状态；否则,服务器将返回200状态,并返回该资源和新的ETags.
+    ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息(ETags的值).如果服务器验证资源的ETags没有改变(该资源没有改变),将返回一个304状态;否则,服务器将返回200状态,并返回该资源和新的ETags.
 }
 {
 http响应Last-Modified和ETag

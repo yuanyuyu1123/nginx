@@ -198,7 +198,7 @@ Nginx安装完毕后,会有响应的安装目录,安装目录里nginx.conf为ngi
 一、Nginx的main(全局配置)文件
 [root@rhel6u3-7 server]# vim /usr/local/nginx/conf/nginx.conf
 user nginx nginx; //指定nginx运行的用户及用户组为nginx,默认为nobody
-worker_processes 2； //开启的进程数,一般跟逻辑cpu核数一致
+worker_processes 2; //开启的进程数,一般跟逻辑cpu核数一致
 error_log logs/error.log notice; //定于全局错误日志文件,级别以notice显示.还有debug、info、warn、error、crit模式,debug输出最多,crit输出最少,更加实际环境而定.
 pid logs/nginx.pid; //指定进程id的存储文件位置
 worker_rlimit_nofile 65535; //指定一个nginx进程打开的最多文件描述符数目,受系统进程的最大打开文件数量限制
@@ -283,8 +283,8 @@ HTTP框架在读取、重载配置文件时定义了由ngx_http_module_t接口�
 7)merge_loc_conf
 8)postconfiguration
 当遇到http{}配置块时,HTTP框架会调用所有HTTP模块可能实现的create main conf、create_srv_conf、
-create_loc_conf方法生成存储main级别配置参数的结构体；在遇到servero{}块时会再次调用所有HTTP模
-块的create_srv conf、create loc_conf回调方法生成存储srv级别配置参数的结构体；在遇到location{}时
+create_loc_conf方法生成存储main级别配置参数的结构体;在遇到servero{}块时会再次调用所有HTTP模
+块的create_srv conf、create loc_conf回调方法生成存储srv级别配置参数的结构体;在遇到location{}时
 则会再次调用create_loc_conf回调方法生成存储loc级别配置参数的结构体.
 例如如下配置:
 {
@@ -350,8 +350,8 @@ str- value是相似的.Nginx已经实现好的10个简单的配置项合并宏,�
 
 /*
 当遇到http{}配置块时,HTTP框架会调用所有HTTP模块可能实现的create main conf、create_srv_conf、
-create_loc_conf方法生成存储main级别配置参数的结构体；在遇到servero{}块时会再次调用所有HTTP模
-块的create_srv conf、create loc_conf回调方法生成存储srv级别配置参数的结构体；在遇到location{}时
+create_loc_conf方法生成存储main级别配置参数的结构体;在遇到servero{}块时会再次调用所有HTTP模
+块的create_srv conf、create loc_conf回调方法生成存储srv级别配置参数的结构体;在遇到location{}时
 则会再次调用create_loc_conf回调方法生成存储loc级别配置参数的结构体.
 例如如下配置:
 {

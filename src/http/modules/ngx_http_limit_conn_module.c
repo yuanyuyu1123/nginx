@@ -191,7 +191,7 @@ static ngx_http_module_t ngx_http_limit_conn_module_ctx = {
 
 /*
 ngx_http_limit_conn_module 模块可以按照定义的键限定每个键值的连接数.特别的,可以设定单一 IP 来源的连接数.
-并不是所有的连接都会被模块计数；只有那些正在被处理的请求(这些请求的头信息已被完全读入)所在的连接才会被计数.
+并不是所有的连接都会被模块计数;只有那些正在被处理的请求(这些请求的头信息已被完全读入)所在的连接才会被计数.
 */ /* ngx_http_limit_conn_module限定同一时刻客户端的连接数, ngx_http_limit_req_commands限制请求处理的频率,也就是单位时间最多有多少个连接 */
 ngx_module_t ngx_http_limit_conn_module = {
         NGX_MODULE_V1,

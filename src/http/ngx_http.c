@@ -884,7 +884,7 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 location 优先级官方文档
 1.Directives with the = prefix that match the query exactly. If found, searching stops.
 2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
@@ -1181,7 +1181,7 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 location 优先级官方文档
 1.Directives with the = prefix that match the query exactly. If found, searching stops.
 2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
@@ -1322,7 +1322,7 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 = 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配；当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
+最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
 location 优先级官方文档
 1.Directives with the = prefix that match the query exactly. If found, searching stops.
 2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
@@ -1522,7 +1522,7 @@ ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q) //图形�
     {
         /*
            由于所有location已经按照顺序排列好,递归q节点的后继节点,如果后继节点的长度小于后缀节点的长度,那么可以断定,这个后
-           继节点肯定和后缀节点不一样,并且不可能有共同的后缀；如果后继节点和q节点的交集做比较,如果不同,就表示不是同一个前缀,所以
+           继节点肯定和后缀节点不一样,并且不可能有共同的后缀;如果后继节点和q节点的交集做比较,如果不同,就表示不是同一个前缀,所以
            可以看出,从q节点的location list应该是从q.next到x.prev节点
          */
         lx = (ngx_http_location_queue_t *) x;

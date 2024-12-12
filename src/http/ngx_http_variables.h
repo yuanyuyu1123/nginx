@@ -27,9 +27,9 @@ typedef ngx_int_t (*ngx_http_get_variable_pt)(ngx_http_request_t *r,
                                               ngx_http_variable_value_t *v, uintptr_t data);
 
 /*
-NGX_HTTP_VAR_CHANGEABLE:允许重复定义；
-NGX_HTTP_VAR_NOCACHEABLE:变量值不可以被缓存,每次使用必须计算；
-NGX_HTTP_VAR_INDEXED:指示变量值存储在数组中,当使用ngx_http_get_variable函数获取变量时不会每次都为变量分配值空间；
+NGX_HTTP_VAR_CHANGEABLE:允许重复定义;
+NGX_HTTP_VAR_NOCACHEABLE:变量值不可以被缓存,每次使用必须计算;
+NGX_HTTP_VAR_INDEXED:指示变量值存储在数组中,当使用ngx_http_get_variable函数获取变量时不会每次都为变量分配值空间;
 NGX_HTTP_VAR_NOHASH:配置解析完以后,变量名不进hash索引,处理请求时不可以用变量名访问变量.
 NGX_HTTP_VAR_CHANGEABLE表示变量是可以更改的.就例如set命令定义的变量就是可改变的,同时也有不可改变的.如果是可改变的那
 也就是说这个变量是不能缓存的(NGX_HTTP_VAR_NOCACHEABLE).
@@ -78,7 +78,7 @@ NGX HTTP_VAR_INDEXED、NGXHTTP_VARNOHASH、变量cmcf->variables_hash以及取�
 数中的变量在合适的时机取值并和参数中的固定字符串拼接成最终字符串.
     对参数的脚本化工作,也在配置项解析过程中完成.为了表达具体,选用下面的一条配置语句进行分析.此配置项使 Nginx 在拿到请求对应的 Host
 信息后,比如,"example.com",经脚本引擎处理拼接成 "example.com/access.log" 作用后续 access log 的目标文件名.
-    access_log  ${host}/access.log;            变量获取,脚本处理过程可以参考ngx_http_script_compile_t；变量定义过程见ngx_http_variable_s相关章节
+    access_log  ${host}/access.log;            变量获取,脚本处理过程可以参考ngx_http_script_compile_t;变量定义过程见ngx_http_variable_s相关章节
 */ //参考:http://ialloc.org/posts/2013/10/20/ngx-notes-http-variables/
 
 /*
@@ -94,7 +94,7 @@ struct ngx_http_variable_s { //ngx_http_add_variable  ngx_http_get_variable_inde
     ngx_str_t                     name;   /* must be first to build the hash */
 
     /*
-    get_handler体现的是lazy_handle的策略,只有使用到变量,才会计算变量值；
+    get_handler体现的是lazy_handle的策略,只有使用到变量,才会计算变量值;
     set_handler体现的是active_handle的策略,每执行一个请求,都会计算变量值.
         set_handlerr()回调目前只在使用set配置指令构造脚本引擎时才会用到,而那里直接使用cmcf->variables_keys里对应变量的该字段,并
     且一旦配置文件解析完毕,set_handlerr()回调也就用不上了

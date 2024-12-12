@@ -1582,7 +1582,7 @@ ngx_http_script_full_name_code(ngx_http_script_engine_t *e) {
     e->ip += sizeof(ngx_http_script_full_name_code_t);
 }
 
-//根据return code；配置发送响应.
+//根据return code;配置发送响应.
 //和ngx_http_rewrite_handler(ngx_http_request_t *r) 配合阅读,e->ip = rlcf->codes->elts;
 void
 ngx_http_script_return_code(ngx_http_script_engine_t *e) {

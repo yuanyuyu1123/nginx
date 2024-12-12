@@ -970,7 +970,7 @@ ngx_get_options(int argc, char *const *argv) {
     return NGX_OK;
 }
 
-/*调用ngx_save_argv()保存命令行参数至全局变量ngx_os_argv、ngx_argc、ngx_argv中；*/
+/*调用ngx_save_argv()保存命令行参数至全局变量ngx_os_argv、ngx_argc、ngx_argv中;*/
 static ngx_int_t
 ngx_save_argv(ngx_cycle_t *cycle, int argc, char *const *argv) {
 #if (NGX_FREEBSD)
@@ -1011,7 +1011,7 @@ ngx_save_argv(ngx_cycle_t *cycle, int argc, char *const *argv) {
     return NGX_OK;
 }
 
-//调用ngx_process_options()初始化ngx_cycle的prefix, conf_prefix, conf_file, conf_param等字段；
+//调用ngx_process_options()初始化ngx_cycle的prefix, conf_prefix, conf_file, conf_param等字段;
 static ngx_int_t
 ngx_process_options(ngx_cycle_t *cycle) {
     u_char *p;

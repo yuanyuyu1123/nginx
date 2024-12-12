@@ -41,10 +41,10 @@ static void *ngx_event_core_create_conf(ngx_cycle_t *cycle);
 static char *ngx_event_core_init_conf(ngx_cycle_t *cycle, void *conf);
 
 /*
-nginx提供参数timer_resolution,设置缓存时间更新的间隔；
+nginx提供参数timer_resolution,设置缓存时间更新的间隔;
 配置该项后,nginx将使用中断机制,而非使用定时器红黑树中的最小时间为epoll_wait的超时时间,即此时定时器将定期被中断.
 timer_resolution指令的使用将会设置epoll_wait超时时间为-1,这表示epoll_wait将永远阻塞直至读写事件发生或信号中断.
-如果配置文件中使用了timer_ resolution配置项,也就是ngx_timer_resolution值大于0,则说明用；户希望服务器时间精确度为ngx_timer_resolution毫秒
+如果配置文件中使用了timer_ resolution配置项,也就是ngx_timer_resolution值大于0,则说明用;户希望服务器时间精确度为ngx_timer_resolution毫秒
 */ //ngx_timer_signal_handler定时器超时通过该值设置       如果设置了这个,则epoll_wait的返回是由定时器中断引起
 //定时器设置在ngx_event_process_init,定时器生效在ngx_process_events_and_timers -> ngx_process_events
 //从timer_resolution全局配置中解析到的参数,表示多少ms执行定时器中断,然后epoll_wail会返回跟新内存时间
@@ -76,7 +76,7 @@ ngx_accept_mutex_ptr是共享内存空间,所有进程共享,而下面的ngx_use
 //ccf->master && ccf->worker_processes > 1 && ecf->accept_mutex 条件满足才会置该标记为1
 ngx_uint_t            ngx_use_accept_mutex; //那么会把ngx_use_accept_mutex置为1,可以避免惊群.赋值在ngx_event_process_init
 ngx_uint_t            ngx_accept_events; //只有eventport会用到该变量
-/* ngx_accept_mutex_held是当前进程的一个全局变量,如果为l,则表示这个进程已经获取到了ngx_accept_mutex锁；如果为0,则表示没有获取到锁 */
+/* ngx_accept_mutex_held是当前进程的一个全局变量,如果为l,则表示这个进程已经获取到了ngx_accept_mutex锁;如果为0,则表示没有获取到锁 */
 //见ngx_process_events_and_timers会置位该位  如果flag置为该位,则ngx_epoll_process_events会延后处理epoll事件ngx_post_event
 //有了该标记,表示该进程已经把accept事件添加到epoll事件集中了,不用重复执行后面的ngx_enable_accept_events,该函数是有系统调用过程,影响性能
 ngx_uint_t            ngx_accept_mutex_held; //1表示当前获取了ngx_accept_mutex锁   0表示当前并没有获取到ngx_accept_mutex锁
@@ -271,7 +271,7 @@ void
 ngx_process_events_and_timers(ngx_cycle_t *cycle) {
     ngx_uint_t flags;
     ngx_msec_t timer, delta;
-    /*nginx提供参数timer_resolution,设置缓存时间更新的间隔；
+    /*nginx提供参数timer_resolution,设置缓存时间更新的间隔;
   配置该项后,nginx将使用中断机制,而非使用定时器红黑树中的最小时间为epoll_wait的超时时间,即此时定时器将定期被中断.
   timer_resolution指令的使用将会设置epoll_wait超时时间为-1,这表示epoll_wait将永远阻塞直至读写事件发生或信号中断.
 
@@ -308,7 +308,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle) {
         if (ngx_accept_disabled > 0) { //为正说明可用连接用了超过八分之七,则让其他的进程在下面的else中来accept
             ngx_accept_disabled--;
             /*
-                     如果ngx_trylock_accept_mutex方法没有获取到锁,接下来调用事件驱动模块的process_events方法时只能处理已有的连接上的事件；
+                     如果ngx_trylock_accept_mutex方法没有获取到锁,接下来调用事件驱动模块的process_events方法时只能处理已有的连接上的事件;
                      如果获取到了锁,调用process_events方法时就会既处理已有连接上的事件,也处理新连接的事件.
 
                     如何用锁来避免惊群?
@@ -393,15 +393,15 @@ epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取�
 /*
 ET(Edge Triggered)与LT(Level Triggered)的主要区别可以从下面的例子看出
 eg:
-1． 标示管道读者的文件句柄注册到epoll中；
-2． 管道写者向管道中写入2KB的数据；
-3． 调用epoll_wait可以获得管道读者为已就绪的文件句柄；
+1． 标示管道读者的文件句柄注册到epoll中;
+2． 管道写者向管道中写入2KB的数据;
+3． 调用epoll_wait可以获得管道读者为已就绪的文件句柄;
 4． 管道读者读取1KB的数据
 5． 一次epoll_wait调用完成
 如果是ET模式,管道中剩余的1KB被挂起,再次调用epoll_wait,得不到管道读者的文件句柄,除非有新的数据写入管道.如果是LT模式,
 只要管道中有数据可读,每次调用epoll_wait都会触发.
 epoll的两种模式LT和ET
-二者的差异在于level-trigger模式下只要某个socket处于readable/writable状态,无论什么时候进行epoll_wait都会返回该socket；
+二者的差异在于level-trigger模式下只要某个socket处于readable/writable状态,无论什么时候进行epoll_wait都会返回该socket;
 而edge-trigger模式下只有某个socket从unreadable变为readable或从unwritable变为writable时,epoll_wait才会返回该socket.
 所以,在epoll的ET模式下,正确的读写方式为:
 读:只要可读,就一直读,直到返回0,或者 errno = EAGAIN
@@ -423,14 +423,14 @@ EPOLLIN事件:
 EPOLLIN事件则只有当对端有数据写入时才会触发,所以触发一次后需要不断读取所有数据直到读完EAGAIN为止.否则剩下的数据只有在下次对端有写入时才能一起取出来了.
 关于epoll边缘触发模式(ET)下的EPOLLOUT触发,
 ET模式下,EPOLLOUT触发条件有:
-1.缓冲区满-->缓冲区非满；
-2.同时监听EPOLLOUT和EPOLLIN事件时,当有IN 事件发生,都会顺带一个OUT事件；
+1.缓冲区满-->缓冲区非满;
+2.同时监听EPOLLOUT和EPOLLIN事件时,当有IN 事件发生,都会顺带一个OUT事件;
 3.一个客户端connect过来,accept成功后会触发一次OUT事件.
 其中2最令人费解,内核代码这块有注释,说是一般有IN 时候都能OUT,就顺带一个,多给了个事件.. (15.11.30验证了下,确实是这样)
 以上,当只监听IN事件,读完数据后改为监听OUT事件,有时候会发现触发OUT事件并不方便,想要强制触发,可以重新设置一次要监听的events,带上EPOLLOUT即可.
 另:
 一道腾讯后台开发的面试题
-使用Linux epoll模型,水平触发模式；当socket可写时,会不停的触发socket
+使用Linux epoll模型,水平触发模式;当socket可写时,会不停的触发socket
 可写的事件,如何处理？
 第一种最普遍的方式:
 需要向socket写数据的时候才把socket加入epoll,等待可写事件.接受到可写事件后,调用write或者send发送数据.当所有数据都写完后,把socket移出epoll.

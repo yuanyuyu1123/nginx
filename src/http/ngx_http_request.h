@@ -504,7 +504,7 @@ typedef struct {
        break;
       }
 
-       part设置为next来访问下一个链表数组；header也指向下一个链表数组的首地址；i设置为0时,表示从头开始遍历新的链表数组
+       part设置为next来访问下一个链表数组;header也指向下一个链表数组的首地址;i设置为0时,表示从头开始遍历新的链表数组
       part = part->next;
       header = part->elts;
       i = 0;
@@ -559,7 +559,7 @@ If-Unmodified-Since: 从字面上看, 意思是: 如果从某个时间点算起,
 
 /*
 ETags和If-None-Match是一种常用的判断资源是否改变的方法.类似于Last-Modified和HTTP-If-Modified-Since.但是有所不同的是Last-Modified和HTTP-If-Modified-Since只判断资源的最后修改时间,而ETags和If-None-Match可以是资源任何的任何属性.
-ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息(ETags的值).如果服务器验证资源的ETags没有改变(该资源没有改变),将返回一个304状态；否则,服务器将返回200状态,并返回该资源和新的ETags.
+ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息(ETags的值).如果服务器验证资源的ETags没有改变(该资源没有改变),将返回一个304状态;否则,服务器将返回200状态,并返回该资源和新的ETags.
 */
     ngx_table_elt_t                  *if_match; //和etag配对
     ngx_table_elt_t                  *if_none_match; //和etag配对
@@ -1182,7 +1182,7 @@ r->request_body->temp_file->file.name中获取Nginx接收到的请求包体所�
     //ngx_http_request_t结构体中有两个成员表示这个请求的开始处理时间:start sec成员和start msec成员
     /*
      当前请求初始化时的时间.start sec是格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的秒数.如果这个请求是子请求,则该时间
-     是子请求的生成时间；如果这个请求是用户发来的请求,则是在建立起TCP连接后,第一次接收到可读事件时的时间
+     是子请求的生成时间;如果这个请求是用户发来的请求,则是在建立起TCP连接后,第一次接收到可读事件时的时间
      */
     time_t                            start_sec;
     ngx_msec_t                        start_msec;//与start_sec配合使用,表示相对于start_set秒的毫秒偏移量
@@ -1323,7 +1323,7 @@ ngx_http_run_posted_requests方法就是通过遍历该单链表来执行子请�
     u_char                           *captures_data; //进行正则表达式匹配的原字符串,例如http://10.135.2.1/download/aaa/media/bbb.com中的/download/aaa/media/bbb.com
 #endif
 
-    /* limit_rate成员表示发送响应的最大速率,当它大于0时,表示需要限速.limit rate表示每秒可以发送的字节数,超过这个数字就需要限速；
+    /* limit_rate成员表示发送响应的最大速率,当它大于0时,表示需要限速.limit rate表示每秒可以发送的字节数,超过这个数字就需要限速;
 然而,限速这个动作必须是在发送了limit_rate_after字节的响应后才能生效(对于小响应包的优化设计) */
 //实际最后通过ngx_writev_chain发送数据的时候,还会限制一次
     size_t                            limit_rate; //限速的相关计算方法参考ngx_http_write_filter
@@ -1428,8 +1428,8 @@ ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一�
     /*
         upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
     当请求的ngx_http_request_t结构体中subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体
-    到下游,由HTTP模块实现的input_filter方法处理包体；当subrequest_in_memory为0时,upstream会转发响应包体.当ngx_http_upstream_conf_t
-    配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；当buffering
+    到下游,由HTTP模块实现的input_filter方法处理包体;当subrequest_in_memory为0时,upstream会转发响应包体.当ngx_http_upstream_conf_t
+    配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;当buffering
     为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
     */
     unsigned                          subrequest_in_memory:1; //ngx_http_subrequest中赋值 NGX_HTTP_SUBREQUEST_IN_MEMORY

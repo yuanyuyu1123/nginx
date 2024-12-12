@@ -151,8 +151,8 @@ ngx_http_header_t ngx_http_headers_in[] = {
 实现断点续传功能的下载
 一. 两个必要响应头Accept-Ranges、ETag
         客户端每次提交下载请求时,服务端都要添加这两个响应头,以保证客户端和服务端将此下载识别为可以断点续传的下载:
-Accept-Ranges:告知下载客户端这是一个可以恢复续传的下载,存放本次下载的开始字节位置、文件的字节大小；
-ETag:保存文件的唯一标识(我在用的文件名+文件最后修改时间,以便续传请求时对文件进行验证)；
+Accept-Ranges:告知下载客户端这是一个可以恢复续传的下载,存放本次下载的开始字节位置、文件的字节大小;
+ETag:保存文件的唯一标识(我在用的文件名+文件最后修改时间,以便续传请求时对文件进行验证);
 参考http://www.cnblogs.com/diyunpeng/archive/2011/12/29/2305702.html
 */
         {ngx_string("Range"), offsetof(ngx_http_headers_in_t, range),
@@ -2217,7 +2217,7 @@ ngx_http_process_request(ngx_http_request_t *r) {
 #endif
     /*
    由于现在已经开始准备调用各HTTP模块处理请求了,因此不再存在接收HTTP请求头部超时的问题,那就需要从定时器中把当前连接的读事件移除了.
-   检查读事件对应的timer_set标志位,力1时表示读事件已经添加到定时器中了,这时需要调用ngx_del_timer从定时器中移除读事件；
+   检查读事件对应的timer_set标志位,力1时表示读事件已经添加到定时器中了,这时需要调用ngx_del_timer从定时器中移除读事件;
     */
     if (c->read->timer_set) { //ngx_http_read_request_header中读取不到数据的时候返回NGX_AGIN,会添加定时器和读事件表示继续等待客户端数据到来
         ngx_del_timer(c->read);
@@ -2602,7 +2602,7 @@ ngx_http_request_handler(ngx_event_t *ev) {
 如果一个事件的读写标志同时为1时,仅write_event_handler方法会被调用,即可写事件的处理优先于可读事件(这正是Nginx高性能设计的体现,
 优先处理可写事件可以尽快释放内存,尽量保持各HTTP模块少使用内存以提高并发能力).因为服务器发送给客户端的报文长度一般比请求报文大很多
  */
-    //当ev为ngx_connection_t->write 默认write为1；当ev为ngx_connection_t->read 默认write为0
+    //当ev为ngx_connection_t->write 默认write为1;当ev为ngx_connection_t->read 默认write为0
     if (ev->write) { //说明ev是ngx_connection_t->write
         r->write_event_handler(r);  //ngx_http_core_run_phases
 
@@ -3086,7 +3086,7 @@ discard_body为l,则表示正在丢弃包体,这时会再一次把请求的read_
     }
     /*
  如果引用计数为1,则说明这时要真的准备结束请求了.不过,还要检查请求的keepalive成员,如果keepalive为1,则说明这个请求需要释放,
-但TCP连接还是要复用的；如果keepalive为0就不需要考虑keepalive请求了,但还需要检测请求的lingering_close成员,如果lingering_close为1,
+但TCP连接还是要复用的;如果keepalive为0就不需要考虑keepalive请求了,但还需要检测请求的lingering_close成员,如果lingering_close为1,
 则说明需要延迟关闭请求,这时也不能真的去结束请求,如果lingering_close为0,才真的结束请求.
   */
     if (!ngx_terminate
@@ -3179,13 +3179,13 @@ ngx_http_writer(ngx_http_request_t *r) {
 
     clcf = ngx_http_get_module_loc_conf(r->main, ngx_http_core_module);
     /*
-    检查连接上写事件的timedout标志位,如果timedout为0,则表示写事件未超时；如果timedout为1,则表示当前的写事件已经超时,这时
+    检查连接上写事件的timedout标志位,如果timedout为0,则表示写事件未超时;如果timedout为1,则表示当前的写事件已经超时,这时
 有两种可能性:
-第一种,由于网络异常或者客户端长时间不接收响应,导致真实的发送响应超时；
+第一种,由于网络异常或者客户端长时间不接收响应,导致真实的发送响应超时;
 第二种,由于上一次发送响应时发送速率过快,超过了请求的limit_rate速率上限,ngx_http_write_filter方法就会设置一个超时
 时间将写事件添加到定时器中,这时本次的超时只是由限速导致,并非真正超时.那么,如何判断这个超时是真的超时还是出于限速的考虑呢？这
 要看事件的delayed标志位.如果是限速把写事件加入定时器,一定会把delayed标志位置为1,如果写事件的delayed标志位为0,那就是真的超时
-了,这时调用ngx_http_finalize_request方法结束请求,传人的参数是NGX_HTTP_REQUEST_TIME_OUT,表示需要向客户端发送408错误码；
+了,这时调用ngx_http_finalize_request方法结束请求,传人的参数是NGX_HTTP_REQUEST_TIME_OUT,表示需要向客户端发送408错误码;
  */
     if (wev->timedout) {
         /*
@@ -3231,7 +3231,7 @@ ngx_http_writer(ngx_http_request_t *r) {
     /*
 发送响应后,查看ngx_http_request_t结构体中的buffered和postponed标志位,如果任一个不为0,则意味着没有发送完out中的全部响应,
 请求main指针指向请求自身,表示这个请求是原始请求,再检查与客户端间的连接ngx_connection-t结构体中的buffered标志位,如果buffered
-不为0,同样表示没有发送完out中的全部响应；除此以外,都表示out中的全部响应皆发送完毕.
+不为0,同样表示没有发送完out中的全部响应;除此以外,都表示out中的全部响应皆发送完毕.
  */
     if (r->buffered || r->postponed || (r == r->main && c->buffered)) {
 
@@ -4034,7 +4034,7 @@ ngx_http_close_request(ngx_http_request_t *r, ngx_int_t rc) {
     计数,当引用计数为0时才真正地销毁请求
         由ngx_http_request_t结构体的main成员中取出对应的原始请求(当然,可能就是这个请求本身),再取出count引用计数并减l.
    然后,检查count引用计数是否已经为0,以及blocked标志位是否为0.如果count已经为O,则证明请求没有其他动作要使用了,同时blocked标
-   志位也为0,表示没有HTTP模块还需要处理请求,所以此时请求可以真正释放；如果count引用计数大干0,或者blocked大于0,这样都不可以结
+   志位也为0,表示没有HTTP模块还需要处理请求,所以此时请求可以真正释放;如果count引用计数大干0,或者blocked大于0,这样都不可以结
    束请求,ngx_http_close_reques't方法直接结束.
     */
     if (r->count || r->blocked) {
@@ -4128,10 +4128,10 @@ ngx_http_free_request(ngx_http_request_t *r, ngx_int_t rc) { //释放request的�
 
     有下列三种情况:
 
-    1、设置 l_onoff为0,则该选项关闭,l_linger的值被忽略,等于内核缺省情况,close调用会立即返回给调用者,如果可能将会传输任何未发送的数据；
+    1、设置 l_onoff为0,则该选项关闭,l_linger的值被忽略,等于内核缺省情况,close调用会立即返回给调用者,如果可能将会传输任何未发送的数据;
 
     2、设置 l_onoff为非0,l_linger为0,则套接口关闭时TCP夭折连接,TCP将丢弃保留在套接口发送缓冲区中的任何数据并发送一个RST给对方,而不是通常的四
-    分组终止序列,这避免了TIME_WAIT状态；
+    分组终止序列,这避免了TIME_WAIT状态;
     3、设置 l_onoff 为非0,l_linger为非0,当套接口关闭时内核将拖延一段时间(由l_linger决定).如果套接口缓冲区中仍残留数据,进程将处于睡眠状态,
     直到(a)所有数据发送完且被对方确认,之后进行正常的终止序列(描述字访问计数为0)或(b)延迟时间到.此种情况下,应用程序检查close的返回值是非常重要的,
     如果在数据发送完并被确认前时间到,close将返回EWOULDBLOCK错误且套接口发送缓冲区中的任何数据都丢失 . close的成功返回仅告诉我们发送的数据(和FIN)已
@@ -4149,9 +4149,9 @@ ngx_http_free_request(ngx_http_request_t *r, ngx_int_t rc) { //释放request的�
 
 
     其取值和处理如下:
-    1、设置 l_onoff为0,则该选项关闭,l_linger的值被忽略,等于内核缺省情况,close调用会立即返回给调用者,如果可能将会传输任何未发送的数据；
+    1、设置 l_onoff为0,则该选项关闭,l_linger的值被忽略,等于内核缺省情况,close调用会立即返回给调用者,如果可能将会传输任何未发送的数据;
     2、设置 l_onoff为非0,l_linger为0,则套接口关闭时TCP夭折连接,TCP将丢弃保留在套接口发送缓冲区中的任何数据并发送一个RST给对方,
-       而不是通常的四分组终止序列,这避免了TIME_WAIT状态；
+       而不是通常的四分组终止序列,这避免了TIME_WAIT状态;
     3、设置 l_onoff 为非0,l_linger为非0,当套接口关闭时内核将拖延一段时间(由l_linger决定).
        如果套接口缓冲区中仍残留数据,进程将处于睡眠状态,直 到(a)所有数据发送完且被对方确认,之后进行正常的终止序列(描述字访问计数为0)
        或(b)延迟时间到.此种情况下,应用程序检查close的返回值是非常重要的,如果在数据发送完并被确认前时间到,close将返回EWOULDBLOCK错误且套接口发送缓冲区中的任何数据都丢失.

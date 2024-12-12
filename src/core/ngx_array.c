@@ -70,7 +70,7 @@ ngx_array_push(ngx_array_t *a) {
 
             /* allocate a new array
               如果当前内存池中剩余的空间小于本次需要新增的空间,那么对ngx_array_push方法来说,会将原先动态数组的容量扩容一倍,而对于
-              ngx_array_push_n来说,情况更复杂一些,如果参数n小于原先动态数组的容量,将会扩容一倍；如果参数n大于原先动态数组的容量,
+              ngx_array_push_n来说,情况更复杂一些,如果参数n小于原先动态数组的容量,将会扩容一倍;如果参数n大于原先动态数组的容量,
               这时会分配2×n大小的空间,扩容会超过一倍.*/
             new = ngx_palloc(p, 2 * size);
             if (new == NULL) {

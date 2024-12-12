@@ -106,7 +106,7 @@ typedef struct { //通配符解析见ngx_parse_inet_url
     socklen_t socklen; //sizeof(struct sockaddr_in)
     ngx_sockaddr_t sockaddr; //sockaddr_in结构指向它
 
-    ngx_addr_t *addrs; //数组大小是naddrs字段；每个元素对应域名的IP地址信息(struct sockaddr_in),在函数中赋值(ngx_inet_resolve_host())
+    ngx_addr_t *addrs; //数组大小是naddrs字段;每个元素对应域名的IP地址信息(struct sockaddr_in),在函数中赋值(ngx_inet_resolve_host())
     ngx_uint_t naddrs; //url对应的IP地址个数,IP格式的地址将默认为1
 
     char *err; //错误信息字符串
