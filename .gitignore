@@ -12,6 +12,7 @@ scgi_temp/
 Testing/
 uwsgi_temp/
 .cmake/
+.idea/
 cmake_install.cmake
 /CMakeLists.txt
 /CMakeCache.txt
