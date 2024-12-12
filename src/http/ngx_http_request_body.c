@@ -40,7 +40,7 @@ static ngx_int_t ngx_http_request_body_chunked_filter(ngx_http_request_t *r,
 /*
 ngx_http_read_client_request_body是一个异步方法,调用它只是说明要求Nginx开始接收请求的包体,并不表示是否已经接收完,当接收完所有的包体内容后,
 post_handler指向的回调方法会被调用.因此,即使在调用了ngx_http_read_client_request_body方法后它已经返回,也无法确定这时是否已经调用过post_handler
-指向的方法.换句话说,ngx_http_read_client_request_body返回时既有可能已经接收完请求中所有的包体（假如包体的长度很小）,也有可能还没开始接收包体.
+指向的方法.换句话说,ngx_http_read_client_request_body返回时既有可能已经接收完请求中所有的包体(假如包体的长度很小),也有可能还没开始接收包体.
 如果ngx_http_read_client_request_body是在ngx_http_mytest_handler处理方法中调用的,那么后者一般要返回NGX_DONE,因为下一步就是将它的返回值作为参数
 传给ngx_http_finalize_request.
 */ //包体接收完毕后会执行回调方法ngx_http_client_body_handler_pt post_handler
@@ -114,7 +114,7 @@ ngx_http_read_client_request_body(ngx_http_request_t *r,
         rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
         goto done;
     }
-    /* 分配请求的ngx_http_request_t结构体中的request_body成员（之前request_body是NULL空指针）,准备接收包体. */
+    /* 分配请求的ngx_http_request_t结构体中的request_body成员(之前request_body是NULL空指针),准备接收包体. */
     rb = ngx_pcalloc(r->pool, sizeof(ngx_http_request_body_t));
     if (rb == NULL) {
         rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -179,7 +179,7 @@ content-length头部指定的长度,如果大干或等于则说明已经接收�
         }
 
         r->request_length += preread - (r->header_in->last - r->header_in->pos);
-        /* 当上述条件不满足时,再检查header—in缓冲区里的剩余空闲空间是否可以存放下全部的包体（content-length头部指定）,如果可以,就不用分配新的包体缓冲区浪费内存了 */
+        /* 当上述条件不满足时,再检查header—in缓冲区里的剩余空闲空间是否可以存放下全部的包体(content-length头部指定),如果可以,就不用分配新的包体缓冲区浪费内存了 */
         if (!r->headers_in.chunked
             && rb->rest > 0 //还需要读取rb->rest才能保证包体读完
             && rb->rest <= (off_t) (r->header_in->end - r->header_in->last)) { //判断header_in指向的剩余未用空间是否足够存取剩余的rest字节数据
@@ -816,7 +816,7 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, rev->log, 0, "http set discard body");
     /*
-   检查请求连接上的读事件是否在定时器中,这是因为丢弃包体不用考虑超时问题（linger_timer例外,本章不考虑此情况）.如果读事件
+   检查请求连接上的读事件是否在定时器中,这是因为丢弃包体不用考虑超时问题(linger_timer例外,本章不考虑此情况).如果读事件
    的timer set标志位为1,则从定时器中移除此事件.还要检查content-length头部,如果它的值小于或等于0,同样意味着可以直接返回
    NGX一OK,表示成功丢弃了全部包体.
     */
@@ -842,7 +842,7 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
         }
     }
     /*
-     在接收HTTP头部时,还是要检查是否凑巧已经接收到完整的包体（如果包体很小,那么这是非常可能发生的事）,如果已经接收到完整的包
+     在接收HTTP头部时,还是要检查是否凑巧已经接收到完整的包体(如果包体很小,那么这是非常可能发生的事),如果已经接收到完整的包
  体,则直接返回NGX OK,表示丢弃包体成功,否则,说明需要多次的调度才能完成丢弃包体这一动作,此时把请求的read_event_handler
  成员设置为ngx_http_discarded_request_body_handler方法.
    */

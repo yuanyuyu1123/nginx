@@ -54,8 +54,8 @@ static ngx_core_module_t ngx_errlog_module_ctx = {
 };
 
 /*
-Nginx的日志模块（这里所说的日志模块是ngx_errlog_module模块,而ngx_http_log_module模块是用于记录HTTP请求的访问日志的,
-两者功能不同,在实现上也没有任何关系）为其他模块提供了基本的记录日志功能*/
+Nginx的日志模块(这里所说的日志模块是ngx_errlog_module模块,而ngx_http_log_module模块是用于记录HTTP请求的访问日志的,
+两者功能不同,在实现上也没有任何关系)为其他模块提供了基本的记录日志功能*/
 ngx_module_t ngx_errlog_module = {
         NGX_MODULE_V1,
         &ngx_errlog_module_ctx,                /* module context */
@@ -126,9 +126,9 @@ ngx_log_error宏和ngx_log_debug宏都包括参数level、log、err、fmt,下面
 ┃NGX LOG DEBUG   ┃    8 ┃    调试级别,最低级别日志                                          ┃
 ┗━━━━━━━━┻━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
     使用ngx_log_error宏记录日志时,如果传人的level级别小于或等于log参数中的日志
-级别（通常是由nginx.conf配置文件中指定）,就会输出日志内容,否则这条日志会被忽略.
-    在使用ngx_log_debug宏时,level的崽义完全不同,它表达的意义不再是级别（已经
-是DEBUG级别）,而是日志类型,因为ngx_log_debug宏记录的日志必须是NGX-LOG—
+级别(通常是由nginx.conf配置文件中指定),就会输出日志内容,否则这条日志会被忽略.
+    在使用ngx_log_debug宏时,level的崽义完全不同,它表达的意义不再是级别(已经
+是DEBUG级别),而是日志类型,因为ngx_log_debug宏记录的日志必须是NGX-LOG—
 DEBUG调试级别的,这里的level由各子模块定义.level的取值范围参见表4-7.
 表4-7 ngx_log_debug日志接口level参数的取值范围
 ┏━━━━━━━━━━┳━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -155,7 +155,7 @@ DEBUG调试级别的,这里的level由各子模块定义.level的取值范围参
     实际上,在开发HTTP模块时我们并不用关心log参数的构造,因为在处理请求时ngx_
 http_request_t结构中的connection成员就有一个ngx_log_t类型的log成员,可以传给ngx_
 log_error宏和ngx_log_debug宏记录日志.在读取配置阶段,ngx_conf_t结构也有log成员
-可以用来记录日志（读取配置阶段时的日志信息都将输出到控制台屏幕）*/
+可以用来记录日志(读取配置阶段时的日志信息都将输出到控制台屏幕)*/
 #if (NGX_HAVE_VARIADIC_MACROS)
 
 void
@@ -461,7 +461,7 @@ ngx_log_init(u_char *prefix, u_char *error_log) {
 
 /*
 如果配置文件中没有error_log配置项,在配置文件解析完后调用errlog模块的ngx_log_open_default函数将日志等级默认置为NGX_LOG_ERR,
-日志文件设置为NGX_ERROR_LOG_PATH（该宏是在configure时指定的）.
+日志文件设置为NGX_ERROR_LOG_PATH(该宏是在configure时指定的).
 */
 ngx_int_t
 ngx_log_open_default(ngx_cycle_t *cycle) {

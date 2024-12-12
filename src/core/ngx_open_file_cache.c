@@ -246,9 +246,9 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
         }
         /*
          这里使用了两种机制,这两种机制是互斥的.一个是文件事件检查机制,是kqueue下才有的.
-         一个是定时检查机制（now - file->created < of->valid）
+         一个是定时检查机制(now - file->created < of->valid)
          如果定时检查没有问题,如果of没有uniq值那么就算检查通过了,否则对比uniq值
-         这个值就是文件属性中的st_ino(同一个设备中的每个文件,这个值都是不同的）.
+         这个值就是文件属性中的st_ino(同一个设备中的每个文件,这个值都是不同的).
          这个值主要用于判断文件是否被修改(不过这个修改是覆盖这类的,如果你用open打开,然后写入的话,这个值还是一样的)
          */
         if (file->use_event //use_event只有kqueue才有效
@@ -371,7 +371,7 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
 
             goto add_event;
         }
-        //引用技术不为0,那么在红黑树上删除这个节点,把cache到的数目减一,给文件设置close标记,然后当作前文的no found处理（会重新添加到文件cache中）
+        //引用技术不为0,那么在红黑树上删除这个节点,把cache到的数目减一,给文件设置close标记,然后当作前文的no found处理(会重新添加到文件cache中）
         ngx_rbtree_delete(&cache->rbtree, &file->node); //注意这里没有从过期队列删除该file节点,不过在过期后还是后从过期队列expire_queue中删除
 
         cache->current--;

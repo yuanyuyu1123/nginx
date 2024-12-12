@@ -90,8 +90,8 @@ ngx_event_accept(ngx_event_t *ev) { //在ngx_process_events_and_timers中执行
         /*
             针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
         返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
-        通常被设置成EAGAIN（意为“再来一次”）或者EWOULDBLOCK（意为“期待阻塞”）:对conncct而言,errno则被
-        设置成EINPROGRESS（意为“在处理中"）.
+        通常被设置成EAGAIN(意为“再来一次”)或者EWOULDBLOCK(意为“期待阻塞”):对conncct而言,errno则被
+        设置成EINPROGRESS(意为“在处理中").
           */
         s = accept(lc->fd, &sa.sockaddr, &socklen);
 #endif

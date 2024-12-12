@@ -68,7 +68,7 @@ struct ngx_log_s {
 
     time_t disk_full_time;
 
-    /* 记录日志时的回调方法.当handler已经实现（不为NULL）,并且不是DEBUG调试级别时,才会调用handler钩子方法 */
+    /* 记录日志时的回调方法.当handler已经实现(不为NULL),并且不是DEBUG调试级别时,才会调用handler钩子方法 */
     ngx_log_handler_pt   handler; //从连接池获取ngx_connection_t后,c->log->handler = ngx_http_log_error;
 
     /*

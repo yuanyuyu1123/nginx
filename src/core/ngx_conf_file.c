@@ -156,7 +156,7 @@ ngx_conf_add_dump(ngx_conf_t *cf, ngx_str_t *filename) {
 }
 
 
-/*它是一个间接的递归函数,也就是说虽然我们在该函数体内看不到直接的对其本身的调用,但是它执行的一些函数（比如ngx_conf_handler）内又会
+/*它是一个间接的递归函数,也就是说虽然我们在该函数体内看不到直接的对其本身的调用,但是它执行的一些函数(比如ngx_conf_handler)内又会
 调用ngx_conf_parse函数,因此形成递归,这一般在处理一些特殊配置指令或复杂配置项,比如指令include、events、http、 server、location等的处理时.*/
 char *
 ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
@@ -218,7 +218,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
 
         /*
    函数ngx_conf_read_token对配置文件内容逐个字符扫描并解析为单个的token,当然,该函数并不会频繁的去读取配置文件,它每次从
-   文件内读取足够多的内容以填满一个大小为NGX_CONF_BUFFER的缓存区（除了最后一次,即配置文件剩余内容本来就不够了）,这个缓存
+   文件内读取足够多的内容以填满一个大小为NGX_CONF_BUFFER的缓存区(除了最后一次,即配置文件剩余内容本来就不够了),这个缓存
    区在函数 ngx_conf_parse内申请并保存引用到变量cf->conf_file->buffer内,函数 ngx_conf_read_token反复使用该缓存区
    */
         buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log);
@@ -545,7 +545,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
 此时一条简单配置项的所有标记都被读取并存放在 cf->args数组内,因此可以调用其对应的回调函数进行实际的处理；
 对于复杂配置项则是读完其配置块前的所有标记,即遇到大括号{为止,此时复杂配置项处理函数所需要的标记都已读取到,
 而对于配置块{}内的标记将在接下来的函数ngx_conf_parse递归调用中继续处理,这可能是一个反复的过程.
-当然,函数ngx_conf_read_token也可能在其它情况下返回,比如配置文件格式出错、文件处理完（遇到文件结束）、块配置处理完（遇到大括号}）,这几种返回情况的处理都很简单,不多详叙.
+当然,函数ngx_conf_read_token也可能在其它情况下返回,比如配置文件格式出错、文件处理完(遇到文件结束)、块配置处理完(遇到大括号}),这几种返回情况的处理都很简单,不多详叙.
 对于简单/复杂配置项的处理,一般情况下,这是通过函数ngx_conf_handler来进行的,而也有特殊的情况,也就是配置项提供了自定义的处理函数,
 比如types指令.函数ngx_conf_handler也做了三件事情,首先,它需要找到当前解析出来的配置项所对应的 ngx_command_s结构体,
 前面说过该ngx_command_s包含有配置项的相关信息以及对应的回调实际处理函数.如果没找到配置项所对应的 ngx_command_s结构体,
@@ -1085,13 +1085,13 @@ ngx_conf_log_error(ngx_uint_t level, ngx_conf_t *cf, ngx_err_t err,
 
 /*
 char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
-    如果处理配置项,我们既可以自己实现一个回调方法来处理配置项（）,也可以使用Nginx预设的14个解析配置项方法,这会少
+    如果处理配置项,我们既可以自己实现一个回调方法来处理配置项(）,也可以使用Nginx预设的14个解析配置项方法,这会少
 写许多代码,表4-2列出了这些预设的解析配置项方法.
 表4-2预设的14个配置项解析方法
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    预设方法名              ┃    行为                                                                      ┃
 ┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off（即希望配置项表达打开      ┃
+┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off(即希望配置项表达打开      ┃
 ┃                            ┃或者关闭某个功能的意思）,而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
 ┃ngx_conf_set_flag_slot      ┃存这个配置项的参数,就可以将set回调方法设为ngx_conf_set_flag_slot.当nginx.   ┃
 ┃                            ┃conf文件中参数是on时,代码中的ngx_flag_t类型变量将设为1,参数为off时则        ┃
@@ -1102,7 +1102,7 @@ char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
 ┃                            ┃存这个配置项的参数,则可以使用ngx_conf_set_ str slot方法                      ┃
 ┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                            ┃  如果这个配置项会出现多次,每个配置项后面都跟着1个参数,而在程序中我们       ┃
-┃                            ┃希望仅用一个ngx_array_t动态数组（           ）来存储所有的参数,且数组中      ┃
+┃                            ┃希望仅用一个ngx_array_t动态数组(           ）来存储所有的参数,且数组中      ┃
 ┃ngx_conf_set_str_array_slot ┃                                                                              ┃
 ┃                            ┃的每个参数都以ngx_str_t来存储,那么预设的ngx_conf_set_str_array_slot有法可    ┃
 ┃                            ┃以帮我们做到                                                                  ┃
@@ -1140,14 +1140,14 @@ char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
 ┃                            ┃后会把配置项后的参数转化成以秒为单位的数字                                    ┃
 ┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                            ┃  配置项后必须携带一两个参数,第1个参数是数字,第2个参数表示空间大小.        ┃
-┃                            ┃例如,“gzip_buffers 4 8k;”（通常用来表示有多少个ngx_buf_t缓冲区）,其中第1  ┃
+┃                            ┃例如,“gzip_buffers 4 8k;”(通常用来表示有多少个ngx_buf_t缓冲区）,其中第1  ┃
 ┃                            ┃个参数不可以携带任何单位,第2个参数不带任何单位时表示Byte,如果以k或          ┃
 ┃ngx_conf_set_bufs_slot      ┃者K作为单位,则表示Kilobyte,如果以m或者M作为单位,则表示Megabyte.           ┃
 ┃                            ┃ngx_conf_set- bufs—slot解析后会把配置项后的两个参数转化成ngx_bufs_t结构体下  ┃
-┃                            ┃的两个成员.这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案（如接收连       ┃
+┃                            ┃的两个成员.这个配置项对应于Nginx最喜欢用的多缓冲区的解决方案(如接收连       ┃
 ┃                            ┃接对端发来的TCP流）                                                           ┃
 ┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  配置项后必须携带1个参数,其取值范围必须是我们设定好的字符串之一（就像       ┃
+┃                            ┃  配置项后必须携带1个参数,其取值范围必须是我们设定好的字符串之一(就像       ┃
 ┃                            ┃C语言中的枚举一样）.首先,我们要用ngx_conf_enum_t结构定义配置项的取值范      ┃
 ┃ngx_conf_set_enum_slot      ┃                                                                              ┃
 ┃                            ┃围,并设定每个值对应的序列号.然后,ngx_conf_set enum slot将会把配置项参      ┃
@@ -1164,8 +1164,8 @@ char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
 ┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                          ┃  这个方法用于设置目录或者文件的读写权限.配置项后可以携带1～3个参数,      ┃
 ┃                          ┃可以是如下形式:user:rw group:rw all:rw.注意,它的意义与Linux上文件或者目  ┃
-┃ngx_conf_set_access_slot  ┃录的权限意义是一致的,但是user/group/all后面的权限只可以设为rw（读／写）或  ┃
-┃                          ┃者r（只读）,不可以有其他任何形式,如w或者rx等.ngx_conf_set- access slot   ┃
+┃ngx_conf_set_access_slot  ┃录的权限意义是一致的,但是user/group/all后面的权限只可以设为rw(读／写）或  ┃
+┃                          ┃者r(只读）,不可以有其他任何形式,如w或者rx等.ngx_conf_set- access slot   ┃
 ┃                          ┃将会把汶曲参数转化为一个整型                                                ┃
 ┣━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                          ┃  这个方法用于设置路径,配置项后必须携带1个参数,表示1个有意义的路径.      ┃
@@ -1615,7 +1615,7 @@ ngx_conf_set_bitmask_slot与ngx_conf_set_enum_slot也是非常相似的,配置�
 都必须是枚举成员,唯一的差别在于效率方面,ngx_conf_set_enum_slot中枚举成员的对应
 值是整型,表示序列号,它的取值范围是整型的范围；而ngx_conf_set_bitmask_slot中枚举
 成员的对应值虽然也是整型,但可以按位比较,它的效率要高得多.也就是说,整型是4字
-节（32位）的话,在这个枚举配置项中最多只能有32项.
+节(32位）的话,在这个枚举配置项中最多只能有32项.
     由于ngx_conf_set- bitmask- slot与ngx_conf_set enum- slot这两个预设解析方法在名称
 上的差别,用来表示配置项参数的枚举取值结构体也由ngx_conf_enum t变成了ngx_conf_
 bitmask t,但它们并没有区别.

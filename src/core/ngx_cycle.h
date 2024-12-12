@@ -68,7 +68,7 @@ struct ngx_cycle_s {
       针的总数,而文件句柄的值用来访问files数组成员 */
     ngx_connection_t **files; //sizeof(ngx_connection_t *) * cycle->files_n  见ngx_event_process_init  ngx_get_connection
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连
-    接池数组的首部,而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员（见9.3.1节）作
+    接池数组的首部,而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作
     为next指针串联成一个单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指
     向下一个空闲连接.而归还连接时只需把该连接插入到free_connections链表表头即可.*/
     //见ngx_event_process_init, ngx_connection_t空间和它当中的读写ngx_event_t存储空间都在该函数一次性分配好
@@ -111,7 +111,7 @@ struct ngx_cycle_s {
     ngx_uint_t connection_n; // 当前进程中所有链接对象的总数,与成员配合使用
     ngx_uint_t files_n; //每个进程能够打开的最多文件数  赋值见ngx_event_process_init
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连接池数组的首部,
-    而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员（见9.3.1节）作为next指针串联成一个
+    而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作为next指针串联成一个
     单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指向下一个空闲连
     接.而归还连接时只需把该连接插入到free_connections链表表头即可.
     在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,
@@ -122,7 +122,7 @@ struct ngx_cycle_s {
    在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,相同序号下这
    3个数组中的元素是配合使用的.图9-1中还显示了事件池,Nginx认为每一个连接一定至少需要一个读事件和一个写事件,有多少连接就分配多少个读、
    写事件.怎样把连接池中的任一个连接与读事件、写事件对应起来呢？很简单.由于读事件、写事件、连接池是由3个大小相同的数组组成,所以根据数组
-   序号就可将每一个连接、读事件、写事件对应起来,这个对应关系在ngx_event_core_module模块的初始化过程中就已经决定了（参见9.5节）.这3个数组
+   序号就可将每一个连接、读事件、写事件对应起来,这个对应关系在ngx_event_core_module模块的初始化过程中就已经决定了(参见9.5节).这3个数组
    的大小都是由cycle->connection_n决定.*/
     //预分配的读写事件空间,类型ngx_event_t  //子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应
     ngx_event_t *read_events; // 指向当前进程中的所有读事件对象,connection_n同时表示所有读事件的总数,因为每个连接分别有一个读写事件

@@ -691,7 +691,7 @@ fastcgi_cache_valid  any 1m;
 默认值:proxy_cache_use_stale off;
 使用字段:http, server, location
 这个指令告诉nginx何时从代理缓存中提供一个过期的响应,参数类似于proxy_next_upstream指令.
-为了防止缓存失效（在多个线程同时更新本地缓存时）,你可以指定'updating'参数,它将保证只有一个线程去更新缓存,并且在这个
+为了防止缓存失效(在多个线程同时更新本地缓存时),你可以指定'updating'参数,它将保证只有一个线程去更新缓存,并且在这个
 线程更新缓存的过程中其他的线程只会响应当前缓存中的过期版本.
 */
 /*
@@ -929,8 +929,8 @@ static ngx_http_module_t ngx_http_fastcgi_module_ctx = {
 };
 
 /*
-step1. web 服务器收到客户端（浏览器）的请求Http Request,启动CGI程序,并通过环境变量、标准输入传递数据
-step2. cgi进程启动解析器、加载配置（如业务相关配置）、连接其它服务器（如数据库服务器）、逻辑处理等
+step1. web 服务器收到客户端(浏览器)的请求Http Request,启动CGI程序,并通过环境变量、标准输入传递数据
+step2. cgi进程启动解析器、加载配置(如业务相关配置)、连接其它服务器(如数据库服务器)、逻辑处理等
 step3. cgi程将处理结果通过标准输出、标准错误,传递给web 服务器
 step4. web 服务器收到cgi返回的结果,构建Http Response返回给客户端,并杀死cgi进程
 http://blog.sina.com.cn/s/blog_4d8cf3140101pa8c.html
@@ -4099,7 +4099,7 @@ ngx_http_fastcgi_split(ngx_http_request_t *r, ngx_http_fastcgi_loc_conf_t *flcf)
 }
 
 /*
-这个ngx_http_fastcgi_handler是在nginx 解析配置的时候,解析到了ngx_string(“fastcgi_pass”),指令的时候会调用ngx_http_fastcgi_pass（）进行指令解析
+这个ngx_http_fastcgi_handler是在nginx 解析配置的时候,解析到了ngx_string(“fastcgi_pass”),指令的时候会调用ngx_http_fastcgi_pass()进行指令解析
 */
 static char *
 ngx_http_fastcgi_pass(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {

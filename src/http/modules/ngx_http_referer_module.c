@@ -110,11 +110,11 @@ static int ngx_libc_cdecl ngx_http_cmp_referer_wildcards(const void *one,
 
 
 /*
-我的实现防盗链的做法,也是参考该位前辈的文章.基本原理就是就是一句话:通过判断request请求头的refer是否来源于本站.（当然请求头是来自于客户端的,
-是可伪造的,暂不在本文讨论范围内）.
+我的实现防盗链的做法,也是参考该位前辈的文章.基本原理就是就是一句话:通过判断request请求头的refer是否来源于本站.(当然请求头是来自于客户端的,
+是可伪造的,暂不在本文讨论范围内).
 2．  首先我们去了解下什么是HTTP Referer.简言之,HTTP Referer是header的一部分,当浏览器向web服务器发送请求的时候,一般会带上Referer,告诉
 服务器我是从哪个页面链接过来的,服务器籍此可以获得一些信息用于处理.比如从我主页上链接到一个朋友那里,他的服务器就能够从HTTP Referer中统计
-出每天有多少用户点击我主页上的链接访问他的网站.（注:该文所有用的站点均假设以 http://blog.csdn.net为例）
+出每天有多少用户点击我主页上的链接访问他的网站.(注:该文所有用的站点均假设以 http://blog.csdn.net为例)
 假如我们要访问资源:http://blog.csdn.net/Beacher_Ma 有两种情况:
 1．  我们直接在浏览器上输入该网址.那么该请求的HTTP Referer 就为null
 2．  如果我们在其他其他页面中,通过点击,如 http://www.csdn.net 上有一个 http://blog.csdn.net/Beacher_Ma 这样的链接,那么该请求的HTTP Referer

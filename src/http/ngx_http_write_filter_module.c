@@ -43,9 +43,9 @@ static ngx_http_module_t ngx_http_write_filter_module_ctx = {
 ┃                                    ┃用户                                                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.将用户发送的ngx_chain_t结构的HTTP包         ┃
-┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制,不包括实际     ┃
+┃                                    ┃体复制到新的ngx_chain_t结构中(都是各种指针的复制,不包括实际     ┃
 ┃ngx_http_copy_filter_module         ┃                                                                  ┃
-┃                                    ┃HTTP响应内容）,后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
+┃                                    ┃HTTP响应内容),后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
 ┃                                    ┃员都是ngx_http_copy_filter_module模块处理后的变量                 ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP头部做处理.允许通过修改nginx.conf配置文件,在返回      ┃
@@ -60,7 +60,7 @@ static ngx_http_module_t ngx_http_write_filter_module_ctx = {
 ┃ngx_http_charset_filter_module      ┃                                                                  ┃
 ┃                                    ┃进行编码,再返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  支持SSI（Server Side Include,服务器端嵌入）功能,将文件内容包  ┃
+┃                                    ┃  支持SSI(Server Side Include,服务器端嵌入)功能,将文件内容包  ┃
 ┃ngx_http_ssi_filter_module          ┃                                                                  ┃
 ┃                                    ┃含到网页中并返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -68,7 +68,7 @@ static ngx_http_module_t ngx_http_write_filter_module_ctx = {
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
 ┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩,再      ┃
+┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
 ┃                                    ┃把压缩后的内容返回给用户                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -103,8 +103,8 @@ ngx_module_t ngx_http_write_filter_module = {
 /*
 ngx_http_header_filter发送头部内容是通过调用ngx_http_write_filter方法来发送响应头部的.事实上,这个方法是包体过滤模块链表中的
 最后一个模块ngx_http_write_filter_module的处理方法,当HTTP模块调用ngx_http_output_filter方法发送包体时,最终也是通过该方法发送响应的
-.当一次无法发送全部的缓冲区内容时,ngx_http_write_filter方法是会返回NGX_AGAIN的（同时将未发送完成的缓冲区放到请求的out成员
-中）,也就是说,发送响应头部的ngx_http_header_filter方法会返回NGX_AGAIN.如果不需要再发送包体,那么这时就需要调用
+.当一次无法发送全部的缓冲区内容时,ngx_http_write_filter方法是会返回NGX_AGAIN的(同时将未发送完成的缓冲区放到请求的out成员
+中),也就是说,发送响应头部的ngx_http_header_filter方法会返回NGX_AGAIN.如果不需要再发送包体,那么这时就需要调用
 ngx_http_finalize_request方法来结束请求,其中第2个参数务必要传递NGX_AGAIN,这样HTTP框架才会继续将可写事件注册到epoll,并持
 续地把请求的out成员中缓冲区里的HTTP响应发送完毕才会结束请求.
 */ //发送数据的时候调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_writer添加epoll write事件来触发
@@ -307,7 +307,7 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     */
 
     /*
-    3个标志位同时为0（即待发送的out链表中没有一个缓冲区表示响应已经结束或需要立刻发送出去）,而且本次要发送的缓冲区in虽然不为空,
+    3个标志位同时为0(即待发送的out链表中没有一个缓冲区表示响应已经结束或需要立刻发送出去),而且本次要发送的缓冲区in虽然不为空,
     但以上两步骤中计算出的待发送响应的大小又小于配置文件中的postpone_output参数,那么说明当前的缓冲区是不完整的且没有必要立刻发送
      */ //例如如果有头部,又有包体,则一般最尾部的头部filter函数ngx_http_header_filter->ngx_http_write_filter到这里的时候一般头部字段
     //过少,这里直接返回NGX_OK,这样就可以让头部和包体在最尾部的包体filter函数ngx_http_write_filter->ngx_http_write_filter和包体在一个报文中发送出去

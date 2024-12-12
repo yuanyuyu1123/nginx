@@ -93,7 +93,7 @@ typedef struct {
     unsigned set: 1;
     /*
      如果指令有default参数,那么这个server块将是通过“地址:端口”来进行访问的默认服务器,这对于你想为那些不匹配server_name指令中的
-     主机名指定默认server块的虚拟主机（基于域名）非常有用,如果没有指令带有default参数,那么默认服务器将使用第一个server块.
+     主机名指定默认server块的虚拟主机(基于域名)非常有用,如果没有指令带有default参数,那么默认服务器将使用第一个server块.
      */
     unsigned                   default_server:1; //如果设置了bind 带参数的时候default|default_server,置1,见ngx_http_core_listen
     /*
@@ -160,7 +160,7 @@ ngx_http_handler_pt方法设置到location相关的ngx_http_core_loc_conf_t结�
 ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组添加ngx_http_handler_pt处理方法来达成的,这个处理方法将会应用于全部的HTTP请求.
     而第二种方式是通过设置ngx_http_core_loc_conf_t结构体的handler指针来实现的,每一个location都对应着一个独立的ngx_http_core_loc_conf结
 构体.这样,我们就不必在必定会被调用的postconfiguration方法中添加ngx_http_handler_pt处理方法了,而可以选挥在ngx_command_t的某个配置项
-（如第3章中的mytest配置项）的回调方法中添加处理方法,将当前location块所属的ngx_http_core- loc—conf_t结构体中的handler设置为
+(如第3章中的mytest配置项)的回调方法中添加处理方法,将当前location块所属的ngx_http_core- loc—conf_t结构体中的handler设置为
 ngx_http_handler_pt处理方法.这样做的好处是,ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时
 (也就是mytest配置项所在的location)才会被调用.
     这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
@@ -208,9 +208,9 @@ ngx_http_finalize_request方法根据返回值的不同未必会直接结束请�
 ┃    10  ┃NGX HTTP LOG PHASE            ┃日志模块处理阶段            ┃
 ┗━━━━┻━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┛
 NGX_HTTP_SERVER_REWRITEPHASE阶段,和第3阶段NGX_HTTP_REWRITE_PHASE都属于地址重写,也都是针对rewrite模块而设定的阶段,前者用于server上下文里的
-地址重写,而后者用于location上下文里的地址重写.为什么要设置两个地址重写阶段,原因在于rewrite模块的相关指令（比如rewrite、if、set等）既
-可用于server上下文．又可用于location上下文.在客户端请求被Nginx接收后,首先做server查找与定位,在定位到server（如果没
-查找到就是默认server,见ngx_http_init_connection  ngx_http_set_virtual_server）后执行NGX_HTTP_SERVER_REWRITEPHASE阶段上的回调函数
+地址重写,而后者用于location上下文里的地址重写.为什么要设置两个地址重写阶段,原因在于rewrite模块的相关指令(比如rewrite、if、set等)既
+可用于server上下文．又可用于location上下文.在客户端请求被Nginx接收后,首先做server查找与定位,在定位到server(如果没
+查找到就是默认server,见ngx_http_init_connection  ngx_http_set_virtual_server)后执行NGX_HTTP_SERVER_REWRITEPHASE阶段上的回调函数
 */
 
 /*
@@ -236,11 +236,11 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
     NGX_HTTP_FIND_CONFIG_PHASE,//该阶段handler方法有:无,不允许用户添加hander方法在该阶段  该阶段完成的是Nginx的特定任务,即进行Location定位
 
     //在NGX_HTTP_FIND_CONFIG_PHASE阶段寻找到匹配的location之后再修改请求的URI  Location内请求地址重写阶段
-    /*在NGX_HTTP_FIND_CONFIG_PHASE阶段之后重写URL的意义与NGX_HTTP_SERVER_REWRITE_PHASE阶段显然是不同的,因为这两者会导致查找到不同的location块（location是与URI进行匹配的）*/
+    /*在NGX_HTTP_FIND_CONFIG_PHASE阶段之后重写URL的意义与NGX_HTTP_SERVER_REWRITE_PHASE阶段显然是不同的,因为这两者会导致查找到不同的location块(location是与URI进行匹配的)*/
     NGX_HTTP_REWRITE_PHASE,//该阶段handler方法有:ngx_http_rewrite_handler
     /*这一阶段是用于在rewrite重写URL后重新跳到NGX_HTTP_FIND_CONFIG_PHASE阶段,找到与新的URI匹配的location.所以,这一阶段是无法由第三方HTTP模块处理的,而仅由ngx_http_core_module模块使用*/
     /*
-    这一阶段是用于在rewrite重写URL后,防止错误的nginx．conf配置导致死循环（递归地修改URI）,因此,这一阶段仅由ngx_http_core_module模块处理.
+    这一阶段是用于在rewrite重写URL后,防止错误的nginx．conf配置导致死循环(递归地修改URI),因此,这一阶段仅由ngx_http_core_module模块处理.
 目前,控制死循环的方式很简单,首先检查rewrite的次数,如果一个请求超过10次重定向,扰认为进入了rewrite死循环,这时在NGX_HTTP_POSTREWRITE_PHASE
 阶段就会向用户返回500,表示服务器内部错误
      */
@@ -248,7 +248,7 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
 
     /*
     NGXHTTPPREACCESSPHASE、NGX_HTTP_ACCESS_PHASE、NGX HTTPPOST_ACCESS_PHASE,很好理解,做访问权限检查的前期、中期、后期工作,
-其中后期工作是固定的,判断前面访问权限检查的结果（状态码存故在字段r->access_code内）,如果当前请求没有访问权限,那么直接返回状
+其中后期工作是固定的,判断前面访问权限检查的结果(状态码存故在字段r->access_code内),如果当前请求没有访问权限,那么直接返回状
 态403错误,所以这个阶段也无法去挂载额外的回调函数.
      */
 
@@ -257,7 +257,7 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
 
     /*这个阶段用于让HTTP模块判断是否允许这个请求访问Nginx服务器*/
     NGX_HTTP_ACCESS_PHASE,//该阶段handler方法有:ngx_http_access_handler  ngx_http_auth_basic_handler  ngx_http_auth_request_handler
-    /*当NGX_HTTP_ACCESS_PHASE阶段中HTTP模块的handler处理方法返回不允许访问的错误码时（实际是NGX_HTTP_FORBIDDEN或者NGX_HTTP_UNAUTHORIZED）,
+    /*当NGX_HTTP_ACCESS_PHASE阶段中HTTP模块的handler处理方法返回不允许访问的错误码时(实际是NGX_HTTP_FORBIDDEN或者NGX_HTTP_UNAUTHORIZED),
     这个阶段将负责构造拒绝服务的用户响应.所以,这个阶段实际上用于给NGX_HTTP_ACCESS_PHASE阶段收尾*/
     NGX_HTTP_POST_ACCESS_PHASE,//该阶段handler方法有:无,不允许用户添加hander方法在该阶段
 
@@ -354,7 +354,7 @@ ngx_http_phase_engine_t中保存了在当前nginx.conf配置下,一个用户请�
 //空间创建及赋值参考ngx_http_init_phase_handlers
 typedef struct { //ngx_http_phase_engine_t结构体是保存在全局的ngx_http_core_main_conf_t结构体中的
     /* handlers是由ngx_http_phase_handler_t构成的数组首地址,它表示一个请求可能经历的所有ngx_http_handler_pt处理方法,
-    配合ngx_http_request_t结构体中的phase_handler成员使用（phase_handler指定了当前请求应当执行哪一个HTTP阶段）*/
+    配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段)*/
     ngx_http_phase_handler_t  *handlers;
 
     /* 表示NGX_HTTP_SERVER_REWRITE_PHASE阶段第1个ngx_http_phase_handler_t处理方法在handlers数组中的序号,用于在执行HTTP请求
@@ -386,7 +386,7 @@ Nginx的http配置结构体的组织结构:http://tech.uc.cn/?p=300
 
 typedef struct {//初始化赋值参考ngx_http_core_module_ctx
 /*
-servers动态数组中的每一个元素都是一个指针,它指向用于表示server块的ngx_http_core_srv_conf_t结构体的地址（属于ngx_http_core_module模块）.
+servers动态数组中的每一个元素都是一个指针,它指向用于表示server块的ngx_http_core_srv_conf_t结构体的地址(属于ngx_http_core_module模块).
 ngx_http_core_srv_conf_t结构体中有1个ctx指针,它指向解析server块时新生成的ngx_http_conf_ctx_t结构体,因此只要获取到http{}的上下文ctx,就能找到http{}
 中server{}块的上下文ctx.图形化理解参考图10-3
  */
@@ -473,7 +473,7 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
     ngx_array_t               *ports;//没解析到一个listen配置项,就添加一个ngx_http_conf_port_t  赋值见ngx_http_add_listen,存储的是ngx_http_conf_port_t结构
     /*
 在ngx_http_core_main_conf_t中关于HTTP阶段有两个成员:phase_engine和phases,其中phase_engine控制运行过程中一个HTTP请求所要
-经过的HTTP处理阶段,它将配合ngx_http_request_t结构体中的phase_handler成员使用（phase_handler指定了当前请求应当执行哪一个HTTP阶段）；
+经过的HTTP处理阶段,它将配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段)；
 而phases数组更像一个临时变量,它实际上仅会在Nginx启动过程中用到,它的唯一使命是按照11个阶段的概念初始化phase_engine中的handlers数组
  */
 /*
@@ -490,7 +490,7 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
 
 /*
 = 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到（注意是空格）.
+^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
 ~ 开头表示区分大小写的正则匹配
 ~*  开头表示不区分大小写的正则匹配
 !~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
@@ -718,8 +718,8 @@ ngx_http_core_main_conf_t
 typedef struct { //见ngx_http_add_listen     (ngx_http_port_t->ngx_http_in_addr_t内容也是从该结构中获取)
     ngx_int_t                  family; //协议族
     in_port_t                  port; //listen命令配置监听的端口
-//对于每一个端口信息（ngx_http_conf_port_t）,里面有一个字段为addrs,这个字段是一个数组,这个数组内存放的全是地址信息（ngx_http_conf_addr_t）,一个地址信息
-//（ngx_http_conf_addr_t）对应着一个ip:port
+//对于每一个端口信息(ngx_http_conf_port_t),里面有一个字段为addrs,这个字段是一个数组,这个数组内存放的全是地址信息(ngx_http_conf_addr_t),一个地址信息
+//(ngx_http_conf_addr_t)对应着一个ip:port
     //相同port不同IP,那么就用这个区分,他们有不同的ngx_http_conf_addr_t信息.如果两个server{}有相同的listen ip:port,则会创建两个ngx_http_conf_addr_t,见ngx_http_add_addresses
     //两个在不同server{]中的相同IP:port,其在addrs中也是存在的两个ngx_http_conf_addr_t,各自有各自的
     ngx_array_t                addrs;     /* array of ngx_http_conf_addr_t */  //见ngx_http_add_address分配空间
@@ -793,7 +793,7 @@ typedef struct { //赋值参考ngx_http_core_error_page    生效见ngx_http_sen
 
 /*
 = 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到（注意是空格）.
+^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
 ~ 开头表示区分大小写的正则匹配
 ~*  开头表示不区分大小写的正则匹配
 !~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
@@ -1097,7 +1097,7 @@ lingering_close
     ngx_uint_t    types_hash_bucket_size;
 
 /*
-每一个server块可以对应着多个location块,而一个location块还可以继续嵌套多个location块.每一批location块是通过双向链表与它的父配置块（要
+每一个server块可以对应着多个location块,而一个location块还可以继续嵌套多个location块.每一批location块是通过双向链表与它的父配置块(要
 么属于server块,要么属于location块{}关联起来的
 */
     //头部是ngx_queue_t,next开始的成员为ngx_http_location_queue_t
@@ -1226,7 +1226,7 @@ ngx_http_cleanup_t *ngx_http_cleanup_add(ngx_http_request_t *r, size_t size);
     既然一个请求会被所有的HTTP过滤模块依次处理,那么下面来看一下这些HTTP过滤模块是如何组织到一起的,以及它们的调用顺序是如何确定的.
 6.2.1  过滤链表是如何构成的
     在编译Nginx源代码时,已经定义了一个由所有HTTP过滤模块组成的单链表,这个单链表与一般的链表是不一样的,它有另类的风格:链表的每一个
-元素都是一个独立的C源代码文件,而这个C源代码文件会通过两个static静态指针（分别用于处理HTTP头部和HTTP包体）再指向下一个文件中的过滤方法.
+元素都是一个独立的C源代码文件,而这个C源代码文件会通过两个static静态指针(分别用于处理HTTP头部和HTTP包体)再指向下一个文件中的过滤方法.
 在HTTP框架中定义了两个指针,指向整个链表的第一个元素,也就是第一个处理HTTP头部、HTTP包体的方法.
 */
 

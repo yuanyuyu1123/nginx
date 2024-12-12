@@ -102,10 +102,10 @@ typedef struct {
 //server backend1.example.com weight=5;
 /*
 ·weight = NUMBER - 设置服务器权重,默认为1.
-·max_fails = NUMBER - 在一定时间内（这个时间在fail_timeout参数中设置）检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream（404错误不会使max_fails增加）中定义.
-·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间（在下一次尝试连接请求发起之前）,默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
+·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
+·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
 ·down - 标记服务器处于离线状态,通常和ip_hash一起使用.
-·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器（无法和ip_hash指令搭配使用）.
+·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).
 */
 typedef struct { //ngx_http_upstream_srv_conf_s->servers[]中的成员   创建空间和赋值见ngx_http_upstream_server
     ngx_str_t                        name; ////server 127.0.0.1:8080 max_fails=3  fail_timeout=30s;中的uri为/
@@ -166,7 +166,7 @@ struct ngx_http_upstream_srv_conf_s { //upstream {}模块配置信息,该配置�
     ngx_str_t                        host; //upstream xxx {}中的xxx 如果是通过xxx_pass ip:port形式的话,host为空(fastcgi_param)
     u_char                          *file_name; //配置文件名称
     ngx_uint_t                       line; //配置文件中的行号
-    in_port_t                        port;//使用的端口号（ngx_http_upstream_add()函数中添加, 指向ngx_url_t-->port,通常在函数ngx_parse_inet_url()中解析）
+    in_port_t                        port;//使用的端口号(ngx_http_upstream_add()函数中添加, 指向ngx_url_t-->port,通常在函数ngx_parse_inet_url()中解析)
     ngx_uint_t no_port;  /* unsigned no_port:1 */
 
 #if (NGX_HTTP_UPSTREAM_ZONE)
@@ -200,7 +200,7 @@ typedef struct { //upstream配置包括proxy fastcgi wcgi等都用该结构
     ngx_msec_t next_upstream_timeout;
 
     size_t                           send_lowat; //TCP的SO_SNDLOWAT选项,表示发送缓冲区的下限 fastcgi_send_lowat proxy_send_lowat
-//定义了接收头部的缓冲区分配的内存大小（ngx_http_upstream_t中的buffer缓冲区）,当不转发响应给下游或者在buffering标志位为0
+//定义了接收头部的缓冲区分配的内存大小(ngx_http_upstream_t中的buffer缓冲区),当不转发响应给下游或者在buffering标志位为0
 //的情况下转发响应时,它同样表示接收包体的缓冲区大小   当接收后端过来的头部信息的时候先分配这么多空间来接收头部行等信息,见ngx_http_upstream_process_header
     //头部行部分(也就是第一个fastcgi data标识信息,里面也会携带一部分网页数据)的fastcgi标识信息开辟的空间用buffer_size配置指定
     //指定的大小空间开辟在ngx_http_upstream_process_header
@@ -291,14 +291,14 @@ buffering标志位为1的情况下转发响应时才有意义.这时,如果cycli
     ngx_hash_t                       hide_headers_hash; //把default_hide_headers(ngx_http_proxy_hide_headers  ngx_http_fastcgi_hide_headers)中的成员做hash保存到conf->hide_headers_hash
 
 /*
-hide_headers的类型是ngx_array_t动态数组（实际上,upstream模块将会通过hide_headers来构造hide_headers_hash散列表）.
+hide_headers的类型是ngx_array_t动态数组(实际上,upstream模块将会通过hide_headers来构造hide_headers_hash散列表).
 由于upstream模块要求hide_headers不可以为NULL,所以必须要初始化hide_headers成员.upstream模块提供了
 ngx_http_upstream_hide_headers hash方法来初始化hide_headers,但仅可用在合并配置项方法内.
 */ //XXX_pass_headers   XXX_hide_headers出现重叠冲突,则以hide_header为准,见ngx_http_upstream_hide_headers_hash
-//当转发上游响应头部（ngx_http_upstream_t中headers_in结构体中的头部）给下游客户端时如果不希望某些头部转发给下游,就设置到hide_headers动态数组中
+//当转发上游响应头部(ngx_http_upstream_t中headers_in结构体中的头部)给下游客户端时如果不希望某些头部转发给下游,就设置到hide_headers动态数组中
     ngx_array_t                     *hide_headers; //proxy_hide_header fastcgi_hide_header
 /*
-当转发上游响应头部（ngx_http_upstream_t中headers_in结构体中的头部）给下游客户端时,upstream机制默认不会转发如“Date”、“Server”之
+当转发上游响应头部(ngx_http_upstream_t中headers_in结构体中的头部)给下游客户端时,upstream机制默认不会转发如“Date”、“Server”之
 类的头部,如果确实希望直接转发它们到下游,就设置到pass_headers动态数组中
 */ //XXX_pass_headers   XXX_hide_headers出现重叠冲突,则以hide_header为准,见ngx_http_upstream_hide_headers_hash
     ngx_array_t                     *pass_headers; // proxy_hide_header  fastcgi_hide_header
@@ -377,7 +377,7 @@ proxy_cache_valid  301 1h;  proxy_cache_valid  any 1m;
 */
     unsigned                         intercept_404:1;
 /*
-当该标志位为1时,将会根据ngx_http_upstream_t中headers_in结构体里的"X-Accel-Buffering"头部（它的值会是yes和no）来改变buffering
+当该标志位为1时,将会根据ngx_http_upstream_t中headers_in结构体里的"X-Accel-Buffering"头部(它的值会是yes和no)来改变buffering
 标志位,当其值为yes时,buffering标志位为1.因此,change_buffering为1时将有可能根据上游服务器返回的响应头部,动态地决定是以上
 游网速优先还是以下游网速优先
 */
@@ -438,7 +438,7 @@ typedef struct { //服务器后端应答回来的头部信息
 
     ngx_table_elt_t *expires;
     /*
-    ETag是一个可以与Web资源关联的记号（token）.典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
+    ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
     及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:ETag:"50b1c1d4f775c61:df3"客户端的查询更新格式是这样
     的:If-None-Match : W / "50b1c1d4f775c61:df3"如果ETag没改变,则返回状态304然后不返回,这也和Last-Modified一样.测试Etag主要
     在断点下载时比较有用. "etag:XXX" ETag值的变更说明资源状态已经被修改
@@ -509,7 +509,7 @@ subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发
 到下游,由HTTP模块实现的input_filter方法处理包体；当subrequest_in_memory为0时,
 upstream会转发响应包体.当ngx_http_upstream_conf t配置结构体中的buffering标志位为1
 畸,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；当buffering
-为0时,将使用固定大小的缓冲区（就是上面介绍的buffer缓冲区）来转发响应包体.
+为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
     注意  上述的8个回调方法中,只有create_request、process_header、finalize_request
 是必须实现的,其余5个回调方法-input_filter init、input_filter、reinit_request、abort
 request、rewrite redirect是可选的.第12章会详细介绍如何使用这5个可选的回调方法.另
@@ -537,8 +537,8 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
     ngx_peer_connection_t            peer;//初始赋值见ngx_http_upstream_connect->ngx_event_connect_peer(&u->peer);
 
     /*
-     当向下游客户端转发响应时（ngx_http_request_t结构体中的subrequest_in_memory标志住为0）,如果打开了缓存且认为上游网速更快（conf
-     配置中的buffering标志位为1）,这时会使用pipe成员来转发响应.在使用这种方式转发响应时,必须由HTTP模块在使用upstream机制前构造
+     当向下游客户端转发响应时(ngx_http_request_t结构体中的subrequest_in_memory标志住为0),如果打开了缓存且认为上游网速更快(conf
+     配置中的buffering标志位为1),这时会使用pipe成员来转发响应.在使用这种方式转发响应时,必须由HTTP模块在使用upstream机制前构造
      pipe结构体,否则会出现严重的coredump错误
      */ //实际上buffering为1才通过pipe发送包体到客户端浏览器
     ngx_event_pipe_t                *pipe; //ngx_http_fastcgi_handler  ngx_http_proxy_handler中创建空间
@@ -564,7 +564,7 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
     /*
     conf成员,它用于设置upstream模块处理请求时的参数,包括连接、发送、接收的超时时间等.
     事实上,HTTP反向代理模块在nginx.conf文件中提供的配置项大都是用来设置ngx_http_upstream_conf_t结构体中的成员的.
-    上面列出的3个超时时间(connect_timeout  send_imeout read_timeout)是必须要设置的,因为它们默认为0,如果不设置将永远无法与上游服务器建立起TCP连接（因为connect timeout值为0）.
+    上面列出的3个超时时间(connect_timeout  send_imeout read_timeout)是必须要设置的,因为它们默认为0,如果不设置将永远无法与上游服务器建立起TCP连接(因为connect timeout值为0).
     */ //使用upstream机制时的各种配置  例如fastcgi赋值在ngx_http_fastcgi_handler赋值来自于ngx_http_fastcgi_loc_conf_t->upstream
     ngx_http_upstream_conf_t        *conf;
     ngx_http_upstream_srv_conf_t *upstream;
@@ -585,10 +585,10 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
 
     /*
     buffer成员存储接收自上游服务器发来的响应内容,由于它会被复用,所以具有下列多种意义:
-    a）在使用process_header方法解析上游响应的包头时,buffer中将会保存完整的响应包头:
-    b）当下面的buffering成员为1,而且此时upstream是向下游转发上游的包体时,buffer没有意义；
-    c）当buffering标志住为0时,buffer缓冲区会被用于反复地接收上游的包体,进而向下游转发；
-    d）当upstream并不用于转发上游包体时,buffer会被用于反复接收上游的包体,HTTP模块实现的input_filter方法需要关注它
+    a)在使用process_header方法解析上游响应的包头时,buffer中将会保存完整的响应包头:
+    b)当下面的buffering成员为1,而且此时upstream是向下游转发上游的包体时,buffer没有意义；
+    c)当buffering标志住为0时,buffer缓冲区会被用于反复地接收上游的包体,进而向下游转发；
+    d)当upstream并不用于转发上游包体时,buffer会被用于反复接收上游的包体,HTTP模块实现的input_filter方法需要关注它
     接收上游服务器响应包头的缓冲区,在不需要把响应直接转发给客户端,或者buffering标志位为0的情况下转发包体时,接收包体的缓冲
 区仍然使用buffer.注意,如果没有自定义input_filter方法处理包体,将会使用buffer存储全部的包体,这时buf fer必须足够大！它的大小
 由ngx_http_upstream_conf_t结构体中的buffer_size成员决定
@@ -601,13 +601,13 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
 
     /*
 out_bufs在两种场景下有不同的意义:
-①当不需要转发包体,且使用默认的input_filter方法（也就是ngx_http_upstream_non_buffered_filter方法）处理包体时,out bufs将会指向响应包体,
+①当不需要转发包体,且使用默认的input_filter方法(也就是ngx_http_upstream_non_buffered_filter方法)处理包体时,out bufs将会指向响应包体,
 事实上,out bufs链表中会产生多个ngx_buf_t缓冲区,每个缓冲区都指向buffer缓存中的一部分,而这里的一部分就是每次调用recv方法接收到的一段TCP流.
-②当需要转发响应包体到下游时（buffering标志位为O,即以下游网速优先）,这个链表指向上一次向下游转发响应到现在这段时间内接收自上游的缓存响应
+②当需要转发响应包体到下游时(buffering标志位为O,即以下游网速优先),这个链表指向上一次向下游转发响应到现在这段时间内接收自上游的缓存响应
      */
     ngx_chain_t                     *out_bufs;
     /*
-    当需要转发响应包体到下游时（buffering标志位为o,即以下游网速优先）,它表示上一次向下游转发响应时没有发送完的内容
+    当需要转发响应包体到下游时(buffering标志位为o,即以下游网速优先),它表示上一次向下游转发响应时没有发送完的内容
      */
     ngx_chain_t                     *busy_bufs;//调用了ngx_http_output_filter,并将out_bufs的链表数据移动到这里,待发送完毕后,会移动到free_bufs
     /*
@@ -621,8 +621,8 @@ input_filter init与input_filter回调方法
 前HTTP模块可能需要做一些初始化工作.例如,分配一些内存用于存放解析的中间状态
 等,这时upstream就提供了input_filter_init方法.而input_filter方法就是实际处理包体的
 方法.这两个回调方法都可以选择不予实现,这是因为当这两个方法不实现时,upstream
-模块会自动设置它们为预置方法（上文讲过,由于upstream有3种处理包体的方式,所以
-upstream模块准备了3对input_filter_init、input_filter方法）.因此,一旦试图重定义mput_
+模块会自动设置它们为预置方法(上文讲过,由于upstream有3种处理包体的方式,所以
+upstream模块准备了3对input_filter_init、input_filter方法).因此,一旦试图重定义mput_
 filter init、input_filter方法,就意味着我们对upstream模块的默认实现是不满意的,所以才
 要重定义该功能.
     在多数情况下,会在以下场景决定重新实现input_filter方法.
@@ -664,13 +664,13 @@ Ngx_http_proxy_module.c (src\http\modules):    u->create_key = ngx_http_proxy_cr
     //构造发往上游服务器的请求内容
     /*
     create_request回调方法
-    create_request的回调场景最简单,即它只可能被调用1次（如果不启用upstream的
-失败重试机制的话）:
-    1)在Nginx主循环（这里的主循环是指ngx_worker_process_cycle方法）中,会定期地调用事件模块,以检查是否有网络事件发生.
+    create_request的回调场景最简单,即它只可能被调用1次(如果不启用upstream的
+失败重试机制的话):
+    1)在Nginx主循环(这里的主循环是指ngx_worker_process_cycle方法)中,会定期地调用事件模块,以检查是否有网络事件发生.
     2)事件模块在接收到HTTP请求后会调用HTIP框架来处理.假设接收、解析完HTTP头部后发现应该由mytest模块处理,这时会调用mytest模
     块的ngx_http_mytest_handler来处理.
     4)调用ngx_http_up stream_init方法启动upstream.
-    5) upstream模块会去检查文件缓存,如果缓存中已经有合适的响应包,则会直接返回缓存（当然必须是在使用反向代理文件缓存的前提下）.
+    5) upstream模块会去检查文件缓存,如果缓存中已经有合适的响应包,则会直接返回缓存(当然必须是在使用反向代理文件缓存的前提下).
     为了让读者方便地理解upstream机制,本章将不再提及文件缓存.
     6)回调mytest模块已经实现的create_request回调方法.
     7) mytest模块通过设置r->upstream->request_bufs已经决定好发送什么样的请求到上游服务器.
@@ -683,7 +683,7 @@ Ngx_http_proxy_module.c (src\http\modules):    u->create_key = ngx_http_proxy_cr
     */ //这里定义的mytest_upstream_create_request方法用于创建发送给上游服务器的HTTP请求,upstream模块将会回调它
     //在ngx_http_upstream_init_request中执行  HTTP模块实现的执行create_request方法用于构造发往上游服务器的请求
     //ngx_http_xxx_create_request(例如ngx_http_fastcgi_create_request)
-    ngx_int_t                      (*create_request)(ngx_http_request_t *r);//生成发送到上游服务器的请求缓冲（或者一条缓冲链）
+    ngx_int_t                      (*create_request)(ngx_http_request_t *r);//生成发送到上游服务器的请求缓冲(或者一条缓冲链)
 
 /*
 reinit_request可能会被多次回调.它被调用的原因只有一个,就是在第一次试图向上游服务器建立连接时,如果连接由于各种异常原因失败,
@@ -693,7 +693,7 @@ reinit_request可能会被多次回调.它被调用的原因只有一个,就是�
     2)事件模块在确定与上游服务器的TCP连接建立成功后,会回调upstream模块的相关方法处理.
     3) upstream棋块这时会把r->upstream->request_sent标志位置为l,表示连接已经建立成功了,现在开始向上游服务器发送请求内容.
     4)发送请求到上游服务器.
-    5)发送方法当然是无阻塞的（使用了无阻塞的套接字）,会立刻返回.
+    5)发送方法当然是无阻塞的(使用了无阻塞的套接字),会立刻返回.
     6) upstream模块处理第2步中的TCP连接建立成功事件.
     7)事件模块处理完本轮网络事件后,将控制权交还给Nginx主循环.
     8) Nginx主循环重复第1步,调用事件模块检查网络事件.
@@ -708,7 +708,7 @@ reinit_request可能会被多次回调.它被调用的原因只有一个,就是�
 */ //与上游服务器的通信失败后,如果按照重试规则还需要再次向上游服务器发起连接,则会调用reinit_request方法
     //下面的upstream回调指针是各个模块设置的,比如ngx_http_fastcgi_handler里面设置了fcgi的相关回调函数.
     //ngx_http_XXX_reinit_request(ngx_http_fastcgi_reinit_request) //在ngx_http_upstream_reinit中执行
-    ngx_int_t                      (*reinit_request)(ngx_http_request_t *r);//在后端服务器被重置的情况下（在create_request被第二次调用之前）被调用
+    ngx_int_t                      (*reinit_request)(ngx_http_request_t *r);//在后端服务器被重置的情况下(在create_request被第二次调用之前)被调用
 
 /*
 收到上游服务器的响应后就会回调process_header方法.如果process_header返回NGXAGAIN,那么是在告诉upstream还没有收到完整的响应包头,
@@ -717,7 +717,7 @@ reinit_request可能会被多次回调.它被调用的原因只有一个,就是�
 process_header回调方法process_header是用于解析上游服务器返回的基于TCP的响应头部的,因此,process_header可能会被多次调用,
 它的调用次数与process_header的返回值有关.如图5-5所示,如果process_header返回NGX_AGAIN,这意味着还没有接收到完整的响应头部,
 如果再次接收到上游服务器发来的TCP流,还会把它当做头部,仍然调用process_header处理.而在图5-6中,如果process_header返回NGX_OK
-（或者其他非NGX_AGAIN的值）,那么在这次连接的后续处理中将不会再次调用process_header.
+(或者其他非NGX_AGAIN的值),那么在这次连接的后续处理中将不会再次调用process_header.
  process header回调场景的序列图
 下面简单地介绍一下图5-5中列出的步骤.
     1) Nginx主循环中会定期地调用事件模块,检查是否有网络事件发生.
@@ -725,10 +725,10 @@ process_header回调方法process_header是用于解析上游服务器返回的�
     3) upstream模块这时可以从套接字缓冲区中读取到来自上游的TCP流.
     4)读取的响应会存放到r->upstream->buffer指向的内存中.注意:在未解析完响应头部前,若多次接收到字符流,所有接收自上游的
     响应都会完整地存放到r->upstream->buffer缓冲区中.因此,在解析上游响应包头时,如果buffer缓冲区全满却还没有解析到完整的响应
-    头部（也就是说,process_header -直在返回NGX_AGAIN）,那么请求就会出错.
+    头部(也就是说,process_header -直在返回NGX_AGAIN),那么请求就会出错.
     5)调用mytest模块实现的process_header方法.
-    6) process_header方法实际上就是在解析r->upstream->buffer缓冲区,试图从中取到完整的响应头部（当然,如果上游服务器与Nginx通过HTTP通信,
-    就是接收到完整的HTTP头部）.
+    6) process_header方法实际上就是在解析r->upstream->buffer缓冲区,试图从中取到完整的响应头部(当然,如果上游服务器与Nginx通过HTTP通信,
+    就是接收到完整的HTTP头部).
     7)如果process_header返回NGX AGAIN,那么表示还没有解析到完整的响应头部,下次还会调用process_header处理接收到的上游响应.
     8)调用元阻塞的读取套接字接口.
     9)这时有可能返回套接字缓冲区已经为空.
@@ -744,7 +744,7 @@ NGX ERROR表示出现错误,返回NGX_OK表示解析到完整的包头
     void                           (*abort_request)(ngx_http_request_t *r);//在客户端放弃请求的时候被调用 ngx_http_XXX_abort_request
 
 /*
-当调用ngx_http_upstream_init启动upstream机制后,在各种原因（无论成功还是失败）导致该请求被销毁前都会调用finalize_request方
+当调用ngx_http_upstream_init启动upstream机制后,在各种原因(无论成功还是失败)导致该请求被销毁前都会调用finalize_request方
 法.在finalize_request方法中可以不做任何事情,但必须实现finalize_request方法,否则Nginx会出现空指针调用的严重错误.
 当请求结束时,将会回调finalize_request方法,如果我们希望此时释放资源,如打开
 的句柄等,．那么可以把这样的代码添加到finalize_request方法中.本例中定义了mytest_
@@ -807,8 +807,8 @@ ngx_http_upstream_process_headers方法将会最终调用rewrite_redirect方法
       块实现的input_filter方法处理包体；
   当subrequest_in_memory为0时,upstream会转发响应包体.
   当ngx_http_upstream_conf t配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；
-      会先buffer后端FCGI发过来的数据,等达到一定量（比如buffer满）再传送给最终客户端
-  当buffering为0时,将使用固定大小的缓冲区（就是上面介绍的buffer缓冲区）来转发响应包体.
+      会先buffer后端FCGI发过来的数据,等达到一定量(比如buffer满)再传送给最终客户端
+  当buffering为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
 
   在向客户端转发上游服务器的包体时才有用.
   当buffering为1时,表示使用多个缓冲区以及磁盘文件来转发上游的响应包体.
@@ -818,10 +818,10 @@ ngx_http_upstream_process_headers方法将会最终调用rewrite_redirect方法
   */ //fastcgi赋值见ngx_http_fastcgi_handler u->buffering = flcf->upstream.buffering; //见xxx_buffering如fastcgi_buffering  是否缓存后端服务器应答回来的包体
     //该参数也可以通过后端返回的头部字段: X-Accel-Buffering:no | yes来设置是否开启,见ngx_http_upstream_process_buffering
     /*
-     如果开启缓冲,那么Nginx将尽可能多地读取后端服务器的响应数据,等达到一定量（比如buffer满）再传送给最终客户端.如果关闭,
+     如果开启缓冲,那么Nginx将尽可能多地读取后端服务器的响应数据,等达到一定量(比如buffer满)再传送给最终客户端.如果关闭,
      那么Nginx对数据的中转就是一个同步的过程,即从后端服务器接收到响应数据就立即将其发送给客户端.
      buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快；当buffering
-     为0时,将使用固定大小的缓冲区（就是上面介绍的buffer缓冲区）来转发响应包体.
+     为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
      */ //buffering方式和非buffering方式在函数ngx_http_upstream_send_response分叉
     //见xxx_buffering如fastcgi_buffering  proxy_buffering  是否缓存后端服务器应答回来的包体
     unsigned                         buffering:1; //向下游转发上游的响应包体时,是否开启更大的内存及临时磁盘文件用于缓存来不及发送到下游的响应

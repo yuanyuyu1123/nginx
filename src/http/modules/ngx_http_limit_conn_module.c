@@ -102,7 +102,7 @@ static ngx_command_t ngx_http_limit_conn_commands[] = {
 默认值:  —
 上下文:  http
 
-设定保存各个键的状态的共享内存空间的参数.键的状态中保存了当前连接数.键的值可以是特定变量的任何非空值（空值将不会被考虑）. 使用范例:
+设定保存各个键的状态的共享内存空间的参数.键的状态中保存了当前连接数.键的值可以是特定变量的任何非空值(空值将不会被考虑). 使用范例:
 limit_conn_zone $binary_remote_addr zone=addr:10m;
 这里,设置客户端的IP地址作为键.注意,这里使用的是$binary_remote_addr变量,而不是$remote_addr变量.$remote_addr变量的长度为7字节到15字节
 不等,而存储状态在32位平台中占用32字节或64字节,在64位平台中占用64字节.而$binary_remote_addr变量的长度是固定的4字节,存储状态在32位平台
@@ -191,7 +191,7 @@ static ngx_http_module_t ngx_http_limit_conn_module_ctx = {
 
 /*
 ngx_http_limit_conn_module 模块可以按照定义的键限定每个键值的连接数.特别的,可以设定单一 IP 来源的连接数.
-并不是所有的连接都会被模块计数；只有那些正在被处理的请求（这些请求的头信息已被完全读入）所在的连接才会被计数.
+并不是所有的连接都会被模块计数；只有那些正在被处理的请求(这些请求的头信息已被完全读入)所在的连接才会被计数.
 */ /* ngx_http_limit_conn_module限定同一时刻客户端的连接数, ngx_http_limit_req_commands限制请求处理的频率,也就是单位时间最多有多少个连接 */
 ngx_module_t ngx_http_limit_conn_module = {
         NGX_MODULE_V1,

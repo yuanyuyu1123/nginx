@@ -20,7 +20,7 @@ typedef struct ngx_radix_node_s ngx_radix_node_t;
 struct ngx_radix_node_s {
     ngx_radix_node_t  *right; //指向右子树,如果没有右子树,则值为null空指针
     ngx_radix_node_t  *left; //指向左子树,如果没有左子树,则值为null空指针
-    ngx_radix_node_t  *parent; //指向父节点,如果没有父节点,则（如根节点）值为null空指针
+    ngx_radix_node_t  *parent; //指向父节点,如果没有父节点,则(如根节点)值为null空指针
     uintptr_t          value; //value存储的是指针的值,它指向用户定义的数据结构.如果这个节点还未使用,value的值将是NGX_RADIX_NO_VALUE
 };
 
@@ -32,7 +32,7 @@ struct ngx_radix_node_s {
 typedef struct {
     ngx_radix_node_t  *root;  //指向根节点
     ngx_pool_t        *pool;  //内存池,它负责给基数树的节点分配内存
-    ngx_radix_node_t  *free;  //管理已经分配但暂时未使用（不在树中）的节点,free实际上是所有不在树中节点的单链表
+    ngx_radix_node_t  *free;  //管理已经分配但暂时未使用(不在树中)的节点,free实际上是所有不在树中节点的单链表
     char              *start; //已分配内存中还未使用内存的首地址
     size_t             size;  //已分配内存中还未使用的内存大小
 } ngx_radix_tree_t;

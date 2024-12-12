@@ -507,10 +507,10 @@ fail_time=time
     使用字段:upstream
     指定后端服务器的名称和一些参数,可以使用域名,IP,端口,或者unix socket.如果指定为域名,则首先将其解析为IP.
     ·weight = NUMBER - 设置服务器权重,默认为1.
-    ·max_fails = NUMBER - 在一定时间内（这个时间在fail_timeout参数中设置）检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream（404错误不会使max_fails增加）中定义.
-    ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间（在下一次尝试连接请求发起之前）,默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
+    ·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
+    ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
     ·down - 标记服务器处于离线状态,通常和ip_hash一起使用.
-    ·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器（无法和ip_hash指令搭配使用）.
+    ·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).
     示例配置
 
     upstream  backend  {
@@ -720,7 +720,7 @@ ngx_http_upstream_create(ngx_http_request_t *r) { //创建一个ngx_http_upstrea
 
 /*
     1)调用ngx_http_up stream_init方法启动upstream.
-    2) upstream模块会去检查文件缓存,如果缓存中已经有合适的响应包,则会直接返回缓存（当然必须是在使用反向代理文件缓存的前提下）.
+    2) upstream模块会去检查文件缓存,如果缓存中已经有合适的响应包,则会直接返回缓存(当然必须是在使用反向代理文件缓存的前提下).
     为了让读者方便地理解upstream机制,本章将不再提及文件缓存.
     3)回调mytest模块已经实现的create_request回调方法.
     4) mytest模块通过设置r->upstream->request_bufs已经决定好发送什么样的请求到上游服务器.
@@ -876,7 +876,7 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
     }
     /*
     调用请求中ngx_http_upstream_t结构体里由某个HTTP模块实现的create_request方法,构造发往上游服务器的请求
-    （请求中的内容是设置到request_bufs缓冲区链表中的）.如果create_request方法没有返回NGX_OK,则upstream结束
+    (请求中的内容是设置到request_bufs缓冲区链表中的).如果create_request方法没有返回NGX_OK,则upstream结束
     如果是FCGI.下面组建好FCGI的各种头部,包括请求开始头,请求参数头,请求STDIN头.存放在u->request_bufs链接表里面.
    如果是Proxy模块,ngx_http_proxy_create_request组件反向代理的头部啥的,放到u->request_bufs里面
    FastCGI memcached  uwsgi  scgi proxy都会用到upstream模块
@@ -3247,7 +3247,7 @@ ngx_http_upstream_process_headers(ngx_http_request_t *r, ngx_http_upstream_t *u)
         //如果头部中使用了X-Accel-Redirect特性,也就是下载文件的特性,则在这里进行文件下载.,重定向.
             /*nginx X-Accel-Redirect实现文件下载权限控制
             对文件下载的权限进行精确控制在很多地方都需要,例如有偿的下载服务、网络硬盘、个人相册、防止本站内容被外站盗链等
-            步骤0,client请求http://downloaddomain.com/download/my.iso,此请求被CGI程序解析（对于 nginx应该是fastcgi）.
+            步骤0,client请求http://downloaddomain.com/download/my.iso,此请求被CGI程序解析(对于 nginx应该是fastcgi).
             步骤1,CGI程序根据访问者的身份和所请求的资源其是否有下载权限来判定是否有打开的权限.如果有,那么根据此请求得到对应文件的磁盘存放路径,例如是 /var/data/my.iso.
                 那么程序返回时在HTTP header加入X-Accel-Redirect: /protectfile/data/my.iso,并加上head Content-Type:application/octet-stream.
             步骤2,nginx得到cgi程序的回应后发现带有X-Accel-Redirect的header,那么根据这个头记录的路径信息打开磁盘文件.

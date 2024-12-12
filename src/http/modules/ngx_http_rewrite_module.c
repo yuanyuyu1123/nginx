@@ -212,7 +212,7 @@ request_completion #如果请求结束,设置为OK. 当请求未结束或如果�
 request_method    #GET或POST
 request_filename  #当前请求的文件路径,由root或alias指令与URI请求生成.
 request_uri          #包含请求参数的原始URI,不包含主机名,如:”/foo/bar.php?arg=baz”.不能修改.
-scheme                #HTTP方法（如http,https）.
+scheme                #HTTP方法(如http,https).
 server_protocol      #请求使用的协议,通常是HTTP/1.0或HTTP/1.1.
 server_addr          #服务器地址,在完成一次系统调用后可以确定这个值.
 server_name        #服务器名称.
@@ -393,7 +393,7 @@ location /download/ {
 有人可能会问,用break不就万无一失了么?
 不对.有些情况是要用last的. 典型的例子就是wordpress的permalink rewrite
 常见的情况下, wordpress的rewrite是放在location /下面,并将请求rewrite到/index.php
-这时如果这里使用break乃就挂了,不信试试. ｂ（￣▽￣）ｄ…因为nginx返回的是没有解释的index.php的源码…
+这时如果这里使用break乃就挂了,不信试试. ｂ(￣▽￣)ｄ…因为nginx返回的是没有解释的index.php的源码…
 这里一定要使用last才可以在结束location / 的rewrite, 并再次命中location ~ \.php$,将其交给fastcgi进行解释.其后返回给浏览器的才是解释过的html代码.
 关于nginx rewrite的简介到这里就全部讲完了,水平及其有限,请大家指出错漏…
 
@@ -572,7 +572,7 @@ Nginx wiki
 typedef struct {
     /*
      函数ngx_httpscript_start_code利用ngx_array_push_n在lcf->codes数组内申请了sizeof(ngx_http_script_value_code_t个元素,注
- 意每个元素的大小为一个字节,所以其实也就是为ngx_httpscript_valuecodet类型变量val申请存储空间（很棒的技巧）
+ 意每个元素的大小为一个字节,所以其实也就是为ngx_httpscript_valuecodet类型变量val申请存储空间(很棒的技巧)
      */ //存放的是已经使用了的变量的ngx_http_script_XXX_code_t结构,这些结构的code函数,在ngx_http_rewrite_handler会得到执行
     //set  break  return等都会添加对应的xxx_code到该数组codes中
 
@@ -637,7 +637,7 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
    ·break - 完成重写指令.
    ·redirect - 返回302临时重定向,如果替换字段用http://开头则被使用.
    ·permanent - 返回301永久重定向.
-   注意如果一个重定向是相对的（没有主机名部分）,nginx将在重定向的过程中使用匹配server_name指令的“Host”头或者server_name指令指定的第一个名称,如果头不匹配或不存在,如果没有设置server_name,将使用本地主机名,如果你总是想让nginx使用“Host”头,可以在server_name使用“*”通配符（查看http核心模块中的server_name）.例如:
+   注意如果一个重定向是相对的(没有主机名部分),nginx将在重定向的过程中使用匹配server_name指令的“Host”头或者server_name指令指定的第一个名称,如果头不匹配或不存在,如果没有设置server_name,将使用本地主机名,如果你总是想让nginx使用“Host”头,可以在server_name使用“*”通配符(查看http核心模块中的server_name).例如:
    rewrite  ^(/download/.*)/media/(.*)\..*$  $1/mp3/$2.mp3  last;
    rewrite  ^(/download/.*)/audio/(.*)\..*$  $1/mp3/$2.ra   last;
    return   403;但是如果我们将其放入一个名为/download/的location中,则需要将last标记改为break,否则nginx将执行10次循环并返回500错误.
@@ -646,13 +646,13 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
      rewrite  ^(/download/.*)/audio/(.*)\..*$  $1/mp3/$2.ra   break;
      return   403;
    }如果替换字段中包含参数,那么其余的请求参数将附加到后面,为了防止附加,可以在最后一个字符后面跟一个问号:
-   rewrite  ^/users/(.*)$  /show?user=$1?  last;注意:大括号（{和}）,可以同时用在正则表达式和配置块中,为了防止冲突,正则表达式使用大括号需要用双引号（或者单引号）.例如要重写以下的URL:
+   rewrite  ^/users/(.*)$  /show?user=$1?  last;注意:大括号({和}),可以同时用在正则表达式和配置块中,为了防止冲突,正则表达式使用大括号需要用双引号(或者单引号).例如要重写以下的URL:
    /photos/123456 为:
-   /path/to/photos/12/1234/123456.png 则使用以下正则表达式（注意引号）:
+   /path/to/photos/12/1234/123456.png 则使用以下正则表达式(注意引号):
    rewrite  "/photos/([0-9] {2})([0-9] {2})([0-9] {2})" /path/to/photos/$1/$1$2/$1$2$3.png;同样,重写只对路径进行操作,而不是参数,如果要重写一个带参数的URL,可以使用以下代替:
    if ($args ^~ post=100){
      rewrite ^ http://example.com/new-address.html? permanent;
-   }注意$args变量不会被编译,与location过程中的URI不同（参考http核心模块中的location）.
+   }注意$args变量不会被编译,与location过程中的URI不同(参考http核心模块中的location).
     */
         {ngx_string("rewrite"),
          NGX_HTTP_SRV_CONF | NGX_HTTP_SIF_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
@@ -711,7 +711,7 @@ static ngx_command_t ngx_http_rewrite_commands[] = { //参考http://blog.csdn.ne
     ·一个使用=或者!=运算符的比较语句.
     ·使用符号~*和~模式匹配的正则表达式:
     ·~为区分大小写的匹配.
-    ·~*不区分大小写的匹配（firefox匹配FireFox）.
+    ·~*不区分大小写的匹配(firefox匹配FireFox).
     ·!~和!~*意为“不匹配的”.
     ·使用-f和!-f检查一个文件是否存在.
     ·使用-d和!-d检查一个目录是否存在.
@@ -1721,8 +1721,8 @@ ngx_http_rewrite_set(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         v->data = index;
     }
     /*
-    脚本引擎是一系列的凹调函数以及相关数据（它们被组织成ngx_httpscript_ xxx_codet这样的结构体,代表各种不同功能的操
-作步骤）,被保存在变量lcf->codes数组内,而ngx_httprewrite_loc_conf_t类型变量Icf是与当前location相关联的,所以这个脚本引擎只有
+    脚本引擎是一系列的凹调函数以及相关数据(它们被组织成ngx_httpscript_ xxx_codet这样的结构体,代表各种不同功能的操
+作步骤),被保存在变量lcf->codes数组内,而ngx_httprewrite_loc_conf_t类型变量Icf是与当前location相关联的,所以这个脚本引擎只有
 当客户端请求访问当前这个location时才会被启动执行.如下配置中,“set $file t_a;”构建的脚本引擎只有当客户端请求访问/t日录时才会
 被触发,如果当客户端请求访问根目录时则与它毫无关系.
        location / {

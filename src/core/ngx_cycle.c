@@ -77,8 +77,8 @@ static ngx_connection_t dumb;
 ┃void ngx_master_process_          ┃    cycle是当前进程的ngx_cycle_t绪    ┃  进入master进程的工作循环            ┃
 ┃cycle(ngx_cycle_t *cycle)         ┃构体指针                              ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃   void ngx_single_process_       ┃  cycle是当前进程的ngx_cycle_t结      ┃  进入单进程模式（非master、worker    ┃
-┃cycle (ngx_cycle_t *cycle)        ┃构体指针                              ┃进程工作模式）的工作循环              ┃
+┃   void ngx_single_process_       ┃  cycle是当前进程的ngx_cycle_t结      ┃  进入单进程模式(非master、worker    ┃
+┃cycle (ngx_cycle_t *cycle)        ┃构体指针                              ┃进程工作模式)的工作循环              ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                  ┃  cycle是当前进程的ngx_cycle_t结      ┃                                      ┃
 ┃                                  ┃构体指针,n是启动子进程的个数,       ┃                                      ┃
@@ -102,8 +102,8 @@ static ngx_connection_t dumb;
 ┃                                  ┃方法中的type参数意义完全相同          ┃loader标志决定是否启动cache loader    ┃
 ┃                                  ┃                                      ┃子进程                                ┃
 ┣━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃   void ngx_pass_open_channel     ┃  cycle是当前进程的ngx_cycle_t结      ┃  向所有已经打开的channel（通过       ┃
-┃(ngx_cycle_t *cycle, ngx_         ┃构体指针,ch是将要向子进程发送的      ┃socketpair生成的句柄进行通信）发送    ┃
+┃   void ngx_pass_open_channel     ┃  cycle是当前进程的ngx_cycle_t结      ┃  向所有已经打开的channel(通过       ┃
+┃(ngx_cycle_t *cycle, ngx_         ┃构体指针,ch是将要向子进程发送的      ┃socketpair生成的句柄进行通信)发送    ┃
 ┃channel_t *ch)                    ┃信息                                  ┃ch信息                                ┃
 ┗━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛
 ┏━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┓
@@ -115,8 +115,8 @@ static ngx_connection_t dumb;
 ┃int signo)                          ┃                                  ┃                                    ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃                                  ┃  检查master进程的所有子进程,根    ┃
-┃  ngx_uint_t ngx_reap_children      ┃  cycle是当前进程的ngx_cycle_t结  ┃据每个子进程的状态（ngx_process_t结 ┃
-┃(ngx_cycle_t *cycle)                ┃构体指针                          ┃构体中的标志位）判断是否要启动子进  ┃
+┃  ngx_uint_t ngx_reap_children      ┃  cycle是当前进程的ngx_cycle_t结  ┃据每个子进程的状态(ngx_process_t结 ┃
+┃(ngx_cycle_t *cycle)                ┃构体指针                          ┃构体中的标志位)判断是否要启动子进  ┃
 ┃                                    ┃                                  ┃程、更改pid文件等                   ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━┫
 ┃  voidngx_maste,r_process exit      ┃  cycle是当前进程的ngx_cycle_t结  ┃                                    ┃
@@ -334,10 +334,10 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
     /*在初始化ngx_cycle_t中的所有容器后,会为读取、解析配置文件做准备工作.因为每个模块都必须有相应的数据
       结构来存储配置文件中的各配置项,创建这些数据结构的工作都需要在这一步进行.Nginx框架只关心NGX_CORE_MODULE核
-      心模块,这也是为了降低框架的复杂度.这里将会调用所有核心模块的create conf方法（也只有核心模块才有这个方法）,
+      心模块,这也是为了降低框架的复杂度.这里将会调用所有核心模块的create conf方法(也只有核心模块才有这个方法),
       这意味着需要所有的核心模块开始构造用于存储配置项的结构体.其他非核心模块怎么办呢？其实很简单.这些模块大都
-      从属于一个核心模块,如每个HTTP模块都由ngx_http_module管理（如图8-2所示）,这样ngx_http_module在解析自己感兴
-      趣的“http”配置项时,将会调用所有HTTP模块约定的方法来创建存储配置项的结构体（xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法）*/
+      从属于一个核心模块,如每个HTTP模块都由ngx_http_module管理(如图8-2所示),这样ngx_http_module在解析自己感兴
+      趣的“http”配置项时,将会调用所有HTTP模块约定的方法来创建存储配置项的结构体(xxx_create_main_conf、xxx_create_srv_conf、xxx_create_loc_conf方法)*/
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -611,7 +611,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
     /* handle the listening sockets */
     /*
 所有的模块都已经解析出自己需要监听的端口,如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口,并添加到
-listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口（实际上,这一步骤的主要工作就是调
+listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口(实际上,这一步骤的主要工作就是调
 用表8-2中的ngx_open_listening_sockets方法）.
 */
     if (old_cycle->listening.nelts) {

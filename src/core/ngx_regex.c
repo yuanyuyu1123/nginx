@@ -297,7 +297,7 @@ ngx_regex_compile(ngx_regex_compile_t *rc) {
     ngx_regex_malloc_init(rc->pool);
 
     re = pcre_compile((const char *) rc->pattern.data, (int) options,
-                      &errstr, &erroff, NULL); //正则表达式在使用之前要经过编译.编译的目的是将正则表达式的pattern转换成PCRE引擎能够识别的结构（struct real_pcre）.
+                      &errstr, &erroff, NULL); //正则表达式在使用之前要经过编译.编译的目的是将正则表达式的pattern转换成PCRE引擎能够识别的结构(struct real_pcre).
 
     /* ensure that there is no current pool */
     ngx_regex_malloc_done();
@@ -676,7 +676,7 @@ ngx_regex_module_init(ngx_cycle_t *cycle) {
         /*
           对编译后的正则表达式结构(struct real_pcre)进行分析和学习,学习的结果是一个数据结构(struct pcre_extra),这个数据结构连同编译
           后的规则(struct real_pcre)可以一起送给pcre_exec单元进行匹配.
-          pcre_study（）的引入主要是为了加速正则表达式匹配的速度.(为什么学习后就能加速呢?)这个还是比较有用的,可以将正则表达式编译,
+          pcre_study()的引入主要是为了加速正则表达式匹配的速度.(为什么学习后就能加速呢?)这个还是比较有用的,可以将正则表达式编译,
           学习后保存到一个文件或内存中,这样进行匹配的时候效率比较搞.snort中就是这样做的.
           */
         elts[i].regex->extra = pcre_study(elts[i].regex->code, opt, &errstr);

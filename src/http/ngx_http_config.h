@@ -119,8 +119,8 @@ Reading: 1 Writing: 3 Waiting: 324
 
 /*
 这时,HTTP框架会为所有的HTTP模块建立3个数组,分别存放所有HTTP模块的ngx_http_module_t中的
-create_main_conf、create_srv_conf、create_loc_conf方法返回的地址指针（就像本章的例子
-中mytest模块在create_loc_conf中生成了ngx_http_mytest_conf_t结构,并在create_lo_conf方法返回时将指针传递给HTTP框架）.
+create_main_conf、create_srv_conf、create_loc_conf方法返回的地址指针(就像本章的例子
+中mytest模块在create_loc_conf中生成了ngx_http_mytest_conf_t结构,并在create_lo_conf方法返回时将指针传递给HTTP框架).
 当然,如果HTTP模块对于配置项不感兴趣,
 它没有实现create_main_conf、create_srv_conf、create_loc_conf等方法,那么数组中相应位
 置存储的指针是NULL.ngx_http_conf_ctx_t的3个成员main_conf、srv_conf、loc_conf分
@@ -137,9 +137,9 @@ if (ctx->loc conf==NULL)  {
     return NGX_CONF_ERROR;
 )
 */
-/*当Nginx检测到http{．．．）这个关键配置项时,HTTP配置模型就启动了,这时会首先建立1个ngx_http_conf_ ctx_t结构.
-在http{．．．）块中就通过1个ngx_http_conf_ctx t结构保存了所有HTTP模块的配
-置数据结构的入口.以后遇到任何server{．．．）块或者location{．．．）块时,也会建立ngx_http_
+/*当Nginx检测到http{．．．)这个关键配置项时,HTTP配置模型就启动了,这时会首先建立1个ngx_http_conf_ ctx_t结构.
+在http{．．．)块中就通过1个ngx_http_conf_ctx t结构保存了所有HTTP模块的配
+置数据结构的入口.以后遇到任何server{．．．)块或者location{．．．)块时,也会建立ngx_http_
 conf_ctx_t结构,生成同样的数组来保存所有HTTP模块通过create_srv_ conf  create_loc_
 conf等方法返回的指针地址.ngx_http_conf_ctx_t是了解http配置块的基础
 */ //该结构中的变量直接指向ngx_http_module_t中的三个create_main_conf  create_srv_conf  create_loc_conf
@@ -194,8 +194,8 @@ typedef struct { //相关空间创建和赋值见ngx_http_block, 该结构是ngx
 //http://tech.uc.cn/?p=300参数解析相关数据结构参考
 
 /*
-Nginx安装完毕后,会有响应的安装目录,安装目录里nginx.conf为nginx的主配置文件,ginx主配置文件分为4部分,main（全局配置）、server（主机设置）、upstream（负载均衡服务器设）和location（URL匹配特定位置的设置）,这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
-一、Nginx的main（全局配置）文件
+Nginx安装完毕后,会有响应的安装目录,安装目录里nginx.conf为nginx的主配置文件,ginx主配置文件分为4部分,main(全局配置)、server(主机设置)、upstream(负载均衡服务器设)和location(URL匹配特定位置的设置),这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
+一、Nginx的main(全局配置)文件
 [root@rhel6u3-7 server]# vim /usr/local/nginx/conf/nginx.conf
 user nginx nginx; //指定nginx运行的用户及用户组为nginx,默认为nobody
 worker_processes 2； //开启的进程数,一般跟逻辑cpu核数一致
@@ -273,15 +273,15 @@ HTTP框架在读取、重载配置文件时定义了由ngx_http_module_t接口�
 中相应的方法.当然,如果ngx_http_module_t中的某个回调方法设为NULL空指针,那么HTTP框架是不会调用它的.
 */
 /*
-不过,这8个阶段的调用顺序与上述定义的顺序是不同的.在Nginx启动过程中,HTTP框架调用这些回调方法的实际顺序有可能是这样的（与nginx.conf配置项有关）:
-1）create_main_conf
-2）create_srv_conf
-3）create_loc_conf
-4）preconfiguration
-5）init_main_conf
-6）merge_srv_conf
-7）merge_loc_conf
-8）postconfiguration
+不过,这8个阶段的调用顺序与上述定义的顺序是不同的.在Nginx启动过程中,HTTP框架调用这些回调方法的实际顺序有可能是这样的(与nginx.conf配置项有关):
+1)create_main_conf
+2)create_srv_conf
+3)create_loc_conf
+4)preconfiguration
+5)init_main_conf
+6)merge_srv_conf
+7)merge_loc_conf
+8)postconfiguration
 当遇到http{}配置块时,HTTP框架会调用所有HTTP模块可能实现的create main conf、create_srv_conf、
 create_loc_conf方法生成存储main级别配置参数的结构体；在遇到servero{}块时会再次调用所有HTTP模
 块的create_srv conf、create loc_conf回调方法生成存储srv级别配置参数的结构体；在遇到location{}时
@@ -374,23 +374,23 @@ http_mytest_conf_t结构体.
 //所有的核心模块NGX_CORE_MODULE对应的上下文ctx为ngx_core_module_t,子模块,例如http{} NGX_HTTP_MODULE模块对应的为上下文为ngx_http_module_t
 //events{} NGX_EVENT_MODULE模块对应的为上下文为ngx_event_module_t
 
-//ginx主配置文件分为4部分,main（全局配置）、server（主机设置）、upstream（负载均衡服务器设）和location（URL匹配特定位置的设置）,这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
+//ginx主配置文件分为4部分,main(全局配置)、server(主机设置)、upstream(负载均衡服务器设)和location(URL匹配特定位置的设置),这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
 //成员中的create一般在解析前执行函数,merge在函数后执行
 typedef struct { //注意和ngx_http_conf_ctx_t结构配合        初始化赋值执行,如果为"http{}"中的配置,在ngx_http_block中, ,所有的NGX_HTTP_MODULE模块都在ngx_http_block中执行
     ngx_int_t   (*preconfiguration)(ngx_conf_t *cf); //解析配置文件前调用
     //一般用来把对应的模块加入到11个阶段对应的阶段去ngx_http_phases,例如ngx_http_realip_module的ngx_http_realip_init
     ngx_int_t   (*postconfiguration)(ngx_conf_t *cf); //完成配置文件的解析后调用
 
-/*当需要创建数据结构用于存储main级别（直属于http{...}块的配置项）的全局配置项时,可以通过create_main_conf回调方法创建存储全局配置项的结构体*/
+/*当需要创建数据结构用于存储main级别(直属于http{...}块的配置项)的全局配置项时,可以通过create_main_conf回调方法创建存储全局配置项的结构体*/
     void       *(*create_main_conf)(ngx_conf_t *cf);
     char       *(*init_main_conf)(ngx_conf_t *cf, void *conf);//常用于初始化main级别配置项
 
-/*当需要创建数据结构用于存储srv级别（直属于虚拟主机server{...}块的配置项）的配置项时,可以通过实现create_srv_conf回调方法创建存储srv级别配置项的结构体*/
+/*当需要创建数据结构用于存储srv级别(直属于虚拟主机server{...}块的配置项)的配置项时,可以通过实现create_srv_conf回调方法创建存储srv级别配置项的结构体*/
     void       *(*create_srv_conf)(ngx_conf_t *cf);
 // merge_srv_conf回调方法主要用于合并main级别和srv级别下的同名配置项
     char       *(*merge_srv_conf)(ngx_conf_t *cf, void *prev, void *conf);
 
-    /*当需要创建数据结构用于存储loc级别（直属于location{...}块的配置项）的配置项时,可以实现create_loc_conf回调方法*/
+    /*当需要创建数据结构用于存储loc级别(直属于location{...}块的配置项)的配置项时,可以实现create_loc_conf回调方法*/
     void       *(*create_loc_conf)(ngx_conf_t *cf);
 
     /*

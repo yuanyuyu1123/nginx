@@ -40,15 +40,15 @@ typedef void (*ngx_connection_handler_pt)(ngx_connection_t *c);
 
 /*
 这4个返回码引发的Nginx一系列动作.
-NGX_OK:表示成功.Nginx将会继续执行该请求的后续动作（如执行subrequest或撤销这个请求）.
+NGX_OK:表示成功.Nginx将会继续执行该请求的后续动作(如执行subrequest或撤销这个请求).
 NGX_DECLINED:继续在NGX_HTTP_CONTENT_PHASE阶段寻找下一个对于该请求感兴趣的HTTP模块来再次处理这个请求.
 NGX_DONE:表示到此为止,同时HTTP框架将暂时不再继续执行这个请求的后续部分.事实上,这时会检查连接的类型,如果是keepalive类型的用户请求,
-    就会保持住HTTP连接,然后把控制权交给Nginx.这个返回码很有用,考虑以下场景:在一个请求中我们必须访问一个耗时极长的操作（比如某个网络调用）,
-    这样会阻塞住Nginx,又因为我们没有把控制权交还给Nginx,而是在ngx_http_mytest_handler中让Nginx worker进程休眠了（如等待网络的回包）,
-    所以,这就会导致Nginx出现性能问题,该进程上的其他用户请求也得不到响应.可如果我们把这个耗时极长的操作分为上下两个部分（就像Linux内核
-    中对中断处理的划分）,上半部分和下半部分都是无阻塞的（耗时很少的操作）,这样,在ngx_http_mytest_handler进入时调用上半部分,然后返回NGX_DONE,
-    把控制交还给Nginx,从而让Nginx继续处理其他请求.在下半部分被触发时（这里不探讨具体的实现方式,事实上使用upstream方式做反向代理时用的就是
-    这种思想）,再回调下半部分处理方法,这样就可以保证Nginx的高性能特性了.
+    就会保持住HTTP连接,然后把控制权交给Nginx.这个返回码很有用,考虑以下场景:在一个请求中我们必须访问一个耗时极长的操作(比如某个网络调用),
+    这样会阻塞住Nginx,又因为我们没有把控制权交还给Nginx,而是在ngx_http_mytest_handler中让Nginx worker进程休眠了(如等待网络的回包),
+    所以,这就会导致Nginx出现性能问题,该进程上的其他用户请求也得不到响应.可如果我们把这个耗时极长的操作分为上下两个部分(就像Linux内核
+    中对中断处理的划分),上半部分和下半部分都是无阻塞的(耗时很少的操作),这样,在ngx_http_mytest_handler进入时调用上半部分,然后返回NGX_DONE,
+    把控制交还给Nginx,从而让Nginx继续处理其他请求.在下半部分被触发时(这里不探讨具体的实现方式,事实上使用upstream方式做反向代理时用的就是
+    这种思想),再回调下半部分处理方法,这样就可以保证Nginx的高性能特性了.
 NGX_ERROR:表示错误.这时会调用ngx_http_terminate_request终止请求.如果还有POST子请求,那么将会在执行完POST请求后再终止本次请求.
 */
 #define  NGX_OK          0

@@ -51,9 +51,9 @@ static ngx_http_module_t ngx_http_not_modified_filter_module_ctx = {
 ┃                                    ┃用户                                                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.将用户发送的ngx_chain_t结构的HTTP包         ┃
-┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制,不包括实际     ┃
+┃                                    ┃体复制到新的ngx_chain_t结构中(都是各种指针的复制,不包括实际     ┃
 ┃ngx_http_copy_filter_module         ┃                                                                  ┃
-┃                                    ┃HTTP响应内容）,后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
+┃                                    ┃HTTP响应内容),后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
 ┃                                    ┃员都是ngx_http_copy_filter_module模块处理后的变量                 ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP头部做处理.允许通过修改nginx.conf配置文件,在返回      ┃
@@ -68,7 +68,7 @@ static ngx_http_module_t ngx_http_not_modified_filter_module_ctx = {
 ┃ngx_http_charset_filter_module      ┃                                                                  ┃
 ┃                                    ┃进行编码,再返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  支持SSI（Server Side Include,服务器端嵌入）功能,将文件内容包  ┃
+┃                                    ┃  支持SSI(Server Side Include,服务器端嵌入)功能,将文件内容包  ┃
 ┃ngx_http_ssi_filter_module          ┃                                                                  ┃
 ┃                                    ┃含到网页中并返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -76,7 +76,7 @@ static ngx_http_module_t ngx_http_not_modified_filter_module_ctx = {
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
 ┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩,再      ┃
+┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
 ┃                                    ┃把压缩后的内容返回给用户                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -129,17 +129,17 @@ static ngx_http_output_header_filter_pt ngx_http_next_header_filter;
 
 /*
 {If-None-Match和ETag , If-Modified-Since和Last-Modified
-    If-Modified-Since（浏览器） = Last-Modified（服务器）
+    If-Modified-Since(浏览器) = Last-Modified(服务器)
     作用:浏览器端第一次访问获得服务器的Last-Modified,第2次访问把浏览器端缓存页面的最后修改时间发送到服务器去,服务器会把这
     个时间与服务器上实际文件的最后修改时间进行对比.如果时间一致,那么返回304,客户端就直接使用本地缓存文件.如果时间不一致,就
     会返回200和新的文件内容.客户端接到之后,会丢弃旧文件,把新文件缓存起来,并显示在浏览器中.
-    If-None-Match（浏览器） = ETag（服务器）
+    If-None-Match(浏览器) = ETag(服务器)
     作用: If-None-Match和ETag一起工作,工作原理是在HTTP Response中添加ETag信息. 当用户再次请求该资源时,将在HTTP Request 中加入If-None-Match
-    信息(ETag的值).如果服务器验证资源的ETag没有改变（该资源没有更新）,将返回一个304状态告诉客户端使用本地缓存文件.否则将返回200状态和新的资源和Etag.
+    信息(ETag的值).如果服务器验证资源的ETag没有改变(该资源没有更新),将返回一个304状态告诉客户端使用本地缓存文件.否则将返回200状态和新的资源和Etag.
 }
 {
     ETags和If-None-Match是一种常用的判断资源是否改变的方法.类似于Last-Modified和HTTP-If-Modified-Since.但是有所不同的是Last-Modified和HTTP-If-Modified-Since只判断资源的最后修改时间,而ETags和If-None-Match可以是资源任何的任何属性.
-    ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息（ETags的值）.如果服务器验证资源的ETags没有改变（该资源没有改变）,将返回一个304状态；否则,服务器将返回200状态,并返回该资源和新的ETags.
+    ETags和If-None-Match的工作原理是在HTTPResponse中添加ETags信息.当客户端再次请求该资源时,将在HTTPRequest中加入If-None-Match信息(ETags的值).如果服务器验证资源的ETags没有改变(该资源没有改变),将返回一个304状态；否则,服务器将返回200状态,并返回该资源和新的ETags.
 }
 {
 http响应Last-Modified和ETag
@@ -149,19 +149,19 @@ http响应Last-Modified和ETag
     最后被修改的时间,格式类似这样:Last-Modified: Fri, 12 May 2006 18:53:33 GMT
 　　客户端第二次请求此URL时,根据 HTTP 协议的规定,浏览器会向服务器传送 If-Modified-Since 报头,询问该时间之后文件是否有被修改过:
 　　If-Modified-Since: Fri, 12 May 2006 18:53:33 GMT
-　　如果服务器端的资源没有变化,则自动返回 HTTP 304 （Not Changed.）状态码,内容为空,这样就节省了传输数据量.当服务器端代码发生改
+　　如果服务器端的资源没有变化,则自动返回 HTTP 304 (Not Changed.)状态码,内容为空,这样就节省了传输数据量.当服务器端代码发生改
     变或者重启服务器时,则重新发出资源,返回和第一次请求时类似.从而保证不向客户端重复发出资源,也保证当服务器有变化时,客户端能够得到最新的资源.
 2) 什么是”Etag”?
-　　HTTP 协议规格说明定义ETag为“被请求变量的实体值” （参见 —— 章节 14.19）. 另一种说法是,ETag是一个可以与Web资源关联的记号（token）.典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:
+　　HTTP 协议规格说明定义ETag为“被请求变量的实体值” (参见 —— 章节 14.19). 另一种说法是,ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:
 　　ETag: "50b1c1d4f775c61:df3"
 　　客户端的查询更新格式是这样的:
 　　If-None-Match: W/"50b1c1d4f775c61:df3"
 　　如果ETag没改变,则返回状态304然后不返回,这也和Last-Modified一样.本人测试Etag主要在断点下载时比较有用.
 　　
 Last-Modified和Etags如何帮助提高性能?
-　　聪明的开发者会把Last-Modified 和ETags请求的http报头一起使用,这样可利用客户端（例如浏览器）的缓存.因为服务器首先产生
-Last-Modified/Etag标记,服务器可在稍后使用它来判断页面是否已经被修改.本质上,客户端通过将该记号传回服务器要求服务器验证其（客户端）缓存.过程如下:
-1.客户端请求一个页面（A）.
+　　聪明的开发者会把Last-Modified 和ETags请求的http报头一起使用,这样可利用客户端(例如浏览器)的缓存.因为服务器首先产生
+Last-Modified/Etag标记,服务器可在稍后使用它来判断页面是否已经被修改.本质上,客户端通过将该记号传回服务器要求服务器验证其(客户端)缓存.过程如下:
+1.客户端请求一个页面(A).
 2.服务器返回页面A,并在给A加上一个Last-Modified/ETag.
 3.客户端展现该页面,并将页面连同Last-Modified/ETag一起缓存.
 4.客户再次请求页面A,并将上次请求时服务器返回的Last-Modified/ETag一起传递给服务器.

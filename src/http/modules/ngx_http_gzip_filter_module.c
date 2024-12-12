@@ -220,9 +220,9 @@ static ngx_http_module_t ngx_http_gzip_filter_module_ctx = {
 ┃                                    ┃用户                                                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.将用户发送的ngx_chain_t结构的HTTP包         ┃
-┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制,不包括实际     ┃
+┃                                    ┃体复制到新的ngx_chain_t结构中(都是各种指针的复制,不包括实际     ┃
 ┃ngx_http_copy_filter_module         ┃                                                                  ┃
-┃                                    ┃HTTP响应内容）,后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
+┃                                    ┃HTTP响应内容),后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
 ┃                                    ┃员都是ngx_http_copy_filter_module模块处理后的变量                 ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP头部做处理.允许通过修改nginx.conf配置文件,在返回      ┃
@@ -237,7 +237,7 @@ static ngx_http_module_t ngx_http_gzip_filter_module_ctx = {
 ┃ngx_http_charset_filter_module      ┃                                                                  ┃
 ┃                                    ┃进行编码,再返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  支持SSI（Server Side Include,服务器端嵌入）功能,将文件内容包  ┃
+┃                                    ┃  支持SSI(Server Side Include,服务器端嵌入)功能,将文件内容包  ┃
 ┃ngx_http_ssi_filter_module          ┃                                                                  ┃
 ┃                                    ┃含到网页中并返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -245,7 +245,7 @@ static ngx_http_module_t ngx_http_gzip_filter_module_ctx = {
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
 ┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩,再      ┃
+┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
 ┃                                    ┃把压缩后的内容返回给用户                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫

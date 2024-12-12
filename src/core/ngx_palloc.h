@@ -75,7 +75,7 @@ struct ngx_pool_s {
 /*pool 中的 chain 指向一个 ngx_chain_t 数据,其值是由宏 ngx_free_chain 进行赋予的,指向之前用完了的,
 可以释放的ngx_chain_t数据.由函数ngx_alloc_chain_link进行使用.*/
     ngx_chain_t          *chain;// pool 当前可用的 ngx_chain_t 数据,注意:由 ngx_free_chain 赋值   ngx_alloc_chain_link
-    ngx_pool_large_t     *large;//节点中大内存块指针   // pool 中指向大数据块的指针（大数据块是指 size > max 的数据块）
+    ngx_pool_large_t     *large;//节点中大内存块指针   // pool 中指向大数据块的指针(大数据块是指 size > max 的数据块)
     ngx_pool_cleanup_t   *cleanup;// pool 中指向 ngx_pool_cleanup_t 数据块的指针 //cleanup在ngx_pool_cleanup_add赋值
     ngx_log_t            *log; // pool 中指向 ngx_log_t 的指针,用于写日志的  ngx_event_accept会赋值
 };

@@ -85,7 +85,7 @@ ngx_hash_find_wc_head(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "key:\"%ui\"", key);
 #endif
 
-    //调用普通查找找到关键字的value（用户自定义数据指针）
+    //调用普通查找找到关键字的value(用户自定义数据指针)
     value = ngx_hash_find(&hwc->hash, key, &name[n], len - n);
 
 #if 0
@@ -165,7 +165,7 @@ names: 构造此hash表的所有的通配符key的数组.特别要注意的是�
 而第二个hash表中有一个表项abc,该表项的value包含有指向*.abc.com对应的value的指针.那么查询的时候,比如查询www.abc.com的时候,
 先查com,通过查com可以找到第二级的hash表,在第二级hash表中,再查找abc,依次类推,直到在某一级的hash表中查到的表项对应的value对
 应一个真正的值而非一个指向下一级hash表的指针的时候,查询过程结束.这里有一点需要特别注意的,就是names数组中元素的value所对应的
-值（也就是真正的value所在的地址）必须是能被4整除的,或者说是在4的倍数的地址上是对齐的.因为这个value的值的低两位bit是有用的,
+值(也就是真正的value所在的地址)必须是能被4整除的,或者说是在4的倍数的地址上是对齐的.因为这个value的值的低两位bit是有用的,
 所以必须为0.如果不满足这个条件,这个hash表查询不出正确结果.
 nelts: names数组元素的个数.
 */
@@ -204,7 +204,7 @@ ngx_hash_find_wc_tail(ngx_hash_wildcard_t *hwc, u_char *name, size_t len) {
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "key:\"%ui\"", key);
 #endif
 
-    value = ngx_hash_find(&hwc->hash, key, name, i); //调用普通查找找到关键字的value（用户自定义数据指针）
+    value = ngx_hash_find(&hwc->hash, key, name, i); //调用普通查找找到关键字的value(用户自定义数据指针)
 
 #if 0
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "value:\"%p\"", value);
@@ -722,7 +722,7 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names, //参考:h
 
             wdc = (ngx_hash_wildcard_t *) h.hash;
             /*
-                由于指针都对void*（大小为4）字节对齐了,低2位肯定为0,这种操作（name->value = (void *) ((uintptr_t) wdc | (dot ? 3 : 2)) ）
+                由于指针都对void*(大小为4)字节对齐了,低2位肯定为0,这种操作(name->value = (void *) ((uintptr_t) wdc | (dot ? 3 : 2)) )
                 巧妙的使用了指针的低位携带额外信息,节省了内存,让人不得不佩服ngx设计者的想象力.
                 */
             if (names[n].key.len == len) { //如上图,将用户value值放入新的hash表,也就是hinit中

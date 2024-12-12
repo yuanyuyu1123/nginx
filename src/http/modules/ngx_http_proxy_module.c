@@ -394,10 +394,10 @@ server {
 这个指令设置被代理服务器的地址和被映射的URI,地址可以使用主机名或IP加端口号的形式,例如:
 proxy_pass http://localhost:8000/uri/;或者一个unix socket:
 proxy_pass http://unix:/path/to/backend.socket:/uri/;路径在unix关键字的后面指定,位于两个冒号之间.
-注意:HTTP Host头没有转发,它将设置为基于proxy_pass声明,例如,如果你移动虚拟主机example.com到另外一台机器,然后重新配置正常（监听example.com到一个新的IP）,同时在旧机器上手动将新的example.comIP写入/etc/hosts,同时使用proxy_pass重定向到http://example.com, 然后修改DNS到新的IP.
+注意:HTTP Host头没有转发,它将设置为基于proxy_pass声明,例如,如果你移动虚拟主机example.com到另外一台机器,然后重新配置正常(监听example.com到一个新的IP),同时在旧机器上手动将新的example.comIP写入/etc/hosts,同时使用proxy_pass重定向到http://example.com, 然后修改DNS到新的IP.
 当传递请求时,Nginx将location对应的URI部分替换成proxy_pass指令中所指定的部分,但是有两个例外会使其无法确定如何去替换:
 ■location通过正则表达式指定；
-■在使用代理的location中利用rewrite指令改变URI,使用这个配置可以更加精确的处理请求（break）:
+■在使用代理的location中利用rewrite指令改变URI,使用这个配置可以更加精确的处理请求(break):
 location  /name/ {
   rewrite      /name/([^/] +)  /users?name=$1  break;
   proxy_pass   http://127.0.0.1;
@@ -410,7 +410,7 @@ location  /name/ {
 location  /some/path/ {
   proxy_pass   http://127.0.0.1;
 }在指令中使用变量是一种比较特殊的情况:被请求的URL不会使用并且你必须完全手工标记URL.
-这意味着下列的配置并不能让你方便的进入某个你想要的虚拟主机目录,代理总是将它转发到相同的URL（在一个server字段的配置）:
+这意味着下列的配置并不能让你方便的进入某个你想要的虚拟主机目录,代理总是将它转发到相同的URL(在一个server字段的配置):
 location / {
   proxy_pass   http://127.0.0.1:8080/VirtualHostBase/https/$server_name:443/some/path/VirtualHostRoot;
 }解决方法是使用rewrite和proxy_pass的组合:
@@ -440,7 +440,7 @@ server {
 语法:proxy_redirect [ default|off|redirect replacement ];
 默认:proxy_redirect default;
 配置块:http、server、location
-当上游服务器返回的响应是重定向或刷新请求（如HTTP响应码是301或者302）时,proxy_redirect可以重设HTTP头部的location或refresh字段.
+当上游服务器返回的响应是重定向或刷新请求(如HTTP响应码是301或者302)时,proxy_redirect可以重设HTTP头部的location或refresh字段.
 例如,如果上游服务器发出的响应是302重定向请求,location字段的URI是http://localhost:8000/two/some/uri/,那么在下面的配置情况下,实际转发给客户端的location是http://frontend/one/some/uri/.
 proxy_redirect http://localhost:8000/two/ http://frontend/one/;
 这里还可以使用ngx-http-core-module提供的变量来设置新的location字段.例如:
@@ -653,8 +653,8 @@ nginx忽略被代理服务器的应答数目和所有应答的大小,接受proxy
 默认值:proxy_connect_timeout 60
 使用字段:http, server, location
 指定一个连接到代理服务器的超时时间,需要注意的是这个时间最好不要超过75秒.
-这个时间并不是指服务器传回页面的时间（这个时间由proxy_read_timeout声明）.如果你的前端代理服务器是正常运行的,但是遇到一些状况
-（例如没有足够的线程去处理请求,请求将被放在一个连接池中延迟处理）,那么这个声明无助于服务器去建立连接.
+这个时间并不是指服务器传回页面的时间(这个时间由proxy_read_timeout声明).如果你的前端代理服务器是正常运行的,但是遇到一些状况
+(例如没有足够的线程去处理请求,请求将被放在一个连接池中延迟处理),那么这个声明无助于服务器去建立连接.
 */
         {ngx_string("proxy_connect_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -666,8 +666,8 @@ nginx忽略被代理服务器的应答数目和所有应答的大小,接受proxy
 默认值:proxy_connect_timeout 60
 使用字段:http, server, location
 指定一个连接到代理服务器的超时时间,需要注意的是这个时间最好不要超过75秒.
-这个时间并不是指服务器传回页面的时间（这个时间由proxy_read_timeout声明）.如果你的前端代理服务器是正常运行的,但是遇到一些状
-况（例如没有足够的线程去处理请求,请求将被放在一个连接池中延迟处理）,那么这个声明无助于服务器去建立连接.
+这个时间并不是指服务器传回页面的时间(这个时间由proxy_read_timeout声明).如果你的前端代理服务器是正常运行的,但是遇到一些状
+况(例如没有足够的线程去处理请求,请求将被放在一个连接池中延迟处理),那么这个声明无助于服务器去建立连接.
 */
         {ngx_string("proxy_send_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -804,7 +804,7 @@ proxy_buffer_size
        决定读取后端服务器应答的超时时间,单位为秒,它决定nginx将等待多久时间来取得一个请求的应答.超时时间是指完成了两次握手后并
    且状态为established后等待读取后端数据的事件.
        相对于proxy_connect_timeout,这个时间可以扑捉到一台将你的连接放入连接池延迟处理并且没有数据传送的服务器,注意不要将此值设置太低,
-   某些情况下代理服务器将花很长的时间来获得页面应答（例如如当接收一个需要很多计算的报表时）,当然你可以在不同的location里面设置不同的值.
+   某些情况下代理服务器将花很长的时间来获得页面应答(例如如当接收一个需要很多计算的报表时),当然你可以在不同的location里面设置不同的值.
    可以通过指定时间单位以免引起混乱,支持的时间单位有”s”(秒), “ms”(毫秒), “y”(年), “M”(月), “w”(周), “d”(日), “h”(小时),和 “m”(分钟).
    这个值不能大于597小时.
    */
@@ -818,7 +818,7 @@ proxy_buffer_size
     语法:proxy_buffers the_number is_size;
     默认值:proxy_buffers 8 4k/8k;
     使用字段:http, server, location
-    设置用于读取应答（来自被代理服务器）的缓冲区数目和大小,默认情况也为分页大小,根据操作系统的不同可能是4k或者8k.
+    设置用于读取应答(来自被代理服务器)的缓冲区数目和大小,默认情况也为分页大小,根据操作系统的不同可能是4k或者8k.
     */ //该配置配置的空间真正分配空间在//在ngx_event_pipe_read_upstream中创建空间
         {ngx_string("proxy_buffers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE2,
@@ -913,8 +913,8 @@ proxy_cache_path  /data/nginx/cache/two    levels=2:2    keys_zone=two:100m;
 proxy_cache_path  /data/nginx/cache/three  levels=1:1:2  keys_zone=three:1000m;如果在inactive参数指定的时间内缓存的数据没有被请求则被删除,
 默认inactive为10分钟.
 一个名为cache manager的进程控制磁盘的缓存大小,它被用来删除不活动的缓存和控制缓存大小,这些都在max_size参数中定义,当目前缓存的值超出max_size
-指定的值之后,超过其大小后最少使用数据（LRU替换算法）将被删除.
-内存池的大小按照缓存页面数的比例进行设置,一个页面（文件）的元数据大小按照操作系统来定,FreeBSD/i386下为64字节,FreeBSD/amd64下为128字节.
+指定的值之后,超过其大小后最少使用数据(LRU替换算法)将被删除.
+内存池的大小按照缓存页面数的比例进行设置,一个页面(文件)的元数据大小按照操作系统来定,FreeBSD/i386下为64字节,FreeBSD/amd64下为128字节.
 proxy_cache_path和proxy_temp_path应该使用在相同的文件系统上.
 Proxy_cache_path:缓存的存储路径和索引信息；
   path 缓存文件的根目录；
@@ -1029,7 +1029,7 @@ not empty and is not equal to “0” then the response will not be saved(注意
 默认值:proxy_cache_use_stale off;
 使用字段:http, server, location
 这个指令告诉nginx何时从代理缓存中提供一个过期的响应,参数类似于proxy_next_upstream指令.
-为了防止缓存失效（在多个线程同时更新本地缓存时）,你可以指定'updating'参数,它将保证只有一个线程去更新缓存,并且在这个线程更
+为了防止缓存失效(在多个线程同时更新本地缓存时),你可以指定'updating'参数,它将保证只有一个线程去更新缓存,并且在这个线程更
 新缓存的过程中其他的线程只会响应当前缓存中的过期版本.
 */
 /*
@@ -1585,7 +1585,7 @@ ngx_http_proxy_handler(ngx_http_request_t *r) {
 #endif
 
     //为upstream准备各种请求的回调
-    u->create_request = ngx_http_proxy_create_request; //生成发送到上游服务器的请求缓冲（或者一条缓冲链）,也就是要发给上游的数据
+    u->create_request = ngx_http_proxy_create_request; //生成发送到上游服务器的请求缓冲(或者一条缓冲链),也就是要发给上游的数据
     u->reinit_request = ngx_http_proxy_reinit_request;
     //处理回调就是第一行的回调,第一行处理完后会设置为ngx_http_proxy_process_header,走下一步
     u->process_header = ngx_http_proxy_process_status_line;
@@ -1632,10 +1632,10 @@ ngx_http_read_client_request_body(r,ngx_http_upstream_init);,这表示读取完�
 启动upstream机制.由于ngx_http_read_client_request_body的第一行有效语句是r->maln->count++,所以HTTP反向代理模块不能
 再次在其代码中执行r->main->count++.
 这个过程看起来似乎让人困惑.为什么有时需要把引用计数加1,有时却不需要呢？因为ngx_http_read- client_request_body读取请求包体是
-一个异步操作（需要epoll多次调度方能完成的可称其为异步操作）,ngx_http_upstream_init方法启用upstream机制也是一个异步操作,因此,
+一个异步操作(需要epoll多次调度方能完成的可称其为异步操作),ngx_http_upstream_init方法启用upstream机制也是一个异步操作,因此,
 从理论上来说,每执行一次异步操作应该把引用计数加1,而异步操作结束时应该调用ngx_http_finalize_request方法把引用计数减1.另外,
-ngx_http_read_client_request_body方法内是加过引用计数的,而ngx_http_upstream_init方法内却没有加过引用计数（或许Nginx将来会修改
-这个问题）.在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用“ngx_http_read- client_request_body(r,ngx_http_upstream_init);”
+ngx_http_read_client_request_body方法内是加过引用计数的,而ngx_http_upstream_init方法内却没有加过引用计数(或许Nginx将来会修改
+这个问题).在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用“ngx_http_read- client_request_body(r,ngx_http_upstream_init);”
 语句同时启动了两个异步操作,注意,这行语句中只加了一次引用计数.执行这行语句的ngx_http_proxy_handler方法返回时只调用
 ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一样,务必要保证对引用计数的增加和减少是配对进行的.
 */

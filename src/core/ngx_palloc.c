@@ -210,7 +210,7 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size) {
     new->d.last = m + size;
     // 判断在当前 pool 分配内存的失败次数,即:不能复用当前 pool 的次数,
     // 如果大于 4 次,这放弃在此 pool 上再次尝试分配内存,以提高效率
-    //如果失败次数大于4（不等于4）,则更新current指针,放弃对老pool的内存进行再使用
+    //如果失败次数大于4(不等于4),则更新current指针,放弃对老pool的内存进行再使用
     for (p = pool->current; p->d.next; p = p->d.next) {
         if (p->d.failed++ > 4) {
             pool->current = p->d.next; // 更新 current 指针,每次从pool中分配内存的时候都是从curren开始遍历pool节点获取内存的
@@ -245,7 +245,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size) {
             large->alloc = p;
             return p;
         }
-        /*如果当前 large 后串的 large 内存块数目大于 3 （不等于3）,
+        /*如果当前 large 后串的 large 内存块数目大于 3 (不等于3),
           则直接去下一步分配新内存,不再查找了*/
         if (n++ > 3) { //也就是说如果pool->large头后面连续4个large的alloc指针都被用了,则重新申请一个新的pool_large并放到pool->large头部
             break; //????? 感觉没啥用,因为后面每次alloc的large对应的alloc都是赋值了的

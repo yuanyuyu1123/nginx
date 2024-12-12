@@ -32,7 +32,7 @@ typedef struct {
 
 
 typedef struct {
-    /* 设置响应报文内容（response body）分片的最大长度.如果这个值过小,将会带来更高的开销,
+    /* 设置响应报文内容(response body)分片的最大长度.如果这个值过小,将会带来更高的开销,
         如果值过大,则会导致线头阻塞的问题.默认大小8k. */
     size_t                          chunk_size; //http2_chunk_size配置项指定
 

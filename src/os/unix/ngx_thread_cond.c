@@ -48,7 +48,7 @@ pthread_mutex_lock
 xxxxxxx
 pthread_cond_signal
 pthread_mutex_unlock
-缺点:在某些线程的实现中,会造成等待线程从内核中唤醒（由于cond_signal)然后又回到内核空间（因为cond_wait返回后会有原子加锁的行为）,所以一来
+缺点:在某些线程的实现中,会造成等待线程从内核中唤醒(由于cond_signal)然后又回到内核空间(因为cond_wait返回后会有原子加锁的行为),所以一来
 一回会有性能的问题.但是在LinuxThreads或者NPTL里面,就不会有这个问题,因为在Linux 线程中,有两个队列,分别是cond_wait队列和mutex_lock队列,
 cond_signal只是让线程从cond_wait队列移到mutex_lock队列,而不用返回到用户空间,不会有性能的损耗.
 所以在Linux中推荐使用这种模式.
@@ -58,7 +58,7 @@ xxxxxxx
 pthread_mutex_unlock
 pthread_cond_signal
 优点:不会出现之前说的那个潜在的性能损耗,因为在signal之前就已经释放锁了
-缺点:如果unlock和signal之前,有个低优先级的线程正在mutex上等待的话,那么这个低优先级的线程就会抢占高优先级的线程（cond_wait的线程),
+缺点:如果unlock和signal之前,有个低优先级的线程正在mutex上等待的话,那么这个低优先级的线程就会抢占高优先级的线程(cond_wait的线程),
 而这在上面的放中间的模式下是不会出现的.
 所以,在Linux下最好pthread_cond_signal放中间,但从编程规则上说,其他两种都可以
 */

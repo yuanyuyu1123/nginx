@@ -68,8 +68,8 @@ ngx_unix_recv(ngx_connection_t *c, u_char *buf, size_t size) {
         /*
            针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
        返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
-       通常被设置成EAGAIN（意为“再来一次”）或者EWOULDBLOCK（意为“期待阻塞”）:对conncct而言,errno则被
-       设置成EINPROGRESS（意为“在处理中"）.
+       通常被设置成EAGAIN(意为“再来一次”)或者EWOULDBLOCK(意为“期待阻塞”):对conncct而言,errno则被
+       设置成EINPROGRESS(意为“在处理中").
          */
         //n = recv(c->fd, buf, size, 0); yang test
         //These calls return the number of bytes received, or -1 if an error occurred.  The return value will be 0 when the peer has performed an orderly shutdown.

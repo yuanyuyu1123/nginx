@@ -18,8 +18,8 @@ void *mmap (void *start, size_t length,  int prot,  int flags, int fd, off_t off
 处开始共享,当然Nginx没有使用这一特性.当flags参数中加入MAP ANON或者MAP—
 ANONYMOUS参数时表示不使用文件映射方式,这时fd和offset参数就没有意义,也不
 需要传递了,此时的mmap方法和ngx_shm_alloc的功能几乎完全相同.length参数就是将
-要在内存中开辟的线性地址空间大小,而prot参数则是操作这段共享内存的方式（如只读
-或者可读可写）,start参数说明希望的共享内存起始映射地址,当然,通常都会把start设为
+要在内存中开辟的线性地址空间大小,而prot参数则是操作这段共享内存的方式(如只读
+或者可读可写),start参数说明希望的共享内存起始映射地址,当然,通常都会把start设为
 NULL空指针.
     先来看看如何使用mmap实现ngx_shm_alloc方法,代码如下.
 ngx_int_t ngx_shm_ alloc (ngx_shm_t  ~shm)
@@ -46,11 +46,11 @@ mmap配对的munmap为例来说明.
 failed",  shm- >addr,   shm- >size)j
     )
     )
-    Nginx各进程间共享数据的主要方式就是使用共享内存（在使用共享内存时,Nginx -
+    Nginx各进程间共享数据的主要方式就是使用共享内存(在使用共享内存时,Nginx -
 般是由master进程创建,在master进程fork出worker子进程后,所有的进程开始使用这
-块内存中的数据）.在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_
-shm—alloc方法和ngx_shm_free方法,它们有3种实现（不映射文件使用mmap分配共享
-内存、以/dev/zero文件使用mmap映射共享内存、用shmget调用来分配共享内存）,对于
+块内存中的数据).在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_
+shm—alloc方法和ngx_shm_free方法,它们有3种实现(不映射文件使用mmap分配共享
+内存、以/dev/zero文件使用mmap映射共享内存、用shmget调用来分配共享内存),对于
 Nginx的跨平台特性考虑得很周到.下面以一个统计HTTP框架连接状况的例子来说明共享
 内存的用法.*/
 
@@ -61,8 +61,8 @@ Nginx的跨平台特性考虑得很周到.下面以一个统计HTTP框架连接�
 //#if这里的三个都define为1,所以首先满足第一个条件,选择第一个if中的
 #if (NGX_HAVE_MAP_ANON)
 /*
-在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_shm_alloc方法和ngx_shm_free方法,它们有3种实现（不映射文件使用mmap分配共享
-内存、以/dev/zero文件使用mmap映射共享内存、用shmget(system-v标准)调用来分配共享内存）
+在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_shm_alloc方法和ngx_shm_free方法,它们有3种实现(不映射文件使用mmap分配共享
+内存、以/dev/zero文件使用mmap映射共享内存、用shmget(system-v标准)调用来分配共享内存)
 */
 ngx_int_t
 ngx_shm_alloc(ngx_shm_t *shm) {
@@ -131,8 +131,8 @@ ngx_shm_free(ngx_shm_t *shm)
 
 #elif (NGX_HAVE_SYSVSHM)
 /*
-在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_shm_alloc方法和ngx_shm_free方法,它们有3种实现（不映射文件使用mmap分配共享
-内存、以/dev/zero文件使用mmap映射共享内存、用shmget(system-v标准)调用来分配共享内存）
+在开发Nginx模块时如果需要使用它,不妨用Nginx已经封装好的ngx_shm_alloc方法和ngx_shm_free方法,它们有3种实现(不映射文件使用mmap分配共享
+内存、以/dev/zero文件使用mmap映射共享内存、用shmget(system-v标准)调用来分配共享内存)
 */
 #include <sys/ipc.h>
 #include <sys/shm.h>

@@ -231,7 +231,7 @@ $connection连接的序列号.
 $connection_requests当前通过一个连接获得的请求数量.
 $msec日志写入时间.单位为秒,精度是毫秒.
 $pipe如果请求是通过HTTP流水线(pipelined)发送,pipe值为“p”,否则为“.”.
-$request_length请求的长度（包括请求行,请求头和请求正文）.
+$request_length请求的长度(包括请求行,请求头和请求正文）.
 $request_time请求处理时间,单位为秒,精度毫秒； 从读入客户端的第一个字节开始,直到把最后一个字符发送给客户端后进行日志写入为止.
 $status响应状态.
 $time_iso8601ISO8601标准格式下的本地时间.
@@ -265,10 +265,10 @@ access_log off;
 
 默认值:  access_log logs/access.log combined;
 上下文:  http, server, location, if in location, limit_except
-为访问日志设置路径,格式和缓冲区大小（nginx访问日志支持缓存）. 在同一个配置层级里可以指定多个日志. 特定值off会取消当前配置层
+为访问日志设置路径,格式和缓冲区大小(nginx访问日志支持缓存）. 在同一个配置层级里可以指定多个日志. 特定值off会取消当前配置层
 级里的所有access_log指令. 如果没有指定日志格式则会使用预定义的“combined”格式.
 缓冲区的大小不能超过磁盘文件原子性写入的大小. 对于FreeBSD来说缓冲区大小是无限制的.
-日志文件的路径可以包含变量（0.7.6+）, 但此类日志存在一些限制:
+日志文件的路径可以包含变量(0.7.6+）, 但此类日志存在一些限制:
 ? 工作进程使用的user 应拥有在目录里创建文件的权限；
 ? 写缓冲无效；
 ? 每条日志写入都会打开和关闭文件.然而,频繁使用的文件描述符可以存储在缓存中, 在open_log_file_cache指令的valid参数指定的时间里, 写操作能持续写到旧文件.
@@ -294,7 +294,7 @@ open_log_file_cache off;
 上下文:  http, server, location
 
 定义一个缓存,用来存储频繁使用的文件名中包含变量的日志文件描述符. 该指令包含以下参数:
-max设置缓存中描述符的最大数量；如果缓存被占满,最近最少使用（LRU）的描述符将被关闭. inactive设置缓存文件描述符在多长时间内
+max设置缓存中描述符的最大数量；如果缓存被占满,最近最少使用(LRU）的描述符将被关闭. inactive设置缓存文件描述符在多长时间内
 没有被访问就关闭； 默认为10秒. min_uses设置在inactive参数指定的时间里, 最少访问多少次才能使文件描述符保留在缓存中；默认为1.
 valid设置一段用于检查超时后文件是否仍以同样名字存在的时间； 默认为60秒. off禁用缓存.
 使用实例: open_log_file_cache max=1000 inactive=20s valid=1m min_uses=2;
@@ -332,7 +332,7 @@ static ngx_http_module_t ngx_http_log_module_ctx = {
 };
 
 /*
-Nginx的日志模块（这里所说的日志模块是ngx_errlog_module模块,而ngx_http_log_module模块是用于记录HTTP请求的访问日志的,
+Nginx的日志模块(这里所说的日志模块是ngx_errlog_module模块,而ngx_http_log_module模块是用于记录HTTP请求的访问日志的,
 两者功能不同,在实现上也没有任何关系）为其他模块提供了基本的记录日志功能
 ngx_http_log_module模块按指定的格式写访问日志. 请求在处理结束时,会按请求路径的配置上下文记访问日志
 ngx_http_log_module是属于nginx状态机最后一个阶段NGX_HTTP_LOG_PHASE的处理模块,即一个http请求结束时执行的,它的任务就是打印这次request的访问情况.

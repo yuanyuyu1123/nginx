@@ -217,10 +217,10 @@ static ngx_int_t ngx_http_variable_time_local(ngx_http_request_t *r,
  */
 /*
 一、日志分类
-       Nginx日志主要分为两种:访问日志和错误日志.日志开关在Nginx配置文件（/etc/nginx/nginx.conf）中设置,两种日志都可以选择性关闭,默认都是打开的.
+       Nginx日志主要分为两种:访问日志和错误日志.日志开关在Nginx配置文件(/etc/nginx/nginx.conf)中设置,两种日志都可以选择性关闭,默认都是打开的.
 1、访问日志
        访问日志主要记录客户端访问Nginx的每一个请求,格式可以自定义.通过访问日志,你可以得到用户地域来源、跳转来源、使用终端、某个URL访问量等相关信息.Nginx中访问日志相关指令主要有两条:
-       （1）log_format
+       (1)log_format
        log_format用来设置日志格式,也就是日志文件中每条日志的格式,具体如下:
        log_format name(格式名称) type(格式样式)
        举例说明如下:
@@ -250,8 +250,8 @@ static ngx_int_t ngx_http_variable_time_local(ngx_http_request_t *r,
        192.168.1.102 - scq2099yt [18/Mar/2013:23:30:42 +0800] "GET /stats/awstats.pl?config=scq2099yt HTTP/1.1" 200 899 "http://192.168.1.1/pv/" "Mozilla/4.0 (compatible; MSIE 6.0; Windows XXX; Maxthon)"
        需要注意的是:log_format配置必须放在http内,否则会出现如下警告信息:
        nginx: [warn] the "log_format" directive may be used only on "http" level in /etc/nginx/nginx.conf:97
-       （2）access_log
-       access_log指令用来指定日志文件的存放路径（包含日志文件名）、格式和缓存大小,具体如下:
+       (2)access_log
+       access_log指令用来指定日志文件的存放路径(包含日志文件名)、格式和缓存大小,具体如下:
        access_log path(存放路径) [format(自定义日志格式名称) [buffer=size | off]]
        举例说明如下:
        access_log  logs/access.log  main;
@@ -301,7 +301,7 @@ $document_root 表示当前请求所使用的root配置项的值
 $uri 表示当前请求的URI,不带任何参数
 $document_uri 与$uri含义相同
 $request_uri 表示客户端发来的原始请求URI,带完整的参数.$uri和$document_uri未必是用户的原始请求,在内部重定向后可能是重定向后的URI,而$request_uri永远不会改变,始终是客户端的原始URI
-$host 表示客户端请求头部中的Host字段.如果Host字段不存在,则以实际处理的server（虚拟主机）名称代替.如果Host字段中带有端口,如IP:PORT,那么$host是去掉端口的,它的值为IP.$host是全小写的.这些特性与http_HEADER中的http_host不同,http_host只是“忠实”地取出Host头部对应的值
+$host 表示客户端请求头部中的Host字段.如果Host字段不存在,则以实际处理的server(虚拟主机)名称代替.如果Host字段中带有端口,如IP:PORT,那么$host是去掉端口的,它的值为IP.$host是全小写的.这些特性与http_HEADER中的http_host不同,http_host只是“忠实”地取出Host头部对应的值
 $hostname 表示Nginx所在机器的名称,与gethostbyname调用返回的值相同
 $http_HEADER 表示当前HTTP请求中相应头部的值.HEADER名称全小写.例如,用$http_host表示请求中Host头部对应的值
 $sent_http_HEADER 表示返回客户端的HTTP响应中相应头部的值.HEADER名称全小写.例如,用$sent_http_content_type表示响应中Content-Type头部对应的值
@@ -2809,12 +2809,12 @@ cmcf->variableskeys集合罩查找.如果找到则表示用户使用无误,如�
     有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以”http_”、”sent_http_”、”upstream http”、”cookie_”、
 ”arg”开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以”arg”开头代表的参数类变量会根
 据客户端请求URI时附带的参数不I司而不同,一个类似于“http:// 192.168. 164.2/?pageid=2”这样的请求会自动生成变量$argpageid.因此还需判断
-用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致（这也间接说明,用户自定义变量时
-最好不要以这些字符开头）.当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
+用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致(这也间接说明,用户自定义变量时
+最好不要以这些字符开头).当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
 但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)
     函数ngx_http_variables_init_vars()在对已使用变量进行合法性检测的同时,对于合法的使用变量会将其对应的三个主要字段设置好,
 即get_handler0回调、data数据、flags旗标.从前面给出的结构体ngx_http_variables定义来看,name存储的是变量名字符串,index存储的
-是该变量在cmcf->variables内的下标（通过函数ngx_http_get_variable_index获得）,这两个都是不变的,而set_handlerr()回调目前只在
+是该变量在cmcf->variables内的下标(通过函数ngx_http_get_variable_index获得),这两个都是不变的,而set_handlerr()回调目前只在
 使用set配置指令构造脚本引擎时才会用到,而那里直接使用cmcf->variables_keys里对应变量的该字段,并且一旦配置文件解析完毕,
 set_handlerr()回调也就用不上了,所以只有剩下的三个字段才需要做赋值操作,即从cmcf->variables_keys里对应变量的对应字段拷贝过来,
 或是另外五类变量就根据不同类别进行固定的赋值.
@@ -2871,8 +2871,8 @@ ngx_http_variables_init_vars(ngx_conf_t *cf) {
            有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以”http_”、”sent_http_”、”upstream http”、”cookie_”、
        ”arg”开头的五类变量.这些变量庞大并且不可预知,不可能提前定义并收集到cmcf->variables_keys内,比如以”arg”开头代表的参数类变量会根
        据客户端请求URI时附带的参数不同而不同,一个类似于“http:// 192.168. 164.2/?pageid=2”这样的请求会自动生成变量$argpageid.因此还需判断
-       用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致（这也间接说明,用户自定义变量时
-       最好不要以这些字符开头）.当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
+       用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致(这也间接说明,用户自定义变量时
+       最好不要以这些字符开头).当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
        但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)
          */ //在variables中,但是不在variables_keys中的变量如果不是以下面的字符串开头,则是非法的
 

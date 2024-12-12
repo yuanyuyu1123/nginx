@@ -9,16 +9,16 @@
 #include <ngx_core.h>
 
 /*
-信号量的数据类型为结构sem_t,它本质上是一个长整型的数.函数sem_init（）用来初始化一个信号量.它的原型为:　　
+信号量的数据类型为结构sem_t,它本质上是一个长整型的数.函数sem_init()用来初始化一个信号量.它的原型为:　　
 extern int sem_init __P ((sem_t *__sem, int __pshared, unsigned int __value));　　
 sem为指向信号量结构的一个指针；pshared不为０时此信号量在进程间共享,否则只能为当前进程的所有线程共享；value给出了信号量的初始值.　　
 函数sem_post( sem_t *sem )用来增加信号量的值.当有线程阻塞在这个信号量上时,调用这个函数会使其中的一个线程不在阻塞,选择机制同样是由线程的调度策略决定的.　　
-函数sem_wait( sem_t *sem )被用来阻塞当前线程直到信号量sem的值大于0,解除阻塞后将sem的值减一,表明公共资源经使用后减少.函数sem_trywait ( sem_t *sem )是函数sem_wait（）的非阻塞版本,它直接将信号量sem的值减一.　　
+函数sem_wait( sem_t *sem )被用来阻塞当前线程直到信号量sem的值大于0,解除阻塞后将sem的值减一,表明公共资源经使用后减少.函数sem_trywait ( sem_t *sem )是函数sem_wait()的非阻塞版本,它直接将信号量sem的值减一.　　
 函数sem_destroy(sem_t *sem)用来释放信号量sem.　
 信号量用sem_init函数创建的,下面是它的说明:
 #include<semaphore.h>
        int sem_init (sem_t *sem, int pshared, unsigned int value);
-       这个函数的作用是对由sem指定的信号量进行初始化,设置好它的 共享选项,并指定一个整数类型的初始值.pshared参数控制着信号量的类型.如果 pshared的值是０,就表示它是当前里程的局部信号量；否则,其它进程就能够共享这个信号量.我们现在只对不让进程共享的信号量感兴趣.　（这个参数 受版本影响）,　pshared传递一个非零将会使函数调用失败.
+       这个函数的作用是对由sem指定的信号量进行初始化,设置好它的 共享选项,并指定一个整数类型的初始值.pshared参数控制着信号量的类型.如果 pshared的值是０,就表示它是当前里程的局部信号量；否则,其它进程就能够共享这个信号量.我们现在只对不让进程共享的信号量感兴趣.　(这个参数 受版本影响),　pshared传递一个非零将会使函数调用失败.
 这两个函数控制着信号量的值,它们的定义如下所示:
 #include <semaphore.h>
 int sem_wait(sem_t * sem);
@@ -34,7 +34,7 @@ sem_wait函数也是一个原子操作,它的作用是从信号量的值 减去�
 与其它的函数一样,这些函数在成功时都返回“0”.
 信号量是如何实现互斥锁功能的呢？例如,最初的信号量sem值为0,调用sem_post方
 法将会把sem值加1,这个操作不会有任何阻塞；调用sem__ wait方浩将会把信号量sem的值
-减l,如果sem值已经小于或等于0了,则阻塞住当前进程（进程会进入睡眠状态）,直到
+减l,如果sem值已经小于或等于0了,则阻塞住当前进程(进程会进入睡眠状态),直到
 其他进程将信号量sem的值改变为正数后,这时才能继续通过将sem减1而使得当前进程
 继续向下执行.因此,sem_post方法可以实现解锁的功能,而sem wait方法可以实现加锁
 的功能.
@@ -70,8 +70,8 @@ static void ngx_shmtx_wakeup(ngx_shmtx_t *mtx);
 
 /*
 ngx_shmtx_t结构体涉及两个宏:NGX_HAVE_ATOMIC_OPS、NGX_HAVE_POSIX_SEM,这两个宏对应着互斥锁的3种不同实现.
-    第1种实现,当不支持原子操作时,会使用文件锁来实现ngx_shmtx_t互斥锁,这时它仅有fd和name成员（实际上还有spin成员,
-    但这时没有任何意义）.这两个成员使用文件锁来提供阻塞、非阻塞的互斥锁.
+    第1种实现,当不支持原子操作时,会使用文件锁来实现ngx_shmtx_t互斥锁,这时它仅有fd和name成员(实际上还有spin成员,
+    但这时没有任何意义).这两个成员使用文件锁来提供阻塞、非阻塞的互斥锁.
     第2种实现,支持原子操作却又不支持信号量.
     第3种实现,在支持原子操作的同时,操作系统也支持信号量.
     后两种实现的唯一区别是ngx_shmtx_lock方法执行时的效果,也就是说,支持信号量
@@ -187,7 +187,7 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
             //如果没有拿到锁,这时Nginx进程将会睡眠,直到其他进程释放了锁
             /*
                 检查信号量sem的值,如果sem值为正数,则sem值减1,表示拿到了信号量互斥锁,同时sem wait方法返回o.如果sem值为0或
-                者负数,则当前进程进入睡眠状态,等待其他进程使用ngx_shmtx_unlock方法释放锁（等待sem信号量变为正数）,到时Linux内核
+                者负数,则当前进程进入睡眠状态,等待其他进程使用ngx_shmtx_unlock方法释放锁(等待sem信号量变为正数),到时Linux内核
                 会重新调度当前进程,继续检查sem值是否为正,重复以上流程
                */
             while (sem_wait(&mtx->sem) == -1) {
@@ -305,7 +305,7 @@ ngx_shmtx_create(ngx_shmtx_t *mtx, ngx_shmtx_sh_t *addr, u_char *name)
     mtx->fd = ngx_open_file(name, NGX_FILE_RDWR, NGX_FILE_CREATE_OR_OPEN,
                             NGX_FILE_DEFAULT_ACCESS);
 
-    if (mtx->fd == NGX_INVALID_FILE) {  //一旦文件因为各种原因（如权限不够）无法打开,通常会出现无法运行错误
+    if (mtx->fd == NGX_INVALID_FILE) {  //一旦文件因为各种原因(如权限不够)无法打开,通常会出现无法运行错误
         ngx_log_error(NGX_LOG_EMERG, ngx_cycle->log, ngx_errno,
                       ngx_open_file_n " \"%s\" failed", name);
         return NGX_ERROR;

@@ -11,7 +11,7 @@
 
 
 typedef struct {
-    //最大缓存连接个数,由keepalive参数指定（keepalive connection）  默认0,不开启keepalive con-num设置
+    //最大缓存连接个数,由keepalive参数指定(keepalive connection)  默认0,不开启keepalive con-num设置
     ngx_uint_t                         max_cached; //keepalive的第一个参数  开辟max_cached个ngx_http_upstream_keepalive_cache_t
     ngx_uint_t requests;
     ngx_msec_t time;
@@ -19,7 +19,7 @@ typedef struct {
 
     /*
     //长连接队列,其中cache为缓存连接池,free为空闲连接池.初始化时根据keepalive指令的参数初始化free队列,后续有连接过来从free队列
-    //取连接,请求处理结束后将长连接缓存到cache队列,连接被断开（或超时）再从cache队列放入free队列
+    //取连接,请求处理结束后将长连接缓存到cache队列,连接被断开(或超时)再从cache队列放入free队列
     //ngx_http_upstream_free_keepalive_peer往kp->conf->cache中添加缓存ngx_connection_t,ngx_http_upstream_get_keepalive_peer从缓存中
     //取出和后端的连接缓存ngx_connection_t,可以避免重复的建立和关闭TCP连接
      */
@@ -165,7 +165,7 @@ hash:可以按照uri  ip 等参数进行做hash
 束之后不会立即关闭连接,而是把用完的连接保存在一个keepalive connection pool里面,以后每次需要建立向后连接的时候,只需要从这个
 连接池里面找,如果找到合适的连接的话,就可以直接来用这个连接,不需要重新创建socket或者发起connect().这样既省下建立连接时在握
 手的时间消耗,又可以避免TCP连接的slow start.如果在keepalive连接池找不到合适的连接,那就按照原来的步骤重新建立连接.假设连接查
-找时间可以忽略不计,那么这种方法肯定是有益而无害的（当然,需要少量额外的内存）.
+找时间可以忽略不计,那么这种方法肯定是有益而无害的(当然,需要少量额外的内存).
 */
 //如果不配置keepalive  num,则有多少个客户端请求到后端,nginx就会和后端建立多少个tcp连接,如果加了该参数则会把num个connect缓存
 //下来,下次有客户端请求就直接使用缓存中的连接,避免不停建立TCP连接
@@ -201,7 +201,7 @@ ngx_http_upstream_init_keepalive(ngx_conf_t *cf,
     ngx_conf_init_msec_value(kcf->time, 3600000);
     ngx_conf_init_msec_value(kcf->timeout, 60000);
     ngx_conf_init_uint_value(kcf->requests, 1000);
-    // 先执行原始初始化upstream函数（即ngx_http_upstream_init_round_robin）,该函数会根据配置的后端地址解析成socket地址,用
+    // 先执行原始初始化upstream函数(即ngx_http_upstream_init_round_robin),该函数会根据配置的后端地址解析成socket地址,用
     //于连接后端.并设置us->peer.init钩子为ngx_http_upstream_init_round_robin_peer
     if (kcf->original_init_upstream(cf, us) != NGX_OK) { //默认ngx_http_upstream_init_round_robin
         return NGX_ERROR;
@@ -224,7 +224,7 @@ ngx_http_upstream_init_keepalive(ngx_conf_t *cf,
 
     /*
     先预创建max_cached个后端连接信息ngx_http_upstream_keepalive_cache_t,,后续有连接过来从free队列
-    取连接,请求处理结束后将长连接缓存到cache队列,连接被断开（或超时）再从cache队列放入free队列
+    取连接,请求处理结束后将长连接缓存到cache队列,连接被断开(或超时)再从cache队列放入free队列
     */
     for (i = 0; i < kcf->max_cached; i++) {
         ngx_queue_insert_head(&kcf->free, &cached[i].queue);
@@ -309,7 +309,7 @@ ngx_http_upstream_get_keepalive_peer(ngx_peer_connection_t *pc, void *data) {
                    "get keepalive peer");
 
     /* ask balancer */
-    // 先调用原始getpeer钩子（ngx_http_upstream_get_round_robin_peer）选择后端
+    // 先调用原始getpeer钩子(ngx_http_upstream_get_round_robin_peer)选择后端
     rc = kp->original_get_peer(pc, kp->data); //通过hash  ip_hash rr方式选择后端的服务器peer
 
     if (rc != NGX_OK) {
@@ -365,8 +365,8 @@ ngx_http_upstream_get_keepalive_peer(ngx_peer_connection_t *pc, void *data) {
 分析完ngx_http_upstream_free_keepalive_peer函数后,在回过头去看ngx_http_upstream_get_keepalive_peer就更能理解是如何复用keepalive连接的,
 free操作将当前连接缓存到cache队列中,并保存该连接对应后端的socket地址,get操作根据想要连接后端的socket地址,遍历查找cache队列,如果找到
 就使用先前缓存的长连接,未找到就重新建立新的连接.
-当free操作发现当前所有cache item用完时（即缓存连接达到上限）,会关闭最近未被使用的那个连接,用来缓存新的连接.Nginx官方推荐keepalive的
-连接数应该配置的尽可能小,以免出现被缓存的连接太多而造成新的连接请求过来时无法获取连接的情况（一个worker进程的总连接池是有限的）.
+当free操作发现当前所有cache item用完时(即缓存连接达到上限),会关闭最近未被使用的那个连接,用来缓存新的连接.Nginx官方推荐keepalive的
+连接数应该配置的尽可能小,以免出现被缓存的连接太多而造成新的连接请求过来时无法获取连接的情况(一个worker进程的总连接池是有限的).
 */
 //在一个HTTP请求处理完毕后,通常会调用ngx_http_upstream_finalize_request结束请求,并调用释放peer的操作
 //该钩子会将连接缓存到长连接cache池,并将u->peer.connection设置成空,防止ngx_http_upstream_finalize_request最下面部分代码关闭连接.
@@ -449,7 +449,7 @@ ngx_http_upstream_free_keepalive_peer(ngx_peer_connection_t *pc, void *data,
 
     ngx_queue_insert_head(&kp->conf->cache, q);
     //缓存当前连接,将item插入cache队列,然后将pc->connection置空,防止上层调用
-    //ngx_http_upstream_finalize_request关闭该连接（详见该函数）
+    //ngx_http_upstream_finalize_request关闭该连接(详见该函数)
     item->connection = c;
 
     pc->connection = NULL;
@@ -460,8 +460,8 @@ ngx_http_upstream_free_keepalive_peer(ngx_peer_connection_t *pc, void *data,
     if (c->write->timer_set) {
         ngx_del_timer(c->write);
     }
-    //设置连接读写钩子.写钩子是一个假钩子（keepalive连接不会由客户端主动关闭）
-    //读钩子处理关闭keepalive连接的操作（接收到来自后端web服务器的FIN分节）
+    //设置连接读写钩子.写钩子是一个假钩子(keepalive连接不会由客户端主动关闭)
+    //读钩子处理关闭keepalive连接的操作(接收到来自后端web服务器的FIN分节)
     c->write->handler = ngx_http_upstream_keepalive_dummy_handler;
     c->read->handler = ngx_http_upstream_keepalive_close_handler;
 

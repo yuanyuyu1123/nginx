@@ -34,7 +34,7 @@ static ngx_int_t ngx_http_mytest_handler(ngx_http_request_t *r)
     r->headers_out.content_type = type;
 
     /*请求处理完毕后,需要向用户发送HTTP响应,告知客户端Nginx的执行结果.HTTP响应主要包括响应行、响应头部、包体三部分.
-    发送HTTP响应时需要执行发送HTTP头部（发送HTTP头部时也会发送响应行）和发送HTTP包体两步操作.*/
+    发送HTTP响应时需要执行发送HTTP头部(发送HTTP头部时也会发送响应行)和发送HTTP包体两步操作.*/
     rc = ngx_http_send_header(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
@@ -76,7 +76,7 @@ static ngx_command_t ngx_http_mytest_commands[] = {
                 ngx_string("mytest"),
                 NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LMT_CONF | NGX_CONF_NOARGS,
 
-                /*ngx_http_mytest是ngx_command_t结构体中的set成员（完整定义为char *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);）,
+                /*ngx_http_mytest是ngx_command_t结构体中的set成员(完整定义为char *(*set)(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);),
                 当在某个配置块中出现mytest配置项时,Nginx将会调用ngx_http_mytest方法.下面看一下如何实现ngx_http_mytest方法*/
                 ngx_http_mytest,
                 NGX_HTTP_LOC_CONF_OFFSET,

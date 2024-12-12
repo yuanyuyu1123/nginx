@@ -117,9 +117,9 @@ typedef struct {
     -rw-rw-r--
 　　一共有10位数
 　　其中: 最前面那个 - 代表的是类型
-　　中间那三个 rw- 代表的是所有者（user）
-　　然后那三个 rw- 代表的是组群（group）
-　　最后那三个 r-- 代表的是其他人（other）
+　　中间那三个 rw- 代表的是所有者(user)
+　　然后那三个 rw- 代表的是组群(group)
+　　最后那三个 r-- 代表的是其他人(other)
 */
 #define NGX_FILE_DEFAULT_ACCESS  0644 //-rw-r--r--  所有者有读写权限 组群有读写权限,其他人只有读权限
 #define NGX_FILE_OWNER_ACCESS    0600  //-rw-------
@@ -178,7 +178,7 @@ ngx_write_fd(ngx_fd_t fd, void *buf, size_t n) {
 #define NGX_LINEFEED             "\x0a"
 
 /* rename函数功能是给一个文件重命名,用该函数可以实现文件移动功能,把一个文件的完整路径的盘符改一下就实现了这个文件的移动 */
-//rename和mv命令差不多,只是rename支持批量修改  也就是说,mv也能用于改名,但不能实现批量处理（改名时,不支持*等符号的）,而rename可以.
+//rename和mv命令差不多,只是rename支持批量修改  也就是说,mv也能用于改名,但不能实现批量处理(改名时,不支持*等符号的),而rename可以.
 //rename后文件的fd和stat信息不变  使用 RENAME ,原子性地对临时文件进行改名,覆盖原来的 RDB 文件.
 #define ngx_rename_file(o, n)    rename((const char *) o, (const char *) n)
 #define ngx_rename_file_n        "rename()"
@@ -261,7 +261,7 @@ Linux stat函数讲解:
     S_ISSOCK (st_mode)   是否为socket
      若一目录具有sticky位(S_ISVTX),则表示在此目录下的文件只能被该文件所有者、此目录所有者或root来删除或改名.
 使用stat函数最多的可能是ls-l命令,用其可以获得有关一个文件的所有信息.
-1 函数都是获取文件（普通文件,目录,管道,socket,字符,块（）的属性.
+1 函数都是获取文件(普通文件,目录,管道,socket,字符,块()的属性.
 函数原型
 #include <sys/stat.h>
 int stat(const char *restrict pathname, struct stat *restrict buf);
@@ -277,9 +277,9 @@ int stat(const char *path, struct stat *buf);
 int lstat(const char *path, struct stat *buf);
 聪明人一眼就能看出来fstat的第一个参数是和另外两个不一样的,对！fstat区别于另外两个系统调用的地方在于,fstat系统调用接受的是 一个“文件描述符”,
 而另外两个则直接接受“文件全路径”.文件描述符是需要我们用open系统调用后才能得到的,而文件全路经直接写就可以了.
-stat和lstat的区别:当文件是一个符号链接时,lstat返回的是该符号链接本身的信息；而stat返回的是该链接指向的文件的信息.（似乎有些晕吧,这
+stat和lstat的区别:当文件是一个符号链接时,lstat返回的是该符号链接本身的信息；而stat返回的是该链接指向的文件的信息.(似乎有些晕吧,这
 样记,lstat比stat多了一个l,因此它是有本事处理符号链接文件的,因此当遇到符号链接文件时,lstat当然不会放过.而 stat系统调用没有这个本事,
-它只能对符号链接文件睁一只眼闭一只眼,直接去处理链接所指文件喽）
+它只能对符号链接文件睁一只眼闭一只眼,直接去处理链接所指文件喽)
 */
 #define ngx_file_info(file, sb)  stat((const char *) file, sb)
 #define ngx_file_info_n          "stat()"

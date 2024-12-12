@@ -166,9 +166,9 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             return NGX_INVALID_PID;
         }
         /*设置异步模式: 这里可以看下《网络编程卷一》的ioctl函数和fcntl函数 or 网上查询*/
-        on = 1; // 标记位,ioctl用于清除（0）或设置（非0）操作
+        on = 1; // 标记位,ioctl用于清除(0)或设置(非0)操作
         /*设置channel[0]的信号驱动异步I/O标志
-         FIOASYNC:该状态标志决定是否收取针对socket的异步I/O信号（SIGIO）
+         FIOASYNC:该状态标志决定是否收取针对socket的异步I/O信号(SIGIO)
          其与O_ASYNC文件状态标志等效,可通过fcntl的F_SETFL命令设置or清除*/
         if (ioctl(ngx_processes[s].channel[0], FIOASYNC, &on) == -1) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -176,7 +176,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
             ngx_close_channel(ngx_processes[s].channel, cycle->log);
             return NGX_INVALID_PID;
         }
-        /* F_SETOWN:用于指定接收SIGIO和SIGURG信号的socket属主（进程ID或进程组ID）
+        /* F_SETOWN:用于指定接收SIGIO和SIGURG信号的socket属主(进程ID或进程组ID)
          * 这里意思是指定Master进程接收SIGIO和SIGURG信号
          * SIGIO信号必须是在socket设置为信号驱动异步I/O才能产生,即上一步操作
          * SIGURG信号是在新的带外数据到达socket时产生的
@@ -329,25 +329,25 @@ ngx_execute_proc(ngx_cycle_t *cycle, void *data) {
 --------------------------------------------------------------------------------
 回页首
 二、信号的种类
-可以从两个不同的分类角度对信号进行分类:（1）可靠性方面:可靠信号与不可靠信号；（2）与时间的关系上:实时信号与非实时信号.在《Linux环境进程间通信（一）:管道及有名管道》的附1中列出了系统所支持的所有信号.
+可以从两个不同的分类角度对信号进行分类:(1)可靠性方面:可靠信号与不可靠信号；(2)与时间的关系上:实时信号与非实时信号.在《Linux环境进程间通信(一):管道及有名管道》的附1中列出了系统所支持的所有信号.
 1、可靠信号与不可靠信号
 "不可靠信号"
 Linux信号机制基本上是从Unix系统中继承过来的.早期Unix系统中的信号机制比较简单和原始,后来在实践中暴露出一些问题,因此,把那些建立在早期机制上的信号叫做"不可靠信号",信号值小于SIGRTMIN(Red hat 7.2中,SIGRTMIN=32,SIGRTMAX=63)的信号都是不可靠信号.这就是"不可靠信号"的来源.它的主要问题是:
 进程每次处理信号后,就将对信号的响应设置为默认动作.在某些情况下,将导致对信号的错误处理；因此,用户如果不希望这样的操作,那么就要在信号处理函数结尾再一次调用signal(),重新安装该信号.
 信号可能丢失,后面将对此详细阐述.
-因此,早期unix下的不可靠信号主要指的是进程可能对信号做出错误的反应以及信号可能丢失. Linux支持不可靠信号,但是对不可靠信号机制做了改进:在调用完信号处理函数后,不必重新调用该信号的安装函数（信号安装函数是在可靠机制上的实现）.因此,Linux下的不可靠信号问题主要指的是信号可能丢失.
+因此,早期unix下的不可靠信号主要指的是进程可能对信号做出错误的反应以及信号可能丢失. Linux支持不可靠信号,但是对不可靠信号机制做了改进:在调用完信号处理函数后,不必重新调用该信号的安装函数(信号安装函数是在可靠机制上的实现).因此,Linux下的不可靠信号问题主要指的是信号可能丢失.
 "可靠信号"
 随着时间的发展,实践证明了有必要对信号的原始机制加以改进和扩充.所以,后来出现的各种Unix版本分别在这方面进行了研究,力图实现"可靠信号".由于原来定义的信号已有许多应用,不好再做改动,最终只好又新增加了一些信号,并在一开始就把它们定义为可靠信号,这些信号支持排队,不会丢失.同时,信号的发送和安装也出现了新版本:信号发送函数sigqueue()及信号安装函数sigaction().POSIX.4对可靠信号机制做了标准化.但是,POSIX只对可靠信号机制应具有的功能以及信号机制的对外接口做了标准化,对信号机制的实现没有作具体的规定.
-信号值位于SIGRTMIN和SIGRTMAX之间的信号都是可靠信号,可靠信号克服了信号可能丢失的问题.Linux在支持新版本的信号安装函数sigation（）以及信号发送函数sigqueue()的同时,仍然支持早期的signal（）信号安装函数,支持信号发送函数kill().
-注:不要有这样的误解:由sigqueue()发送、sigaction安装的信号就是可靠的.事实上,可靠信号是指后来添加的新信号（信号值位于SIGRTMIN及SIGRTMAX之间）；不可靠信号是信号值小于SIGRTMIN的信号.信号的可靠与不可靠只与信号值有关,与信号的发送及安装函数无关.目前linux中的signal()是通过sigation()函数实现的,因此,即使通过signal（）安装的信号,在信号处理函数的结尾也不必再调用一次信号安装函数.同时,由signal()安装的实时信号支持排队,同样不会丢失.
-对于目前linux的两个信号安装函数:signal()及sigaction()来说,它们都不能把SIGRTMIN以前的信号变成可靠信号（都不支持排队,仍有可能丢失,仍然是不可靠信号）,而且对SIGRTMIN以后的信号都支持排队.这两个函数的最大区别在于,经过sigaction安装的信号都能传递信息给信号处理函数（对所有信号这一点都成立）,而经过signal安装的信号却不能向信号处理函数传递信息.对于信号发送函数来说也是一样的.
+信号值位于SIGRTMIN和SIGRTMAX之间的信号都是可靠信号,可靠信号克服了信号可能丢失的问题.Linux在支持新版本的信号安装函数sigation()以及信号发送函数sigqueue()的同时,仍然支持早期的signal()信号安装函数,支持信号发送函数kill().
+注:不要有这样的误解:由sigqueue()发送、sigaction安装的信号就是可靠的.事实上,可靠信号是指后来添加的新信号(信号值位于SIGRTMIN及SIGRTMAX之间）；不可靠信号是信号值小于SIGRTMIN的信号.信号的可靠与不可靠只与信号值有关,与信号的发送及安装函数无关.目前linux中的signal()是通过sigation()函数实现的,因此,即使通过signal(）安装的信号,在信号处理函数的结尾也不必再调用一次信号安装函数.同时,由signal()安装的实时信号支持排队,同样不会丢失.
+对于目前linux的两个信号安装函数:signal()及sigaction()来说,它们都不能把SIGRTMIN以前的信号变成可靠信号(都不支持排队,仍有可能丢失,仍然是不可靠信号）,而且对SIGRTMIN以后的信号都支持排队.这两个函数的最大区别在于,经过sigaction安装的信号都能传递信息给信号处理函数(对所有信号这一点都成立）,而经过signal安装的信号却不能向信号处理函数传递信息.对于信号发送函数来说也是一样的.
 2、实时信号与非实时信号
 早期Unix系统只定义了32种信号,Ret hat7.2支持64种信号,编号0-63(SIGRTMIN=31,SIGRTMAX=63),将来可能进一步增加,这需要得到内核的支持.前32种信号已经有了预定义值,每个信号有了确定的用途及含义,并且每种信号都有各自的缺省动作.如按键盘的CTRL ^C时,会产生SIGINT信号,对该信号的默认反应就是进程终止.后32个信号表示实时信号,等同于前面阐述的可靠信号.这保证了发送的多个实时信号都被接收.实时信号是POSIX标准的一部分,可用于应用进程.
 非实时信号都不支持排队,都是不可靠信号；实时信号都支持排队,都是可靠信号.
 --------------------------------------------------------------------------------
 回页首
 三、进程对信号的响应
-进程可以通过三种方式来响应一个信号:（1）忽略信号,即对信号不做任何处理,其中,有两个信号不能忽略:SIGKILL及SIGSTOP；（2）捕捉信号.定义信号处理函数,当信号发生时,执行相应的处理函数；（3）执行缺省操作,Linux对每种信号都规定了默认操作,详细情况请参考[2]以及其它资料.注意,进程对实时信号的缺省反应是进程终止.
+进程可以通过三种方式来响应一个信号:(1）忽略信号,即对信号不做任何处理,其中,有两个信号不能忽略:SIGKILL及SIGSTOP；(2）捕捉信号.定义信号处理函数,当信号发生时,执行相应的处理函数；(3）执行缺省操作,Linux对每种信号都规定了默认操作,详细情况请参考[2]以及其它资料.注意,进程对实时信号的缺省反应是进程终止.
 Linux究竟采用上述三种方式的哪一个来响应信号,取决于传递给相应API函数的参数.
 --------------------------------------------------------------------------------
 回页首
@@ -362,38 +362,38 @@ pid>0 进程ID为pid的进程
 pid=0 同一个进程组的进程
 pid<0 pid!=-1 进程组ID为 -pid的所有进程
 pid=-1 除发送进程自身外,所有进程ID大于1的进程
-Sinno是信号值,当为0时（即空信号）,实际不发送任何信号,但照常进行错误检查,因此,可用于检查目标进程是否存在,以及当前进程是否具有向目标发送信号的权限（root权限的进程可以向任何进程发送信号,非root权限的进程只能向属于同一个session或者同一个用户的进程发送信号）.
+Sinno是信号值,当为0时(即空信号）,实际不发送任何信号,但照常进行错误检查,因此,可用于检查目标进程是否存在,以及当前进程是否具有向目标发送信号的权限(root权限的进程可以向任何进程发送信号,非root权限的进程只能向属于同一个session或者同一个用户的进程发送信号）.
 Kill()最常用于pid>0时的信号发送,调用成功返回 0； 否则,返回 -1.注:对于pid<0时的情况,对于哪些进程将接受信号,各种版本说法不一,其实很简单,参阅内核源码kernal/signal.c即可,上表中的规则是参考red hat 7.2.
-2、raise（）
+2、raise(）
 #include <signal.h>
 int raise(int signo)
 向进程本身发送信号,参数为即将发送的信号值.调用成功返回 0；否则,返回 -1.
-3、sigqueue（）
+3、sigqueue(）
 #include <sys/types.h>
 #include <signal.h>
 int sigqueue(pid_t pid, int sig, const union sigval val)
 调用成功返回 0；否则,返回 -1.
-sigqueue()是比较新的发送信号系统调用,主要是针对实时信号提出的（当然也支持前32种）,支持信号带有参数,与函数sigaction()配合使用.
+sigqueue()是比较新的发送信号系统调用,主要是针对实时信号提出的(当然也支持前32种）,支持信号带有参数,与函数sigaction()配合使用.
 sigqueue的第一个参数是指定接收信号的进程ID,第二个参数确定即将发送的信号,第三个参数是一个联合数据结构union sigval,指定了信号传递的参数,即通常所说的4字节值.
  	typedef union sigval {
  		int  sival_int;
  		void *sival_ptr;
  	}sigval_t;sigqueue()比kill()传递了更多的附加信息,但sigqueue()只能向一个进程发送信号,而不能发送信号给一个进程组.如果signo=0,将会执行错误检查,但实际上不发送任何信号,0值信号可用于检查pid的有效性以及当前进程是否有权限向目标进程发送信号.
-在调用sigqueue时,sigval_t指定的信息会拷贝到3参数信号处理函数（3参数信号处理函数指的是信号处理函数由sigaction安装,并设定了sa_sigaction指针,稍后将阐述）的siginfo_t结构中,这样信号处理函数就可以处理这些信息了.由于sigqueue系统调用支持发送带参数信号,所以比kill()系统调用的功能要灵活和强大得多.
-注:sigqueue（）发送非实时信号时,第三个参数包含的信息仍然能够传递给信号处理函数； sigqueue（）发送非实时信号时,仍然不支持排队,即在信号处理函数执行过程中到来的所有相同信号,都被合并为一个信号.
-4、alarm（）
+在调用sigqueue时,sigval_t指定的信息会拷贝到3参数信号处理函数(3参数信号处理函数指的是信号处理函数由sigaction安装,并设定了sa_sigaction指针,稍后将阐述）的siginfo_t结构中,这样信号处理函数就可以处理这些信息了.由于sigqueue系统调用支持发送带参数信号,所以比kill()系统调用的功能要灵活和强大得多.
+注:sigqueue(）发送非实时信号时,第三个参数包含的信息仍然能够传递给信号处理函数； sigqueue(）发送非实时信号时,仍然不支持排队,即在信号处理函数执行过程中到来的所有相同信号,都被合并为一个信号.
+4、alarm(）
 #include <unistd.h>
 unsigned int alarm(unsigned int seconds)
 专门为SIGALRM信号而设,在指定的时间seconds秒后,将向进程本身发送SIGALRM信号,又称为闹钟时间.进程调用alarm后,任何以前的alarm()调用都将无效.如果参数seconds为零,那么进程内将不再包含任何闹钟时间.
-返回值,如果调用alarm（）前,进程中已经设置了闹钟时间,则返回上一个闹钟时间的剩余时间,否则返回0.
-5、setitimer（）
+返回值,如果调用alarm(）前,进程中已经设置了闹钟时间,则返回上一个闹钟时间的剩余时间,否则返回0.
+5、setitimer(）
 #include <sys/time.h>
 int setitimer(int which, const struct itimerval *value, struct itimerval *ovalue));
 setitimer()比alarm功能强大,支持3种类型的定时器:
 ITIMER_REAL: 设定绝对时间；经过指定的时间后,内核将发送SIGALRM信号给本进程；
 ITIMER_VIRTUAL 设定程序执行时间；经过指定的时间后,内核将发送SIGVTALRM信号给本进程；
 ITIMER_PROF 设定进程执行以及内核因本进程而消耗的时间和,经过指定的时间后,内核将发送ITIMER_VIRTUAL信号给本进程；
-Setitimer()第一个参数which指定定时器类型（上面三种之一）；第二个参数是结构itimerval的一个实例,结构itimerval形式见附录1.第三个参数可不做处理.
+Setitimer()第一个参数which指定定时器类型(上面三种之一）；第二个参数是结构itimerval的一个实例,结构itimerval形式见附录1.第三个参数可不做处理.
 Setitimer()调用成功返回0,否则返回-1.
 6、abort()
 #include <stdlib.h>
@@ -401,21 +401,21 @@ void abort(void);
 向进程发送SIGABORT信号,默认情况下进程会异常退出,当然可定义自己的信号处理函数.即使SIGABORT被进程设置为阻塞信号,调用abort()后,SIGABORT仍然能被进程接收.该函数无返回值.
 --------------------------------------------------------------------------------
 回页首
-五、信号的安装（设置信号关联动作）
+五、信号的安装(设置信号关联动作）
 如果进程要处理某一信号,那么就要在进程中安装该信号.安装信号主要用来确定信号值及进程针对该信号值的动作之间的映射关系,即进程将要处理哪个信号；该信号被传递给进程时,将执行何种操作.
-linux主要有两个函数实现信号的安装:signal()、sigaction().其中signal()在可靠信号系统调用的基础上实现, 是库函数.它只有两个参数,不支持信号传递信息,主要是用于前32种非实时信号的安装；而sigaction()是较新的函数（由两个系统调用实现:sys_signal以及sys_rt_sigaction）,有三个参数,支持信号传递信息,主要用来与 sigqueue() 系统调用配合使用,当然,sigaction()同样支持非实时信号的安装.sigaction()优于signal()主要体现在支持信号带有参数.
+linux主要有两个函数实现信号的安装:signal()、sigaction().其中signal()在可靠信号系统调用的基础上实现, 是库函数.它只有两个参数,不支持信号传递信息,主要是用于前32种非实时信号的安装；而sigaction()是较新的函数(由两个系统调用实现:sys_signal以及sys_rt_sigaction）,有三个参数,支持信号传递信息,主要用来与 sigqueue() 系统调用配合使用,当然,sigaction()同样支持非实时信号的安装.sigaction()优于signal()主要体现在支持信号带有参数.
 1、signal()
 #include <signal.h>
 void (*signal(int signum, void (*handler))(int)))(int);
 如果该函数原型不容易理解的话,可以参考下面的分解方式来理解:
 typedef void (*sighandler_t)(int)；
 sighandler_t signal(int signum, sighandler_t handler));
-第一个参数指定信号的值,第二个参数指定针对前面信号值的处理,可以忽略该信号（参数设为SIG_IGN）；可以采用系统默认方式处理信号(参数设为SIG_DFL)；也可以自己实现处理方式(参数指定一个函数地址).
+第一个参数指定信号的值,第二个参数指定针对前面信号值的处理,可以忽略该信号(参数设为SIG_IGN）；可以采用系统默认方式处理信号(参数设为SIG_DFL)；也可以自己实现处理方式(参数指定一个函数地址).
 如果signal()调用成功,返回最后一次为安装信号signum而调用signal()时的handler值；失败则返回SIG_ERR.
 2、sigaction()
 #include <signal.h>
 int sigaction(int signum,const struct sigaction *act,struct sigaction *oldact));
-sigaction函数用于改变进程接收到特定信号后的行为.该函数的第一个参数为信号的值,可以为除SIGKILL及SIGSTOP外的任何一个特定有效的信号（为这两个信号定义自己的处理函数,将导致信号安装错误）.第二个参数是指向结构sigaction的一个实例的指针,在结构sigaction的实例中,指定了对特定信号的处理,可以为空,进程会以缺省方式对信号处理；第三个参数oldact指向的对象用来保存原来对相应信号的处理,可指定oldact为NULL.如果把第二、第三个参数都设为NULL,那么该函数可用于检查信号的有效性.
+sigaction函数用于改变进程接收到特定信号后的行为.该函数的第一个参数为信号的值,可以为除SIGKILL及SIGSTOP外的任何一个特定有效的信号(为这两个信号定义自己的处理函数,将导致信号安装错误）.第二个参数是指向结构sigaction的一个实例的指针,在结构sigaction的实例中,指定了对特定信号的处理,可以为空,进程会以缺省方式对信号处理；第三个参数oldact指向的对象用来保存原来对相应信号的处理,可指定oldact为NULL.如果把第二、第三个参数都设为NULL,那么该函数可用于检查信号的有效性.
 第二个参数最为重要,其中包含了对指定信号的处理、信号所传递的信息、信号处理函数执行过程中应屏蔽掉哪些函数等等.
 sigaction结构定义如下:
  struct sigaction {
@@ -427,8 +427,8 @@ sigaction结构定义如下:
                     unsigned long sa_flags；
                   void (*sa_restorer)(void)；
                   }其中,sa_restorer,已过时,POSIX不支持它,不应再被使用.
-1、联合数据结构中的两个元素_sa_handler以及*_sa_sigaction指定信号关联函数,即用户指定的信号处理函数.除了可以是用户自定义的处理函数外,还可以为SIG_DFL(采用缺省的处理方式),也可以为SIG_IGN（忽略信号）.
-2、由_sa_handler指定的处理函数只有一个参数,即信号值,所以信号不能传递除信号值之外的任何信息；由_sa_sigaction是指定的信号处理函数带有三个参数,是为实时信号而设的（当然同样支持非实时信号）,它指定一个3参数信号处理函数.第一个参数为信号值,第三个参数没有使用（posix没有规范使用该参数的标准）,第二个参数是指向siginfo_t结构的指针,结构中包含信号携带的数据值,参数所指向的结构如下:
+1、联合数据结构中的两个元素_sa_handler以及*_sa_sigaction指定信号关联函数,即用户指定的信号处理函数.除了可以是用户自定义的处理函数外,还可以为SIG_DFL(采用缺省的处理方式),也可以为SIG_IGN(忽略信号）.
+2、由_sa_handler指定的处理函数只有一个参数,即信号值,所以信号不能传递除信号值之外的任何信息；由_sa_sigaction是指定的信号处理函数带有三个参数,是为实时信号而设的(当然同样支持非实时信号）,它指定一个3参数信号处理函数.第一个参数为信号值,第三个参数没有使用(posix没有规范使用该参数的标准）,第二个参数是指向siginfo_t结构的指针,结构中包含信号携带的数据值,参数所指向的结构如下:
  siginfo_t {
                   int      si_signo;   信号值,对所有信号有意义
                   int      si_errno;   errno值,对所有信号有意义
@@ -463,8 +463,8 @@ siginfo_t结构中的联合数据成员确保该结构适应所有的信号,比�
 前面在讨论系统调用sigqueue发送信号时,sigqueue的第三个参数就是sigval联合数据结构,当调用sigqueue时,该数据结构中的数据就将拷贝到信号处理函数的第二个参数中.这样,在发送信号同时,就可以让信号传递一些附加信息.信号可以传递信息对程序开发是非常有意义的.
 信号参数的传递过程可图示如下:
 3、sa_mask指定在信号处理程序执行过程中,哪些信号应当被阻塞.缺省情况下当前信号本身被阻塞,防止信号的嵌套发送,除非指定SA_NODEFER或者SA_NOMASK标志位.
-注:请注意sa_mask指定的信号阻塞的前提条件,是在由sigaction（）安装信号的处理函数执行过程中由sa_mask指定的信号才被阻塞.
-4、sa_flags中包含了许多标志位,包括刚刚提到的SA_NODEFER及SA_NOMASK标志位.另一个比较重要的标志位是SA_SIGINFO,当设定了该标志位时,表示信号附带的参数可以被传递到信号处理函数中,因此,应该为sigaction结构中的sa_sigaction指定处理函数,而不应该为sa_handler指定信号处理函数,否则,设置该标志变得毫无意义.即使为sa_sigaction指定了信号处理函数,如果不设置SA_SIGINFO,信号处理函数同样不能得到信号传递过来的数据,在信号处理函数中对这些信息的访问都将导致段错误（Segmentation fault）.
+注:请注意sa_mask指定的信号阻塞的前提条件,是在由sigaction(）安装信号的处理函数执行过程中由sa_mask指定的信号才被阻塞.
+4、sa_flags中包含了许多标志位,包括刚刚提到的SA_NODEFER及SA_NOMASK标志位.另一个比较重要的标志位是SA_SIGINFO,当设定了该标志位时,表示信号附带的参数可以被传递到信号处理函数中,因此,应该为sigaction结构中的sa_sigaction指定处理函数,而不应该为sa_handler指定信号处理函数,否则,设置该标志变得毫无意义.即使为sa_sigaction指定了信号处理函数,如果不设置SA_SIGINFO,信号处理函数同样不能得到信号传递过来的数据,在信号处理函数中对这些信息的访问都将导致段错误(Segmentation fault）.
 注:很多文献在阐述该标志位时都认为,如果设置了该标志位,就必须定义三参数信号处理函数.实际不是这样的,验证方法很简单:自己实现一个单一参数信号处理函数,并在程序中设置该标志位,可以察看程序的运行结果.实际上,可以把该标志位看成信号是否传递参数的开关,如果设置该位,则传递参数；否则,不传递参数.
 --------------------------------------------------------------------------------
 回页首
@@ -517,7 +517,7 @@ int      si_status;  退出状态,对SIGCHLD有意义
 clock_t  si_utime;   用户消耗的时间,对SIGCHLD有意义
 clock_t  si_stime;   内核消耗的时间,对SIGCHLD有意义
 sigval_t si_value;   信号值,对所有实时有意义,是一个联合数据结构,
-                          可以为一个整数（由si_int标示,也可以为一个指针,由si_ptr标示）
+                          可以为一个整数(由si_int标示,也可以为一个指针,由si_ptr标示）
 
 void *   si_addr;    触发fault的内存地址,对SIGILL,SIGFPE,SIGSEGV,SIGBUS 信号有意义
 int      si_band;   SIGPOLL信号有意义
@@ -561,19 +561,19 @@ ngx_init_signals(ngx_log_t *log) {
 /usr/local/nginx/中,其二进制文件路径为/usr/local/nginc/sbin/nginx,配置文件路径为/usr/local/nginx/conf/nginx.conf.当然,
 在configure执行时是可以指定把它们安装在不同目录的.为了简单起见,本节只说明默认安装情况下的命令行的使用情况,如果读者安装的
 目录发生了变化,那么替换一下即可.
-（1）默认方式启动
+(1）默认方式启动
 直接执行Nginx二进制程序.例如:
 /usr/local/nginx/sbin/nginx
 这时,会读取默认路径下的配置文件:/usr/local/nginx/conf/nginx.conf.
-实际上,在没有显式指定nginx.conf配置文件路径时,将打开在configure命令执行时使用--conf-path=PATH指定的nginx.conf文件（参见1.5.1节）.
-（2）另行指定配置文件的启动方式
+实际上,在没有显式指定nginx.conf配置文件路径时,将打开在configure命令执行时使用--conf-path=PATH指定的nginx.conf文件(参见1.5.1节）.
+(2）另行指定配置文件的启动方式
 使用-c参数指定配置文件.例如:
 /usr/local/nginx/sbin/nginx -c /tmp/nginx.conf
 这时,会读取-c参数后指定的nginx.conf配置文件来启动Nginx.
-（3）另行指定安装目录的启动方式
+(3）另行指定安装目录的启动方式
 使用-p参数指定Nginx的安装目录.例如:
 /usr/local/nginx/sbin/nginx -p /usr/local/nginx/
-（4）另行指定全局配置项的启动方式
+(4）另行指定全局配置项的启动方式
 可以通过-g参数临时指定一些全局配置项,以使新的配置项生效.例如:
 /usr/local/nginx/sbin/nginx -g "pid /var/nginx/test.pid;"
 上面这行命令意味着会把pid文件写到/var/nginx/test.pid中.
@@ -583,20 +583,20 @@ ngx_init_signals(ngx_log_t *log) {
 那么需要执行下面代码:
 /usr/local/nginx/sbin/nginx -g "pid /var/nginx/test.pid;" -s stop
 如果不带上-g "pid /var/nginx/test.pid;",那么找不到pid文件,也会出现无法停止服务的情况.
-（5）测试配置信息是否有错误
+(5）测试配置信息是否有错误
 在不启动Nginx的情况下,使用-t参数仅测试配置文件是否有错误.例如:
 /usr/local/nginx/sbin/nginx -t
 执行结果中显示配置是否正确.
-（6）在测试配置阶段不输出信息
+(6）在测试配置阶段不输出信息
 测试配置选项时,使用-q参数可以不把error级别以下的信息输出到屏幕.例如:
 /usr/local/nginx/sbin/nginx -t -q
-（7）显示版本信息
+(7）显示版本信息
 使用-v参数显示Nginx的版本信息.例如:
 /usr/local/nginx/sbin/nginx -v
-（8）显示编译阶段的参数
+(8）显示编译阶段的参数
 使用-V参数除了可以显示Nginx的版本信息外,还可以显示配置编译阶段的信息,如GCC编译器的版本、操作系统的版本、执行configure时的参数等.例如:
 /usr/local/nginx/sbin/nginx -V
-（9）快速地停止服务
+(9）快速地停止服务
 使用-s stop可以强制停止Nginx服务.-s参数其实是告诉Nginx程序向正在运行的Nginx服务发送信号量,Nginx程序通过nginx.pid文件中得到master进程的进程ID,
 再向运行中的master进程发送TERM信号来快速地关闭Nginx服务.例如:
 /usr/local/nginx/sbin/nginx -s stop
@@ -609,7 +609,7 @@ kill -s SIGTERM 10800
 或者:
 kill -s SIGINT 10800
 上述两条命令的效果与执行/usr/local/nginx/sbin/nginx -s stop是完全一样的.
-（10）“优雅”地停止服务
+(10）“优雅”地停止服务
 如果希望Nginx服务可以正常地处理完当前所有请求再停止服务,那么可以使用-s quit参数来停止服务.例如:
 /usr/local/nginx/sbin/nginx -s quit
 该命令与快速停止Nginx服务是有区别的.当快速停止服务时,worker进程与master进程在收到信号后会立刻跳出循环,退出进程.而“优雅”地停止服务时,
@@ -618,19 +618,19 @@ kill -s SIGINT 10800
 kill -s SIGQUIT <nginx master pid>
 如果希望“优雅”地停止某个worker进程,那么可以通过向该进程发送WINCH信号来停止服务.例如:
 kill -s SIGWINCH <nginx worker pid>
-（11）使运行中的Nginx重读配置项并生效
+(11）使运行中的Nginx重读配置项并生效
 使用-s reload参数可以使运行中的Nginx服务重新加载nginx.conf文件.例如:
 /usr/local/nginx/sbin/nginx -s reload
 事实上,Nginx会先检查新的配置项是否有误,如果全部正确就以“优雅”的方式关闭,再重新启动Nginx来实现这个目的.类似的,-s是发送信号,
 仍然可以用kill命令发送HUP信号来达到相同的效果.
 kill -s SIGHUP <nginx master pid>
-（12）日志文件回滚
+(12）日志文件回滚
 使用-s reopen参数可以重新打开日志文件,这样可以先把当前日志文件改名或转移到其他目录中进行备份,再重新打开时就会生成新的日志文件.
 这个功能使得日志文件不至于过大.例如:
 /usr/local/nginx/sbin/nginx -s reopen
 当然,这与使用kill命令发送USR1信号效果相同.
 kill -s SIGUSR1 <nginx master pid>
-（13）平滑升级Nginx
+(13）平滑升级Nginx
 当Nginx服务升级到新的版本时,必须要将旧的二进制文件Nginx替换掉,通常情况下这是需要重启服务的,但Nginx支持不重启服务来完成新版本的平滑升级.
 升级时包括以下步骤:
 1）通知正在运行的旧版本Nginx准备升级.通过向master进程发送USR2信号可达到目的.例如:
@@ -638,7 +638,7 @@ kill -s SIGUSR2 <nginx master pid>
 这时,运行中的Nginx会将pid文件重命名,如将/usr/local/nginx/logs/nginx.pid重命名为/usr/local/nginx/logs/nginx.pid.oldbin,这样新的Nginx才有可能启动成功.
 2）启动新版本的Nginx,可以使用以上介绍过的任意一种启动方法.这时通过ps命令可以发现新旧版本的Nginx在同时运行.
 3）通过kill命令向旧版本的master进程发送SIGQUIT信号,以“优雅”的方式关闭旧版本的Nginx.随后将只有新版本的Nginx服务运行,此时平滑升级完毕.
-（14）显示命令行帮助
+(14）显示命令行帮助
 使用-h或者-?参数会显示支持的所有命令行参数.
 */
 //注册新号在ngx_init_signals
@@ -691,7 +691,7 @@ ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext) {
                     ngx_reconfigure = 1;
                     action = ", reconfiguring";
                     break;
-                    //当接收到USRI信号时,ngx_reopen标志位会设为1,这是在告诉Nginx需要重新打开文件（如切换日志文件时）
+                    //当接收到USRI信号时,ngx_reopen标志位会设为1,这是在告诉Nginx需要重新打开文件(如切换日志文件时）
                 case ngx_signal_value(NGX_REOPEN_SIGNAL):
                     ngx_reopen = 1;
                     action = ", reopening logs";

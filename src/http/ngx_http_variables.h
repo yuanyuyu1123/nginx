@@ -39,8 +39,8 @@ NGX_HTTP_VAR_CHANGEABLE表示变量是可以更改的.就例如set命令定义�
 代码片段8.2-6,文件名:nginx．conf
 50:    set $file t_a;
 51:    set $file t_b;
-    此时,set指令会重复添加变量$file（其实,第51行并不会新增变量$file,因为在新增的过程中发现已经有该变量了,并且是NGX_HTTP_VAR_CHANGEABLE
-的,所以就返回该变量使刚）,并且其最终值将为t_b.如果新增一个不是NGX_HTTP_VAR_CHANGEABLE的变量$t_var,那么Nginx将提示the duplicate”t_var”variable后退出执行.
+    此时,set指令会重复添加变量$file(其实,第51行并不会新增变量$file,因为在新增的过程中发现已经有该变量了,并且是NGX_HTTP_VAR_CHANGEABLE
+的,所以就返回该变量使刚),并且其最终值将为t_b.如果新增一个不是NGX_HTTP_VAR_CHANGEABLE的变量$t_var,那么Nginx将提示the duplicate”t_var”variable后退出执行.
 */
 #define NGX_HTTP_VAR_CHANGEABLE   1
 /*
@@ -48,10 +48,10 @@ NGX_HTTP_VAR_CHANGEABLE表示变量是可以更改的.就例如set命令定义�
 变量$http_user_agent会随着客户端使用浏览器的不同而不同,但只在客户端的同一个连接里,这个变量肯定不会发生改变,即不可能一个连接
 前半个是IE浏览器而后半个是Opera浏览器,所以这个变量是可缓存的,住处理这个客户端连接的整个过程中,变最$http_user_agent值计算一次就行了,后续使
 用可直接使用其缓存.然而,有一些变量,因为Nginx本身的内部处理会发生改变,比如变量$uri,虽然客户端发过来的请求连接URI是/thread-3760675-2-l.html．
-但通过rewrite转换却变成了/thread.php?id=3760675&page=2&flOOFI,也即是变量$uri发生了改变,所以对于变量$uri,每次使用都必须进行主动计算（即调用
-回调get_handler0函数）,该标记影响的逻辑主要是变量取值函数ngx_http_get_flushed_variable.当然,如果我们明确知道当前的细节情况,此时从性能上考虑,
-也不一定就非要重新计算获取值,比如刚刚通过主动计算获取了变量$uri的值,接着马上又去获取变量$uri的值（这种情况当然有,例如连续将$uri变量的值赋
-值给另外两个不同变量）,此时可使用另外一个取值函数ngx_http_get_indexed_variable,直接取值而不考虑是否可缓存标记.
+但通过rewrite转换却变成了/thread.php?id=3760675&page=2&flOOFI,也即是变量$uri发生了改变,所以对于变量$uri,每次使用都必须进行主动计算(即调用
+回调get_handler0函数),该标记影响的逻辑主要是变量取值函数ngx_http_get_flushed_variable.当然,如果我们明确知道当前的细节情况,此时从性能上考虑,
+也不一定就非要重新计算获取值,比如刚刚通过主动计算获取了变量$uri的值,接着马上又去获取变量$uri的值(这种情况当然有,例如连续将$uri变量的值赋
+值给另外两个不同变量),此时可使用另外一个取值函数ngx_http_get_indexed_variable,直接取值而不考虑是否可缓存标记.
 */
 #define NGX_HTTP_VAR_NOCACHEABLE  2
 /*
@@ -106,8 +106,8 @@ VAR_NOCACHEABLE标记,因为既然会被修改,自然也是不可缓存的
     //在ngx_http_variables_init_vars中会对"http_"  "send_http_"等设置默认的get_handler和data
     /*
     gethandler()回调字段,这个字段主要实现获取变量值的功能.前面讲了Nginx内置变量的值都是有默认来源的,如果是简单地直接存放在某个地
-方（上面讲的内部变最$args情况）,那么不要这个get_handler()回调函数倒还可以,通过data字段指向的地址读取.但是如果比较复杂,虽然知道
-这个值存放在哪儿,但是却需要比较复杂的逻辑获取（上面讲的内部变量$remote_port情况）,此时就必须靠回调函数get_handler()来执行这部分逻辑.
+方(上面讲的内部变最$args情况),那么不要这个get_handler()回调函数倒还可以,通过data字段指向的地址读取.但是如果比较复杂,虽然知道
+这个值存放在哪儿,但是却需要比较复杂的逻辑获取(上面讲的内部变量$remote_port情况),此时就必须靠回调函数get_handler()来执行这部分逻辑.
 总之,不管简单或复杂,回调函数get_handler0帮我们去在合适的地方通过合适的方式,获取到该内部变量的值,这也是为什么我们并没有给Nginx内部变量赋值,
 却义能读到值,因为有这个回调函数的存在.来看看这两个示例变量的data字段与get_handler()回调字段情况.
      */ //gethandler()回调字段,这个字段主要实现获取变量值的功能   例如ngx_http_core_variables

@@ -49,9 +49,9 @@ static ngx_http_module_t ngx_http_postpone_filter_module_ctx = {
 ┃                                    ┃用户                                                              ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP包体做处理.将用户发送的ngx_chain_t结构的HTTP包         ┃
-┃                                    ┃体复制到新的ngx_chain_t结构中（都是各种指针的复制,不包括实际     ┃
+┃                                    ┃体复制到新的ngx_chain_t结构中(都是各种指针的复制,不包括实际     ┃
 ┃ngx_http_copy_filter_module         ┃                                                                  ┃
-┃                                    ┃HTTP响应内容）,后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
+┃                                    ┃HTTP响应内容),后续的HTTP过滤模块处埋的ngx_chain_t类型的成       ┃
 ┃                                    ┃员都是ngx_http_copy_filter_module模块处理后的变量                 ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  仅对HTTP头部做处理.允许通过修改nginx.conf配置文件,在返回      ┃
@@ -66,7 +66,7 @@ static ngx_http_module_t ngx_http_postpone_filter_module_ctx = {
 ┃ngx_http_charset_filter_module      ┃                                                                  ┃
 ┃                                    ┃进行编码,再返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  支持SSI（Server Side Include,服务器端嵌入）功能,将文件内容包  ┃
+┃                                    ┃  支持SSI(Server Side Include,服务器端嵌入)功能,将文件内容包  ┃
 ┃ngx_http_ssi_filter_module          ┃                                                                  ┃
 ┃                                    ┃含到网页中并返回给用户                                            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -74,7 +74,7 @@ static ngx_http_module_t ngx_http_postpone_filter_module_ctx = {
 ┃ngx_http_postpone_filter_module     ┃subrequest产生的子请求.它使得多个子请求同时向客户端发送响应时    ┃
 ┃                                    ┃能够有序,所谓的“有序”是揩按照构造子请求的顺序发送响应            ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                    ┃  对特定的HTTP响应包体（如网页或者文本文件）进行gzip压缩,再      ┃
+┃                                    ┃  对特定的HTTP响应包体(如网页或者文本文件)进行gzip压缩,再      ┃
 ┃ngx_http_gzip_filter_module         ┃                                                                  ┃
 ┃                                    ┃把压缩后的内容返回给用户                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -129,8 +129,8 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
       sub11_r(data11)-----------sub12_r(data12)
     图中的root节点即为主请求,它的postponed链表从左至右挂载了3个节点,SUB1是它的第一个子请求,DATA1是它产生的一段数据,SUB2是它的第2个子请求,
 而且这2个子请求分别有它们自己的子请求及数据.ngx_connection_t中的data字段保存的是当前可以往out chain发送数据的请求,文章开头说到发到客户端
-的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法（SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)）,
-上图中当前能够往客户端（out chain）发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
+的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法(SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)),
+上图中当前能够往客户端(out chain)发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
 DATA121只能先挂载在SUB12的postponed链表下.这里还要注意一下的是c->data的设置,当SUB11执行完并且发送完数据之后,下一个将要发送的节点应该是
 DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->data这时应该指向的是拥有改数据节点的SUB1请求.
 发送数据到客户端优先级:
@@ -172,7 +172,7 @@ ngx_http_postpone_filter(ngx_http_request_t *r, ngx_chain_t *in) { //一般子�
            |               next
          sub11_r(data11)-----------sub12_r(data12)
     */
-    //如果当前请求r是一个子请求（因为c->data指向原始请求）,如上图,c->data指向sub11_r,如果r为sub12_r或者sub1_r或者sub2_r
+    //如果当前请求r是一个子请求(因为c->data指向原始请求),如上图,c->data指向sub11_r,如果r为sub12_r或者sub1_r或者sub2_r
     if (r != c->data) { //参考ngx_http_subrequest中的c->data = sr  ngx_connection_t中的data字段保存的是当前可以往out chain发送数据的请求,也就是优先级最高的请求
         /* 当前请求不能往out chain发送数据,如果产生了数据,新建一个节点,
        将它保存在当前请求的postponed队尾.这样就保证了数据按序发到客户端 */
@@ -218,7 +218,7 @@ ngx_http_postpone_filter(ngx_http_request_t *r, ngx_chain_t *in) { //一般子�
     do {
         pr = r->postponed;
         /* 如果该节点保存的是一个子请求,则将它加到主请求的posted_requests链表中,以便下次调用ngx_http_run_posted_requests函数,处理该子节点 */
-        //如果pr->request是子请求,则加入到原始请求的posted_requests队列中,等待HTTP框架下次调用这个请求时再来处理（参见11.7节）
+        //如果pr->request是子请求,则加入到原始请求的posted_requests队列中,等待HTTP框架下次调用这个请求时再来处理(参见11.7节)
         if (pr->request) { //说明pr节点代表的是子请求而不是数据
 
             ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
@@ -226,7 +226,7 @@ ngx_http_postpone_filter(ngx_http_request_t *r, ngx_chain_t *in) { //一般子�
                            &pr->request->uri, &pr->request->args);
 
             r->postponed = pr->next;
-            /* 按照后续遍历产生的序列,因为当前请求（节点）有未处理的子请求(节点),
+            /* 按照后续遍历产生的序列,因为当前请求(节点)有未处理的子请求(节点),
               必须先处理完改子请求,才能继续处理后面的子节点.
               这里将该子请求设置为可以往out chain发送数据的请求.  */
             //配合http://blog.csdn.net/fengmo_q/article/details/6685840图形化阅读
@@ -276,8 +276,8 @@ ngx_http_postpone_filter(ngx_http_request_t *r, ngx_chain_t *in) { //一般子�
   sub11_r(data11)-----------sub12_r(data12)
     图中的root节点即为主请求,它的postponed链表从左至右挂载了3个节点,SUB1是它的第一个子请求,DATA1是它产生的一段数据,SUB2是它的第2个子请求,
 而且这2个子请求分别有它们自己的子请求及数据.ngx_connection_t中的data字段保存的是当前可以往out chain发送数据的请求,文章开头说到发到客户端
-的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法（SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)）,
-上图中当前能够往客户端（out chain）发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
+的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法(SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)),
+上图中当前能够往客户端(out chain)发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
 DATA121只能先挂载在SUB12的postponed链表下.这里还要注意一下的是c->data的设置,当SUB11执行完并且发送完数据之后,下一个将要发送的节点应该是
 DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->data这时应该指向的是拥有改数据节点的SUB1请求.
 发送数据到客户端优先级:

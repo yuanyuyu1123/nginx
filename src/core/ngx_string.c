@@ -228,7 +228,7 @@ ngx_slprintf(u_char *buf, u_char *last, const char *fmt, ...) {
 ┃          ┃  转换1个rlimj类型.系统调用getrlimit或者setrlimit时都会使用rlimj类型参数,它实际上是   ┃
 ┃          ┃一个算术数据类型,等同干类型int、size t或者offt                                         ┃
 ┣━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃%p        ┃  转换1个指针（地址）                                                                   ┃
+┃%p        ┃  转换1个指针(地址)                                                                   ┃
 ┣━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃%C        ┃  转换1个字符类型                                                                       ┃
 ┣━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -2066,15 +2066,15 @@ ngx_escape_json(u_char *dst, u_char *src, size_t size) {
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
 ┃void ngx_str_rbtree_insert_value    ┃  root是红黑树容器的指针；node是      ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *temp,           ┃待添加元素的ngx_str_node_t成员的      ┃数据节点的关键字可以不是唯一  ┃
-┃ngx_rbtree_node_t *node,            ┃指针（ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
-┃                                    ┃化为ngx_str_node_t类型）；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
+┃ngx_rbtree_node_t *node,            ┃指针(ngx- rbtree_node_t类型会强制转  ┃的,但它们是以字符串作为唯一  ┃
+┃                                    ┃化为ngx_str_node_t类型)；sentinel是  ┃的标识,存放在ngx_str_node_t  ┃
 ┃ngx_rbtree_node t *sentinel)        ┃                                      ┃                              ┃
 ┃                                    ┃这棵红黑树初始化时哨兵节点的指针      ┃结构体的str成员中             ┃
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
     同时,对于ngx_str_node_t节点,Nginx还提供了ngx_str_rbtree_lookup方法用于检索
 红黑树节点,下面来看一下它的定义,代码如下.
     ngx_str_node_t  *ngx_str_rbtree_lookup(ngx_rbtree t  *rbtree,  ngx_str_t *name, uint32_t hash),
-    其中,hash参数是要查询节点的key关键字,而name是要查询的字符串（解决不同宇
+    其中,hash参数是要查询节点的key关键字,而name是要查询的字符串(解决不同宇
 符串对应相同key关键字的问题）,返回的是查询到的红黑树节点结构体.
     关于红黑树操作的方法见表7-5.
 表7-5  红黑树容器提供的方法
@@ -2123,7 +2123,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃ngx_rbtree_node_t *                 ┃  node是红黑树中ngx_rbtree_node_  ┃                                      ┃
 ┃ngx_rbtree_min                      ┃t类型的节点指针；sentinel是这棵红 ┃  找到当前节点及其子树中的最小节点    ┃
-┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃（按照key关键字）                     ┃
+┃(ngx_rbtree_node_t木node,           ┃黑树的哨兵节点                    ┃(按照key关键字）                     ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃                                  ┃                                      ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
 ┃                                    ┃  node是红黑树中ngx_rbtree_node_  ┃  初始化哨兵节点,实际上就是将该节点  ┃
@@ -2133,7 +2133,7 @@ node_t粪型的哨兵节点,并选择或者自定义ngx_rbtree_insert_pt类型�
 
 使用红黑树的简单例子
     本节以一个简单的例子来说明如何使用红黑树容器.首先在栈中分配rbtree红黑树容器
-结构体以及哨兵节点sentinel（当然,也可以使用内存池或者从进程堆中分配）,本例中的节
+结构体以及哨兵节点sentinel(当然,也可以使用内存池或者从进程堆中分配）,本例中的节
 点完全以key关键字作为每个节点的唯一标识,这样就可以采用预设的ngx_rbtree insert
 value方法了.最后可调用ngx_rbtree_init方法初始化红黑树,代码如下所示.
     ngx_rbtree_node_t  sentinel ;
@@ -2155,7 +2155,7 @@ value方法了.最后可调用ngx_rbtree_init方法初始化红黑树,代码如�
     )
 ngx_rbtree_node_t *tmpnode   =   ngx_rbtree_min ( rbtree . root ,    &sentinel )  ;
     当然,参数中如果不使用根节点而是使用任一个节点也是可以的.下面来看一下如何
-检索1个节点,虽然Nginx对此并没有提供预设的方法（仅对字符串类型提供了ngx_str_
+检索1个节点,虽然Nginx对此并没有提供预设的方法(仅对字符串类型提供了ngx_str_
 rbtree_lookup检索方法）,但实际上检索是非常简单的.下面以寻找key关键字为13的节点
 为例来加以说明.
     ngx_uint_t lookupkey=13;

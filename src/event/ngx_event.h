@@ -257,8 +257,8 @@ struct ngx_event_aio_s { //ngx_file_aio_init中初始化,创建空间和赋值
 
 //ngx_event_module_t中的actions成员是定义事件驱动模块的核心方法,下面重点看一下actions中的这10个抽象方法
 typedef struct {
-    /*添加事件方法,它将负责把1个感兴趣的事件添加到操作系统提供的事件驱动机制（如epoll、
-  kqueue等）中,这样,在事件发生后,将可以在调用下面的process_events时获取这个事件*/
+    /*添加事件方法,它将负责把1个感兴趣的事件添加到操作系统提供的事件驱动机制(如epoll、
+  kqueue等)中,这样,在事件发生后,将可以在调用下面的process_events时获取这个事件*/
     ngx_int_t (*add)(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags);
     /*删除事件方法,它将把1个已经存在于事件驱动机制中的事件移除,这样以后即使这个事件发生,调用
   process_events方法时也无法再获取这个事件*/

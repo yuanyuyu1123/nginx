@@ -73,7 +73,7 @@ for  (q=ngx_queue_head(&queueContainer);
 ngx_queue_last和ngx_queue_prev方法编写相关代码.
     下面开始执行排序,代码如下所示.
     ngx_queue_sort4( &queueContainer,    compTestNode);
-    这样,链表中的元素就会以0、1、2、3、4（num成员的值）的升序排列了.
+    这样,链表中的元素就会以0、1、2、3、4(num成员的值)的升序排列了.
 */
 
 /*
@@ -124,7 +124,7 @@ ngx_queue_middle(ngx_queue_t *queue) {
 5. ngx_queue_insert_tail(h, x)在最后一个结点和哨兵结点之间插入新结点；
 6. ngx_queue_head(h)获取第一个结点；
 7. ngx_queue_last(h)获取最后一个结点；
-8. ngx_queue_sentinel(h)获取哨兵结点（即参数h）；
+8. ngx_queue_sentinel(h)获取哨兵结点(即参数h)；
 9. ngx_queue_next(q)获取下一个结点；
 10. ngx_queue_prev(q)获取上一个结点；
 11. ngx_queue_remove(x)将结点x从队列中移除；

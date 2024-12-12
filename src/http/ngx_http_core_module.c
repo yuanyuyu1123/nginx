@@ -258,8 +258,8 @@ static ngx_command_t ngx_http_core_commands[] = {
     语法:connection_pool_size size;
     默认:connection_pool_size 256;
     配置块:http、server
-    Nginx对于每个建立成功的TCP连接会预先分配一个内存池,上面的size配置项将指定这个内存池的初始大小（即ngx_connection_t结构体中的pool内存池初始大小,
-    9.8.1节将介绍这个内存池是何时分配的）,用于减少内核对于小块内存的分配次数.需慎重设置,因为更大的size会使服务器消耗的内存增多,而更小的size则会引发更多的内存分配次数.
+    Nginx对于每个建立成功的TCP连接会预先分配一个内存池,上面的size配置项将指定这个内存池的初始大小(即ngx_connection_t结构体中的pool内存池初始大小,
+    9.8.1节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.需慎重设置,因为更大的size会使服务器消耗的内存增多,而更小的size则会引发更多的内存分配次数.
     */
         {ngx_string("connection_pool_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
@@ -272,8 +272,8 @@ static ngx_command_t ngx_http_core_commands[] = {
 语法:request_pool_size size;
 默认:request_pool_size 4k;
 配置块:http、server
-Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,size配置项将指定这个内存池的初始大小（即ngx_http_request_t结构体中的pool内存池初始大小,
-11.3节将介绍这个内存池是何时分配的）,用于减少内核对于小块内存的分配次数.TCP连接关闭时会销毁connection_pool_size指定的连接内存池,HTTP请求结束
+Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,size配置项将指定这个内存池的初始大小(即ngx_http_request_t结构体中的pool内存池初始大小,
+11.3节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.TCP连接关闭时会销毁connection_pool_size指定的连接内存池,HTTP请求结束
 时会销毁request_pool_size指定的HTTP请求内存池,但它们的创建、销毁时间并不一致,因为一个TCP连接可能被复用于多个HTTP请求.
 */
         {ngx_string("request_pool_size"),
@@ -284,10 +284,10 @@ Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,siz
          &ngx_http_core_pool_size_p},
         /*
     读取HTTP头部的超时时间
-    语法:client_header_timeout time（默认单位:秒）;
+    语法:client_header_timeout time(默认单位:秒);
     默认:client_header_timeout 60;
     配置块:http、server、location
-    客户端与服务器建立连接后将开始接收HTTP头部,在这个过程中,如果在一个时间间隔（超时时间）内没有读取到客户端发来的字节,则认为超时,
+    客户端与服务器建立连接后将开始接收HTTP头部,在这个过程中,如果在一个时间间隔(超时时间)内没有读取到客户端发来的字节,则认为超时,
     并向客户端返回408 ("Request timed out")响应.
     */
         {ngx_string("client_header_timeout"),
@@ -315,7 +315,7 @@ Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,siz
 语法:large_client_header_buffers number size;
 默认:large_client_header_buffers 4 8k;
 配置块:http、server
-large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的buffer个数和每个buffer的大小.如果HTTP请求行（如GET /index HTTP/1.1）
+large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的buffer个数和每个buffer的大小.如果HTTP请求行(如GET /index HTTP/1.1)
 的大小超过上面的单个buffer,则返回"Request URI too large" (414).请求中一般会有许多header,每一个header的大小也不能超过单个buffer的大小,
 否则会返回"Bad request" (400).当然,请求行和请求头部的总和也不可以超过buffer个数*buffer大小.
 设置读取客户端请求超大请求的缓冲最大number(数量)和每块缓冲的size(容量). HTTP请求行的长度不能超过一块缓冲的容量,否则nginx返回错误414
@@ -333,7 +333,7 @@ large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的bu
 语法:ignore_invalid_headers on | off;
 默认:ignore_invalid_headers on;
 配置块:http、server
-如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400（Bad Request）错误.如果将其设置为on,则会忽略此HTTP头部.
+如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400(Bad Request)错误.如果将其设置为on,则会忽略此HTTP头部.
 */
         {ngx_string("ignore_invalid_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
@@ -359,7 +359,7 @@ HTTP头部是否允许下画线
 语法:underscores_in_headers on | off;
 默认:underscores_in_headers off;
 配置块:http、server
-默认为off,表示HTTP头部的名称中不允许带“_”（下画线）.
+默认为off,表示HTTP头部的名称中不允许带“_”(下画线).
 */
         {ngx_string("underscores_in_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
@@ -639,7 +639,7 @@ HTTP请求包体的最大值
 语法:client_header_buffer_size size;
 默认:client_header_buffer_size 1k;
 配置块:http、server
-上面配置项定义了正常情况下Nginx接收用户请求中HTTP header部分（包括HTTP行和HTTP头部）时分配的内存buffer大小.有时,
+上面配置项定义了正常情况下Nginx接收用户请求中HTTP header部分(包括HTTP行和HTTP头部)时分配的内存buffer大小.有时,
 请求中的HTTP header部分可能会超过这个大小,这时large_client_header_buffers定义的buffer将会生效.
 */
         {ngx_string("client_body_buffer_size"),
@@ -650,7 +650,7 @@ HTTP请求包体的最大值
          NULL},
         /*
   读取HTTP包体的超时时间
-  语法:client_body_timeout time（默认单位:秒）；
+  语法:client_body_timeout time(默认单位:秒)；
   默认:client_body_timeout 60;
   配置块:http、server、location
   此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效.
@@ -685,7 +685,7 @@ client_body_temp_path  /opt/nginx/client_temp 1 2;
   默认:client_body_in_file_only off;
   配置块:http、server、location
   当值为非off时,用户请求中的HTTP包体一律存储到磁盘文件中,即使只有0字节也会存储为文件.当请求结束时,如果配置为on,则这个文件不会
-  被删除（该配置一般用于调试、定位问题）,但如果配置为clean,则会删除该文件.
+  被删除(该配置一般用于调试、定位问题),但如果配置为clean,则会删除该文件.
  */
         {ngx_string("client_body_in_file_only"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -883,14 +883,14 @@ tcp/ip传输的一个标准了,这个标准的大概的意思是,一般情况下
 而tcp_cork选项是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,这样有助于解决网络堵塞,已经是默认了.
 也就是说tcp_nopush = on 会设置调用tcp_cork方法,这个也是默认的,结果就是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,
 这样有助于解决网络堵塞.
-以快递投递举例说明一下（以下是我的理解,也许是不正确的）,当快递东西时,快递员收到一个包裹,马上投递,这样保证了即时性,但是会
+以快递投递举例说明一下(以下是我的理解,也许是不正确的),当快递东西时,快递员收到一个包裹,马上投递,这样保证了即时性,但是会
 耗费大量的人力物力,在网络上表现就是会引起网络堵塞,而当快递收到一个包裹,把包裹放到集散地,等一定数量后统一投递,这样就是tcp_cork的
 选项干的事情,这样的话,会最大化的利用网络资源,虽然有一点点延迟.
 对于nginx配置文件中的tcp_nopush,默认就是tcp_nopush,不需要特别指定,这个选项对于www,ftp等大文件很有帮助
 tcp_nodelay
-        TCP_NODELAY和TCP_CORK基本上控制了包的“Nagle化”,Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题（欲了解详情请参看IETF RFC 896）.他解决的问题就是所谓的silly window syndrome,中文称“愚蠢窗口症候群”,具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有一个字节的数据载荷以及40个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
+        TCP_NODELAY和TCP_CORK基本上控制了包的“Nagle化”,Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly window syndrome,中文称“愚蠢窗口症候群”,具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有一个字节的数据载荷以及40个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
        现在让我们假设某个应用程序发出了一个请求,希望发送小块数据.我们可以选择立即发送数据或者等待产生更多的数据然后再一次发送两种策略.如果我们马上发送数据,那么交互性的以及客户/服务器型的应用程序将极大地受益.如果请求立即发出那么响应时间也会快一些.以上操作可以通过设置套接字的TCP_NODELAY = on 选项来完成,这样就禁用了Nagle 算法.
-       另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.应用 Nagle算法在这种情况下就会产生问题.但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反（TCP_CORK和 TCP_NODELAY是互相排斥的）.
+       另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.应用 Nagle算法在这种情况下就会产生问题.但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反(TCP_CORK和 TCP_NODELAY是互相排斥的).
 tcp_nopush
 语法:tcp_nopush on | off;
 默认:tcp_nopush off;
@@ -909,7 +909,7 @@ tcp_nopush
     这两个选项都对网络连接的行为具有重要的作用.许多UNIX系统都实现了TCP_NODELAY选项,但是,TCP_CORK则是Linux系统所独有的而且相对较新；它首先在内核版本2.4上得以实现.
     此外,其他UNIX系统版本也有功能类似的选项,值得注意的是,在某种由BSD派生的系统上的 TCP_NOPUSH选项其实就是TCP_CORK的一部分具体实现.
     TCP_NODELAY和TCP_CORK基本上控制了包的“Nagle化”,Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,
-    后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题（欲了解详情请参看IETF RFC 896）.他解决的问题就是所谓的silly
+    后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly
     window syndrome ,中文称“愚蠢窗口症候群”,具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有
     一个字节的数据载荷以及40 个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.
     它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
@@ -918,13 +918,13 @@ tcp_nopush
     而且,如果请求立即发出那么响应时间也会快一些.以上操作可以通过设置套接字的TCP_NODELAY选项来完成,这样就禁用了Nagle 算法.
     另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.
     应用 Nagle算法在这种情况下就会产生问题.但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反
-    （TCP_CORK 和 TCP_NODELAY 是互相排斥的）.下面就让我们仔细分析下其工作原理.
+    (TCP_CORK 和 TCP_NODELAY 是互相排斥的).下面就让我们仔细分析下其工作原理.
     假设应用程序使用sendfile()函数来转移大量数据.应用协议通常要求发送某些信息来预先解释数据,这些信息其实就是报头内容.典型情况下报头很小,
-    而且套接字上设置了TCP_NODELAY.有报头的包将被立即传输,在某些情况下（取决于内部的包计数器）,因为这个包成功地被对方收到后需要请求对方确认.
+    而且套接字上设置了TCP_NODELAY.有报头的包将被立即传输,在某些情况下(取决于内部的包计数器),因为这个包成功地被对方收到后需要请求对方确认.
     这样,大量数据的传输就会被推迟而且产生了不必要的网络流量交换.
-    但是,如果我们在套接字上设置了TCP_CORK（可以比喻为在管道上插入“塞子”）选项,具有报头的包就会填补大量的数据,所有的数据都根据大小自动地通过包传输出去.
+    但是,如果我们在套接字上设置了TCP_CORK(可以比喻为在管道上插入“塞子”)选项,具有报头的包就会填补大量的数据,所有的数据都根据大小自动地通过包传输出去.
     当数据传输完成时,最好取消TCP_CORK 选项设置给连接“拔去塞子”以便任一部分的帧都能发送出去.这同“塞住”网络连接同等重要.
-    总而言之,如果你肯定能一起发送多个数据集合（例如HTTP响应的头和正文）,那么我们建议你设置TCP_CORK选项,这样在这些数据之间不存在延迟.
+    总而言之,如果你肯定能一起发送多个数据集合(例如HTTP响应的头和正文),那么我们建议你设置TCP_CORK选项,这样在这些数据之间不存在延迟.
     能极大地有益于WWW、FTP以及文件服务器的性能,同时也简化了你的工作.示例代码如下:
 
     intfd, on = 1;
@@ -964,7 +964,7 @@ tcp_nopush
     配置块:http、server、location
 
     连接超时后将通过向客户端发送RST包来直接重置连接.这个选项打开后,Nginx会在某个连接超时后,不是使用正常情形下的四次握手关闭TCP连接,
-    而是直接向用户发送RST重置包,不再等待用户的应答,直接释放Nginx服务器上关于这个套接字使用的所有缓存（如TCP滑动窗口）.相比正常的关闭方式,
+    而是直接向用户发送RST重置包,不再等待用户的应答,直接释放Nginx服务器上关于这个套接字使用的所有缓存(如TCP滑动窗口).相比正常的关闭方式,
     它使得服务器避免产生许多处于FIN_WAIT_1、FIN_WAIT_2、TIME_WAIT状态的TCP连接.
 
     注意,使用RST重置包关闭连接会带来一些问题,默认情况下不会开启.
@@ -1052,10 +1052,10 @@ location /flv/ {
          NULL},
         /*
       keepalive超时时间
-      语法:keepalive_timeout time（默认单位:秒）;
+      语法:keepalive_timeout time(默认单位:秒);
       默认:keepalive_timeout 75;
       配置块:http、server、location
-      一个keepalive 连接在闲置超过一定时间后（默认的是75秒）,服务器和浏览器都会去关闭这个连接.当然,keepalive_timeout配置项是用
+      一个keepalive 连接在闲置超过一定时间后(默认的是75秒),服务器和浏览器都会去关闭这个连接.当然,keepalive_timeout配置项是用
       来约束Nginx服务器的,Nginx也会按照规范把这个时间传给浏览器,但每个浏览器对待keepalive的策略有可能是不同的.
       */ //注意和ngx_http_upstream_keepalive_commands中keepalive的区别
         {ngx_string("keepalive_timeout"),
@@ -1174,7 +1174,7 @@ lingering_close
   默认:lingering_time 30s;
   配置块:http、server、location
   lingering_close启用后,这个配置项对于上传大文件很有用.上文讲过,当用户请求的Content-Length大于max_client_body_size配置时,
-  Nginx服务会立刻向用户发送413（Request entity too large）响应.但是,很多客户端可能不管413返回值,仍然持续不断地上传HTTP body,
+  Nginx服务会立刻向用户发送413(Request entity too large)响应.但是,很多客户端可能不管413返回值,仍然持续不断地上传HTTP body,
   这时,经过了lingering_time设置的时间后,Nginx将不管用户是否仍在上传,都会把连接关闭掉.
   */
         {ngx_string("lingering_time"),
@@ -1389,7 +1389,7 @@ before:是比exact更宽松的比较.只要文件的上次修改时间等于或�
 没有找到的或者没有权限操作的文件信息.
 这样,通过读取缓存就减少了对磁盘的操作.
 该配置项后面跟3种参数.
-max:表示在内存中存储元素的最大个数.当达到最大限制数量后,将采用LRU（Least Recently Used）算法从缓存中淘汰最近最少使用的元素.
+max:表示在内存中存储元素的最大个数.当达到最大限制数量后,将采用LRU(Least Recently Used)算法从缓存中淘汰最近最少使用的元素.
 inactive:表示在inactive指定的时间段内没有被访问过的元素将会被淘汰.默认时间为60秒.
 off:关闭缓存功能.
 例如:
@@ -1678,8 +1678,8 @@ ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
         r->lingering_close = (r->headers_in.content_length_n > 0
                               || r->headers_in.chunked);
         /*
-      当internal标志位为0时,表示不需要重定向（如刚开始处理请求时）,将phase_handler序号置为0,意味着从ngx_http_phase_engine_t指定数组
-      的第一个回调方法开始执行（了解ngx_http_phase_engine_t是如何将各HTTP模块的回调方法构造成handlers数组的）.
+      当internal标志位为0时,表示不需要重定向(如刚开始处理请求时),将phase_handler序号置为0,意味着从ngx_http_phase_engine_t指定数组
+      的第一个回调方法开始执行(了解ngx_http_phase_engine_t是如何将各HTTP模块的回调方法构造成handlers数组的).
          */
         r->phase_handler = 0;
 
@@ -1764,7 +1764,7 @@ handler方法其实仅能在checker方法中被调用,而且checker方法由HTTP
 ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶段,以及下一阶段应当执行哪个HTTP模块实现的内容.可以看到请求的phase_handler成员
 会被重置,而HTTP框架实现的checker穷法也会修改phase_handler成员的值
 当checker方法的返回值非NGX_OK时,意味着向下执行phase_engine中的各处理方法；反之,当任何一个checker方法返回NGX_OK时,意味着把控制权交还
-给Nginx的事件模块,由它根据事件（网络事件、定时器事件、异步I/O事件等）再次调度请求.然而,一个请求多半需要Nginx事件模块多次地调度HTTP模
+给Nginx的事件模块,由它根据事件(网络事件、定时器事件、异步I/O事件等)再次调度请求.然而,一个请求多半需要Nginx事件模块多次地调度HTTP模
 块处理,也就是在该函数外设置的读/写事件的回调方法ngx_http_request_handler
 */
 
@@ -2201,7 +2201,7 @@ NGX_HTTP_POST_ACCESS_PHASE阶段又是一个只能由HTTP框架实现的阶段,�
 的NGX_HTTP_ACCESS_PHASE阶段服务的,换句话说,如果没有任何HTTP模块介入NGX_HTTP_ACCESS_PHASE阶段处理请求,NGX_HTTP_POST_ACCESS_PHASE阶段就
 不会存在.
     NGX_HTTP_POST_ACCESS_PHASE阶段的checker方法是ngx_http_core_post_access_phase,它的工作非常简单,就是检查ngx_http_request_t请求
-中的access_code成员,当其不为O时就结束请求（表示没有访问权限）,否则继续执行下一个ngx_http_handler_pt处理方法.
+中的access_code成员,当其不为O时就结束请求(表示没有访问权限),否则继续执行下一个ngx_http_handler_pt处理方法.
 */ //所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_post_access_phase(ngx_http_request_t *r,
@@ -2307,7 +2307,7 @@ ngx_http_handler_pt方法设置到location相关的ngx_http_core_loc_conf_t结�
 ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组添加ngx_http_handler_pt处理方法来达成的,这个处理方法将会应用于全部的HTTP请求.
     而第二种方式是通过设置ngx_http_core_loc_conf_t结构体的handler指针来实现的,每一个location都对应着一个独立的ngx_http_core_loc_conf结
 构体.这样,我们就不必在必定会被调用的postconfiguration方法中添加ngx_http_handler_pt处理方法了,而可以选挥在ngx_command_t的某个配置项
-（如第3章中的mytest配置项）的回调方法中添加处理方法,将当前location块所属的ngx_http_core- loc—conf_t结构体中的handler设置为
+(如第3章中的mytest配置项)的回调方法中添加处理方法,将当前location块所属的ngx_http_core- loc—conf_t结构体中的handler设置为
 ngx_http_handler_pt处理方法.这样做的好处是,ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时
 (也就是mytest配置项所在的location)才会被调用.
     这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
@@ -2785,7 +2785,7 @@ ngx_http_set_exten(ngx_http_request_t *r) {
 
 
 /*
- ETag是一个可以与Web资源关联的记号（token）.典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
+ ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
  及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:ETag:"50b1c1d4f775c61:df3"客户端的查询更新格式是这样
  的:If-None-Match : W / "50b1c1d4f775c61:df3"如果ETag没改变,则返回状态304然后不返回,这也和Last-Modified一样.测试Etag主要
  在断点下载时比较有用. "etag:XXX" ETag值的变更说明资源状态已经被修改
@@ -2958,7 +2958,7 @@ h->value.len = sizeof("TestValue") - 1;
 h->value.data = (u_char *) "TestValue";
 这样将会在响应中新增一行HTTP头部:
 TestHead: TestValud\r\n
-如果发送的是一个不含有HTTP包体的响应,这时就可以直接结束请求了（例如,在ngx_http_mytest_handler方法中,直接在ngx_http_send_header方法执行后将其返回值return即可）.
+如果发送的是一个不含有HTTP包体的响应,这时就可以直接结束请求了(例如,在ngx_http_mytest_handler方法中,直接在ngx_http_send_header方法执行后将其返回值return即可).
 注意　ngx_http_send_header方法会首先调用所有的HTTP过滤模块共同处理headers_out中定义的HTTP响应头部,全部处理完毕后才会序列化为TCP字符流发送到客户端,相关流程可参见11.9.1节
 */
 
@@ -3018,7 +3018,7 @@ return ngx_http_output_filter(r, &out);
 
 /*
 Nginx是一个全异步的事件驱动架构,那么仅仅调用ngx_http_send_header方法和ngx_http_output_filter方法,就可以把响应全部发送给客户端吗？当
-然不是,当响应过大无法一次发送完时（TCP的滑动窗口也是有限的,一次非阻塞的发送多半是无法发送完整的HTTP响应的）,就需要向epoll以及定时
+然不是,当响应过大无法一次发送完时(TCP的滑动窗口也是有限的,一次非阻塞的发送多半是无法发送完整的HTTP响应的),就需要向epoll以及定时
 器中添加写事件了,当连接再次可写时,就调用ngx_http_writer方法继续发送响应,直到全部的响应都发送到客户端为止.
 */
 
@@ -3494,8 +3494,8 @@ sub1_r和sub2_r都是同一个父请求,就是root_r请求,sub1_r和sub2_r就是
           sub11_r(data11)-----------sub12_r(data12)
     图中的root节点即为主请求,它的postponed链表从左至右挂载了3个节点,SUB1是它的第一个子请求,DATA1是它产生的一段数据,SUB2是它的第2个子请求,
 而且这2个子请求分别有它们自己的子请求及数据.ngx_connection_t中的data字段保存的是当前可以往out chain发送数据的请求,文章开头说到发到客户端
-的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法（SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)）,
-上图中当前能够往客户端（out chain）发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
+的数据必须按照子请求创建的顺序发送,这里即是按后续遍历的方法(SUB11->DATA11->SUB12->DATA12->(SUB1)->DATA1->SUB21->SUB22->(SUB2)->(ROOT)),
+上图中当前能够往客户端(out chain)发送数据的请求显然就是SUB11,如果SUB12提前执行完成,并产生数据DATA121,只要前面它还有节点未发送完毕,
 DATA121只能先挂载在SUB12的postponed链表下.这里还要注意一下的是c->data的设置,当SUB11执行完并且发送完数据之后,下一个将要发送的节点应该是
 DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->data这时应该指向的是拥有改数据节点的SUB1请求.
 发送数据到客户端优先级:
@@ -3642,12 +3642,12 @@ ngx_http_subrequest(ngx_http_request_t *r,
     sr->read_event_handler = ngx_http_request_empty_handler;
     sr->write_event_handler = ngx_http_handler;
     /*
-    对于子请求,虽然有独立的ngx_http_request_t对象r,但是却没有额的外创建r->variables,和父请求（或者说主请求）是共享的
+    对于子请求,虽然有独立的ngx_http_request_t对象r,但是却没有额的外创建r->variables,和父请求(或者说主请求)是共享的
     针对子请求,虽然重新创建了ngx_http_request_t变量sr,但子请求的Nginx变量值数组sr->variables却是直接指向父请求的r->variables.
 其实这并不难理解,因为父子请求的大部分变量值都是一样的,当然没必要申请另外的窄间,而对于那些父子请求之间可能会有不同变量值的
 变量,又有NGXHTTP_VARNOCACHEABLE标记的存在,所以也不会有什么问题.比如变量$args,在父请求里去访问该变量值时,发现该变量是不可缓
-存的,于是就调用get_handler0函数从main_req对象的args字段（即r->args）里去取,此时得到的值可能是page=9999.而在子请求里去访问该变
-量值时,发现该变量是不可缓存的,于是也调用get_handler0函数从sub__req对象的args字段（即sr->args．注意对象sr与r之间是分隔开的）里
+存的,于是就调用get_handler0函数从main_req对象的args字段(即r->args)里去取,此时得到的值可能是page=9999.而在子请求里去访问该变
+量值时,发现该变量是不可缓存的,于是也调用get_handler0函数从sub__req对象的args字段(即sr->args．注意对象sr与r之间是分隔开的)里
 去取,此时得到的值就可能是id=12.因而,在获取父子请求之间可变变量的值时,并不会相互干扰*/
     sr->variables = r->variables; /* 默认共享父请求的变量,当然你也可以根据需求在创建完子请求后,再创建子请求独立的变量集 */
 
@@ -4069,7 +4069,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 
     /*
     server块下ngx_http_conf ctx_t结构中的main conf数组将通过直接指向来复用所属的http块下的
-    main_conf数组（其实是说server块下没有main级别配置,这是显然的）
+    main_conf数组(其实是说server块下没有main级别配置,这是显然的)
     */ //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
     ctx->main_conf = http_ctx->main_conf;
 
@@ -4158,7 +4158,7 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 #if (NGX_WIN32)
         sin->sin_port = htons(80);
 #else
-        //如果在server{）块内没有解析到listen配置项,则意味着当前的server虚拟主机并没有监听TCP端口,这不符合HTTP框架的设计原则.于是将开始监听默认端口80,实际上,
+        //如果在server{)块内没有解析到listen配置项,则意味着当前的server虚拟主机并没有监听TCP端口,这不符合HTTP框架的设计原则.于是将开始监听默认端口80,实际上,
 //如果当前进程没有权限监听1024以下的端口,则会改为监听8000端口
         sin->sin_port = htons((getuid() == 0) ? 80 : 8000);
 #endif
@@ -4200,12 +4200,12 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 Nginx Location配置总结(2012-03-09 21:49:25)转载▼标签: nginxlocation配置rewrite杂谈 分类: 程序设计积累
 语法规则: location [=|~|~*|^~] /uri/ { … }
 = 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到（注意是空格）.
+^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
 ~ 开头表示区分大小写的正则匹配
 ~*  开头表示不区分大小写的正则匹配
 !~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
 / 通用匹配,任何请求都会匹配到.
-多个location配置的情况下匹配顺序为（参考资料而来,还未实际验证,试试就知道了,不必拘泥,仅供参考）:
+多个location配置的情况下匹配顺序为(参考资料而来,还未实际验证,试试就知道了,不必拘泥,仅供参考):
 首先匹配 =,其次匹配^~, 其次是按文件中顺序的正则匹配,最后是交给 / 通用匹配.当有匹配成功时候,停止匹配,按当前匹配规则处理请求.
 例子,有如下匹配规则:
 location = / {
@@ -4239,7 +4239,7 @@ location / {
 访问 http://localhost/a.gif, http://localhost/b.jpg 将匹配规则D和规则E,但是规则D顺序优先,规则E不起作用,而 http://localhost/static/c.png 则优先匹配到规则C
 访问 http://localhost/a.PNG 则匹配规则E,而不会匹配规则D,因为规则E不区分大小写.
 访问 http://localhost/a.xhtml 不会匹配规则F和规则G,http://localhost/a.XHTML不会匹配规则G,因为不区分大小写.规则F,规则G属于排除法,符合匹配规则但是不会匹配到,所以想想看实际应用中哪里会用到.
-访问 http://localhost/category/id/1111 则最终匹配到规则H,因为以上规则都不匹配,这个时候应该是nginx转发请求给后端应用服务器,比如FastCGI（php）,tomcat（jsp）,nginx作为方向代理服务器存在.
+访问 http://localhost/category/id/1111 则最终匹配到规则H,因为以上规则都不匹配,这个时候应该是nginx转发请求给后端应用服务器,比如FastCGI(php),tomcat(jsp),nginx作为方向代理服务器存在.
 所以实际使用中,个人觉得至少有三个匹配规则定义,如下:
 #直接匹配网站根,通过域名访问网站首页比较频繁,使用这个会加速处理,官网如是说.
 #这里是直接转发给后端应用服务器了,也可以是一个静态首页
@@ -4369,7 +4369,7 @@ if ($http_cookie ~* "id=([^;] +)(?:;|$)" ) {
 }
 使用符号~*和~模式匹配的正则表达式:
 1.~为区分大小写的匹配.
-2.~*不区分大小写的匹配（匹配firefox的正则同时匹配FireFox）.
+2.~*不区分大小写的匹配(匹配firefox的正则同时匹配FireFox).
 3.!~和!~*意为“不匹配的”.
 Nginx在很多模块中都有内置的变量,常用的内置变量在HTTP核心模块中,这些变量都可以使用正则表达式进行匹配.
 2、可以通过正则表达式匹配的指令
@@ -4386,8 +4386,8 @@ location ~ .*.php?$ {
 
 几乎每个基于LEMP的主机都会有如上一段代码.他的匹配规则类似于if指令,不过他多了三个标识符,^~、=、@.并
 且它没有取反运算符!,这三个标识符的作用分别是:
-1.^~ 标识符后面跟一个字符串.Nginx将在这个字符串匹配后停止进行正则表达式的匹配（location指令中正则表达
-式的匹配的结果优先使用）,如:location ^~ /images/,你希望对/images/这个目录进行一些特别的操作,如增加
+1.^~ 标识符后面跟一个字符串.Nginx将在这个字符串匹配后停止进行正则表达式的匹配(location指令中正则表达
+式的匹配的结果优先使用),如:location ^~ /images/,你希望对/images/这个目录进行一些特别的操作,如增加
 expires头,防盗链等,但是你又想把除了这个目录的图片外的所有图片只进行增加expires头的操作,这个操作可能
 会用到另外一个location,例如:location ~* .(gif|jpg|jpeg)$,这样,如果有请求/images/1.jpg,nginx如何决
 定去进行哪个location中的操作呢？结果取决于标识符^~,如果你这样写:location /images/,这样nginx会将1.jpg
@@ -4416,8 +4416,8 @@ server {
 server_name指令中的正则表达式可以使用引用,高级的应用可以查看这篇文章:在server_name中使用正则表达式
 fastcgi_split_path_info
 查看维基:fastcgi_split_path_info
-这个指令按照CGI标准来设置SCRIPT_FILENAME (SCRIPT_NAME)和PATH_INFO变量,它是一个被分割成两部分（两个引用
-）的正则表达式.如下:
+这个指令按照CGI标准来设置SCRIPT_FILENAME (SCRIPT_NAME)和PATH_INFO变量,它是一个被分割成两部分(两个引用
+)的正则表达式.如下:
 
  代码如下 复制代码
 location ~ ^.+.p(www.111cn.net)hp {
@@ -4428,10 +4428,10 @@ location ~ ^.+.p(www.111cn.net)hp {
   fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
   (...)
 }
-第一个引用（.+.php）加上/path/to/php将作为SCRIPT_FILENAME,第二个引用(.*)为PATH_INFO,例如请求的完整
+第一个引用(.+.php)加上/path/to/php将作为SCRIPT_FILENAME,第二个引用(.*)为PATH_INFO,例如请求的完整
 URI为show.php/article/0001,则上例中SCRIPT_FILENAME的值为/path/to/php/show.php,PATH_INFO则
 为/article/0001.
-这个指令通常用于一些通过PATH_INFO美化URI的框架（例如CodeIgniter）.
+这个指令通常用于一些通过PATH_INFO美化URI的框架(例如CodeIgniter).
 gzip_disable
 查看维基:gzip_disable
 通过正则表达式来指定在哪些浏览器中禁用gzip压缩.
@@ -4574,7 +4574,7 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图�
 
     /*
     = 开头表示精确匹配
-    ^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到（注意是空格）.
+    ^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
     ~ 开头表示区分大小写的正则匹配
     ~*  开头表示不区分大小写的正则匹配
     !~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
@@ -4652,7 +4652,7 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图�
             clcf->name = *name;
             clcf->exact_match = 1;
             //location ^~ /mytest {}
-            // ^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到（注意是空格）.
+            // ^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
         } else if (len == 2 && mod[0] == '^' && mod[1] == '~') { //没有正则,指类似location ^~ /a { ... } 的location.
             //前缀匹配
             clcf->name = *name;
@@ -5507,15 +5507,15 @@ listen指令指定了server{...}字段中可以被访问到的ip地址及端口�
 或者一个可解析的服务器名.
 listen 127.0.0.1:8000;
 listen 127.0.0.1;
-http://nginx.179401.cn/StandardHTTPModules/HTTPCore.html（第 7／21 页）[2010-6-19 11:44:26]
-HTTP核心模块（HTTP Core）
+http://nginx.179401.cn/StandardHTTPModules/HTTPCore.html(第 7／21 页)[2010-6-19 11:44:26]
+HTTP核心模块(HTTP Core)
 listen 8000;
 listen *:8000;
 listen localhost:8000;
-ipv6地址格式（0.7.36）在一个方括号中指定:
+ipv6地址格式(0.7.36)在一个方括号中指定:
 listen [::]:8000;
 listen [fe80::1];
-当linux（相对于FreeBSD）绑定IPv6[::],那么它同样将绑定相应的IPv4地址,如果在一些非ipv6服务
+当linux(相对于FreeBSD)绑定IPv6[::],那么它同样将绑定相应的IPv4地址,如果在一些非ipv6服务
 器上仍然这样设置,将会绑定失败,当然可以使用完整的地址来代替[::]以免发生问题,也可以使
 用"default ipv6only=on" 选项来制定这个listen字段仅绑定ipv6地址,注意这个选项仅对这行listen生
 效,不会影响server块中其他listen字段指定的ipv4地址.
@@ -5523,20 +5523,20 @@ listen [2a02:750:5::123]:80;
 listen [::]:80 default ipv6only=on;
 如果只有ip地址指定,则默认端口为80.
 如果指令有default参数,那么这个server块将是通过“地址:端口”来进行访问的默认服务器,这对于你想为那些不匹配server_name指令中的
-主机名指定默认server块的虚拟主机（基于域名）非常有用,如果没有指令带有default参数,那么默认服务器将使用第一个server块.
+主机名指定默认server块的虚拟主机(基于域名)非常有用,如果没有指令带有default参数,那么默认服务器将使用第一个server块.
 listen允许一些不同的参数,即系统调用listen(2)和bind(2)中指定的参数,这些参数必须用在default参数之后:
 backlog=num -- 指定调用listen(2)时backlog的值,默认为-1.
 rcvbuf=size -- 为正在监听的端口指定SO_RCVBUF.
 sndbuf=size -- 为正在监听的端口指定SO_SNDBUF.
 accept_filter=filter -- 指定accept-filter.
-·仅用于FreeBSD,可以有两个过滤器,dataready与httpready,仅在最终版本的FreeBSD（FreeBSD: 6.0, 5.4-STABLE与4.11-STABLE）上,为他们发送-HUP信号可能会改变accept-filter.
+·仅用于FreeBSD,可以有两个过滤器,dataready与httpready,仅在最终版本的FreeBSD(FreeBSD: 6.0, 5.4-STABLE与4.11-STABLE)上,为他们发送-HUP信号可能会改变accept-filter.
 deferred -- 在linux系统上延迟accept(2)调用并使用一个辅助的参数: TCP_DEFER_ACCEPT.
 bind -- 将bind(2)分开调用.
 ·主要指这里的“地址:端口”,实际上如果定义了不同的指令监听同一个端口,但是每个不同的地址和某
-条指令均监听为这个端口的所有地址（*:port）,那么nginx只将bind(2)调用于*:port.这种情况下通过系统
+条指令均监听为这个端口的所有地址(*:port),那么nginx只将bind(2)调用于*:port.这种情况下通过系统
 调用getsockname()确定哪个地址上有连接到达,但是如果使用了parameters backlog, rcvbuf, sndbuf,
 accept_filter或deferred这些参数,那么将总是将这个“地址:端口”分开调用.
-ssl -- 参数（0.7.14）不将listen(2)和bind(2)系统调用关联.
+ssl -- 参数(0.7.14)不将listen(2)和bind(2)系统调用关联.
 ·被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议
 下,例如:
 listen 80;
@@ -5701,7 +5701,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
         }
         /*
        TCP_DEFER_ACCEPT 优化 使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,也可以减少用户调用epoll_ctl和epoll_wait的次数,从而提高了程序的性能.
-       设置listen套接字的TCP_DEFER_ACCEPT选项后, 只当一个链接有数据时是才会从accpet中返回（而不是三次握手完成).所以节省了一次读第一个http请求包的过程,减少了系统调用
+       设置listen套接字的TCP_DEFER_ACCEPT选项后, 只当一个链接有数据时是才会从accpet中返回(而不是三次握手完成).所以节省了一次读第一个http请求包的过程,减少了系统调用
 
        查询资料,TCP_DEFER_ACCEPT是一个很有趣的选项,
        Linux 提供的一个特殊 setsockopt ,　在 accept 的 socket 上面,只有当实际收到了数据,才唤醒正在 accept 的进程,可以减少一些无聊的上下文切换.代码如下.

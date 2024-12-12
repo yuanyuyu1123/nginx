@@ -126,12 +126,12 @@ static ngx_command_t ngx_http_limit_req_commands[] = {
 语法:  limit_req_zone $variable zone=name:size rate=rate;
 默认值:  —
 上下文:  http
-设置一块共享内存限制域的参数,它可以用来保存键值的状态. 它特别保存了当前超出请求的数量. 键的值就是指定的变量（空值不会被计算）. 示例用法:
+设置一块共享内存限制域的参数,它可以用来保存键值的状态. 它特别保存了当前超出请求的数量. 键的值就是指定的变量(空值不会被计算). 示例用法:
 limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
 这里,状态被存在名为“one”,最大10M字节的共享内存里面.对于这个限制域来说 平均处理的请求频率不能超过每秒一次.
 键值是客户端的IP地址. 如果不使用$remote_addr变量,而用$binary_remote_addr变量, 可以将每条状态记录的大小减少到64个字节,这样1M
 的内存可以保存大约1万6千个64字节的记录. 如果限制域的存储空间耗尽了,对于后续所有请求,服务器都会返回 503 (Service Temporarily Unavailable)错误.
-请求频率可以设置为每秒几次（r/s）.如果请求的频率不到每秒一次, 你可以设置每分钟几次(r/m).比如每秒半次就是30r/m.
+请求频率可以设置为每秒几次(r/s).如果请求的频率不到每秒一次, 你可以设置每分钟几次(r/m).比如每秒半次就是30r/m.
 */
         {ngx_string("limit_req_zone"),
          NGX_HTTP_MAIN_CONF | NGX_CONF_TAKE3,

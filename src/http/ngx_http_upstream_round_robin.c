@@ -566,9 +566,9 @@ IP哈希策略
 
 /*
  判断server 是否有效的方法是:
- 1）如果server的失败次数（peers->peer[i].fails）没有达到了max_fails所设置的最大失败次数,则该server是有效的.
- 2）如果server已经达到了max_fails所设置的最大失败次数,从这一时刻开始算起,在fail_timeout 所设置的时间段内, server是无效的.
- 3）当server的失败次数（peers->peer[i].fails）为最大的失败次数,当距离现在的时间超过了fail_timeout 所设置的时间段, 则令peers->peer[i].fails =0,使得该server重新有效.
+ 1)如果server的失败次数(peers->peer[i].fails)没有达到了max_fails所设置的最大失败次数,则该server是有效的.
+ 2)如果server已经达到了max_fails所设置的最大失败次数,从这一时刻开始算起,在fail_timeout 所设置的时间段内, server是无效的.
+ 3)当server的失败次数(peers->peer[i].fails)为最大的失败次数,当距离现在的时间超过了fail_timeout 所设置的时间段, 则令peers->peer[i].fails =0,使得该server重新有效.
 2.2.2.1
 如果peers中所有的server都是无效的; 就会尝试去backup的数组中找一个有效的server, 如果找到, 跳转到2.2.3; 如果仍然找不到,表示此时
 upstream中无server可以使用.就会清空所有peers数组中所有的失败次数的记录,使所有server都变成了有效.这样做的目的是为了防止下次再
@@ -577,7 +577,7 @@ upstream中无server可以使用.就会清空所有peers数组中所有的失败
             peers->peer[i].fails2 = 0;
     }
     并返回错误码给nginx,  nginx得到此错误码后,就不再向后台server发请求,而是在nginx的错误日志中输出“no live upstreams while connecting to upstream”
-    的记录（这就是no live产生的真正原因）,并直接返回给请求的客户端一个502的错误.
+    的记录(这就是no live产生的真正原因),并直接返回给请求的客户端一个502的错误.
 */
 /*ngx_http_upstream_get_round_robin_peer ngx_http_upstream_get_least_conn_peer ngx_http_upstream_get_hash_peer
 ngx_http_upstream_get_ip_hash_peer ngx_http_upstream_get_keepalive_peer等 */

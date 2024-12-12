@@ -214,11 +214,11 @@ typedef struct {
     u_char           *lowcase_key;
 } ngx_table_elt_t;
 可以看到,ngx_table_elt_t就是一个key/value对,ngx_str_t 类型的key、value成员分别存储的是名字、值字符串.
-hash成员表明ngx_table_elt_t也可以是某个散列表数据结构（ngx_hash_t类型）中的成员.ngx_uint_t 类型的hash
+hash成员表明ngx_table_elt_t也可以是某个散列表数据结构(ngx_hash_t类型)中的成员.ngx_uint_t 类型的hash
 成员可以在ngx_hash_t中更快地找到相同key的ngx_table_elt_t数据.lowcase_key指向的是全小写的key字符串.
-显而易见,ngx_table_elt_t是为HTTP头部“量身订制”的,其中key存储头部名称（如Content-Length）,value存储对应的值（如“1024”）,
-lowcase_key是为了忽略HTTP头部名称的大小写（例如,有些客户端发来的HTTP请求头部是content-length,Nginx希望它与大小写敏感的
-Content-Length做相同处理,有了全小写的lowcase_key成员后就可以快速达成目的了）,hash用于快速检索头部（它的用法在3.6.3节中进行详述）.
+显而易见,ngx_table_elt_t是为HTTP头部“量身订制”的,其中key存储头部名称(如Content-Length),value存储对应的值(如“1024”),
+lowcase_key是为了忽略HTTP头部名称的大小写(例如,有些客户端发来的HTTP请求头部是content-length,Nginx希望它与大小写敏感的
+Content-Length做相同处理,有了全小写的lowcase_key成员后就可以快速达成目的了),hash用于快速检索头部(它的用法在3.6.3节中进行详述).
 */
 typedef struct {
     ngx_uint_t hash; //等于ngx_http_request_s->header_hash ,这是通过key value字符串计算出的hash值

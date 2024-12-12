@@ -377,7 +377,7 @@ ngx_next_temp_number(ngx_uint_t collision) {
 
 /*
 ngx_conf_set_path_slot可以携带1～4个参数,其中第1个参数必须是路径,第2～4
-个参数必须是整数（大部分情形下可以不使用）,可以参见client_body_temp_path
+个参数必须是整数(大部分情形下可以不使用),可以参见client_body_temp_path
 配置项的用法,client_body_temp_path配置项就是用ngx_conf_set_path_slot预设方法来解析
 参数的.
     ngx_conf_set_path_slot会把配置项中的路径参数转化为ngx_path_t结构,看一下ngx_path_t的定义.
@@ -392,7 +392,7 @@ typedef struct {
      ngx_uint_t line;
  } ngx_path_t ;
 其中,name成员存储着字符串形式的路径,而level数组就舍存储着第2、第3、第4
-个参数（如果存在的话）.这里用ngx_http_mytest_conf_t结构中的ngx_path_t* my_path;来
+个参数(如果存在的话).这里用ngx_http_mytest_conf_t结构中的ngx_path_t* my_path;来
 存储配置项“test_path”后的参数值.
 static ngx_command_t  ngx_http_mytest_commands []  =
    {   ngx_string ( " test_path" ) ,
