@@ -21,6 +21,8 @@ make
 
 3.编辑运行环境设置,将程序参数设置为
 
--c  /usr/local/cdir/nginx/conf/nginx.conf
+-c  /usr/local/cgit/nginx/conf/nginx.conf
 
 4.运行
+注意: 使用 --with-file-aio需要安装libaio,否则无法debug \
+ubuntu24:  sudo apt install libaio-dev libaio1t64

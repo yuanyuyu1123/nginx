@@ -65,12 +65,10 @@ ngx_unix_recv(ngx_connection_t *c, u_char *buf, size_t size) {
 #endif
 
     do {
-        /*
-           针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
+        /*针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
        返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
        通常被设置成EAGAIN(意为"再来一次")或者EWOULDBLOCK(意为"期待阻塞"):对conncct而言,errno则被
-       设置成EINPROGRESS(意为"在处理中").
-         */
+       设置成EINPROGRESS(意为"在处理中").*/
         //n = recv(c->fd, buf, size, 0); yang test
         //These calls return the number of bytes received, or -1 if an error occurred.  The return value will be 0 when the peer has performed an orderly shutdown.
         n = recv(c->fd, buf, size, 0); //表示TCP错误,见ngx_http_read_request_header   recv返回0表示对方已经关闭连接
@@ -188,16 +186,14 @@ ngx_unix_recv(ngx_connection_t *c, u_char *buf, size_t size) {
         }
         //如果内核数据接收完毕,则走到这里n为-1,err为NGX_EAGAIN
         err = ngx_socket_errno;
-        /*
-          EINTR错误的产生:当阻塞于某个慢系统调用的一个进程捕获某个信号且相应信号处理函数返回时,该系统调用可能返回一个EINTR错误.
+        /*EINTR错误的产生:当阻塞于某个慢系统调用的一个进程捕获某个信号且相应信号处理函数返回时,该系统调用可能返回一个EINTR错误.
           在linux进行非阻塞的socket接收数据时经常出现Resource temporarily unavailable,errno代码为11(EAGAIN),这表明你在非阻塞模式下调用了阻塞操作,
           在该操作没有完成就返回这个错误,这个错误不会破坏socket的同步,不用管它,下次循环接着recv就可以.对非阻塞socket而言,EAGAIN不是一种错误.
           在VxWorks和Windows上,EAGAIN的名字叫做EWOULDBLOCK. 另外,如果出现EINTR即errno为4,错误描述Interrupted system call,操作也应该继续.
           在Linux环境下开发经常会碰到很多错误(设置errno),其中EAGAIN是其中比较常见的一个错误(比如用在非阻塞操作中).
 从字面上来看,是提示再试一次.这个错误经常出现在当应用程序进行一些非阻塞(non-blocking)操作(对文件或socket)的时候.
 例如,以 O_NONBLOCK的标志打开文件/socket/FIFO,如果你连续做read操作而没有数据可读.此时程序不会阻塞起来等待数据准备就绪返回,
-read函数会返回一个错误EAGAIN,提示你的应用程序现在没有数据可读请稍后再试.
-          */
+read函数会返回一个错误EAGAIN,提示你的应用程序现在没有数据可读请稍后再试.*/
         if (err == NGX_EAGAIN || err == NGX_EINTR) {
             ngx_log_debug0(NGX_LOG_DEBUG_EVENT, c->log, err,
                            "recv() not ready");

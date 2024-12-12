@@ -144,7 +144,7 @@ static ngx_connection_t dumb;
 ┗━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┛
 */
 
-/*为什么这里需要有old_cycle???
+/*为什么这里需要有old_cycle?
     旧的ngx_cycle_t对象用于引用上一个ngx_cycle_t对象中的成员.例如ngx_init_cycle方法,在启动初期,需要建
 立一个临时的ngx_cycle_t对象保存一些变量(如ngx_process_options中的安装路径,新cycle建立起来前提前写日志的log),
 再调用ngx_init_cycle 方法时就可以把旧的ngx_cycle_t对象传进去*/
@@ -401,9 +401,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
         ngx_log_stderr(0, "the configuration file %s syntax is ok",
                        cycle->conf_file.data);
     }
-    /*
-    调用所有NGX_CORE_MODULE核心模块的init_conf方法.这一步骤的目的在于让所有核心模块在解析完配置项后可以做综合性处理,
-    */
+    /*调用所有NGX_CORE_MODULE核心模块的init_conf方法.这一步骤的目的在于让所有核心模块在解析完配置项后可以做综合性处理*/
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -520,7 +518,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
     cycle->log = &cycle->new_log;
     pool->log = &cycle->new_log;
 
-    /*  走到这里的时候,所有的配置已经解析完毕,如果配置"zone" proxy_cache_path fastcgi_cache_path等需要创建共享内存,则在下面依次创建对应的共享内存  */
+    /* 走到这里的时候,所有的配置已经解析完毕,如果配置"zone" proxy_cache_path fastcgi_cache_path等需要创建共享内存,则在下面依次创建对应的共享内存  */
     /* create shared memory */
 
     part = &cycle->shared_memory.part;
@@ -609,11 +607,9 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
 
     /* handle the listening sockets */
-    /*
-所有的模块都已经解析出自己需要监听的端口,如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口,并添加到
+    /*所有的模块都已经解析出自己需要监听的端口,如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口,并添加到
 listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口(实际上,这一步骤的主要工作就是调
-用表8-2中的ngx_open_listening_sockets方法）.
-*/
+用表8-2中的ngx_open_listening_sockets方法)*/
     if (old_cycle->listening.nelts) {
         ls = old_cycle->listening.elts; //旧的listen,如热启动继承过来的sock,见ngx_add_inherited_sockets
         for (i = 0; i < old_cycle->listening.nelts; i++) {
