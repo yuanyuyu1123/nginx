@@ -70,17 +70,13 @@ static ngx_int_t ngx_http_add_addrs6(ngx_conf_t *cf, ngx_http_port_t *hport,
 //二级模块类型http模块个数,见ngx_http_block  ngx_max_module为NGX_CORE_MODULE(一级模块类型)类型的模块数
 ngx_uint_t   ngx_http_max_module;
 
-/*
-当执行ngx_http_send_header发送HTTP头部时,就从ngx_http_top_header_filter指针开始遍历所有的HTTP头部过滤模块,
-而在执行ngx_http_output_filter发送HTTP包体时,就从ngx_http_top_body_filter指针开始遍历所有的HTTP包体过滤模块
-*/
+/*当执行ngx_http_send_header发送HTTP头部时,就从ngx_http_top_header_filter指针开始遍历所有的HTTP头部过滤模块,
+而在执行ngx_http_output_filter发送HTTP包体时,就从ngx_http_top_body_filter指针开始遍历所有的HTTP包体过滤模块*/
 
 //包体通过ngx_http_output_filter循环发送
 
-/*
- 注意对于HTTP过滤模块来说,在ngx_modules数组中的位置越靠后,在实陈执行请求时就越优先执行.因为在初始化HTTP过滤模块时,每一个http
- 过滤模块都是将自己插入到整个单链表的首部的.
-*/
+/*注意对于HTTP过滤模块来说,在ngx_modules数组中的位置越靠后,在实陈执行请求时就越优先执行.因为在初始化HTTP过滤模块时,每一个http
+ 过滤模块都是将自己插入到整个单链表的首部的*/
 
 //ngx_http_header_filter_module是最后一个header filter模块(ngx_http_top_header_filter = ngx_http_header_filter;他是最后发送头部的地方),
 //ngx_http_write_filter_module是最后一个包体writer模块(ngx_http_top_body_filter = ngx_http_write_filter;),他是最后放包体的地方
@@ -136,20 +132,20 @@ ngx_module_t  ngx_http_module = {
 };
 
 /*
-4.3.1  解析HTTP配置的流程
+解析HTTP配置的流程:
     图4-1是HTTP框架解析配置项的示意流程图(图中出现了ngx_http_module和ngx_
 http_core_module模块,所谓的HTTP框架主要由这两个模块组成),下面解释图中每个流程
 的意义.
     1)图4-1中的主循环是指Nginx进程的主循环,主循环只有调用配置文件解析器才能
 解析nginx.conf文件(这里的"主循环"是指解析全部配置文件的循环代码,图8-6的第4
 步,为了便于理解,可以认为是Nginx框架代码在循环解析配置项).
-    2)当发现配置文件中含有http{)关键字时,HTTP框架开始启动,这一过程详见10.7
+    2)当发现配置文件中含有http{}关键字时,HTTP框架开始启动,这一过程详见10.7
 节描述的ngx_http_block方法.
     3) HTTP框架会初始化所有HTTP模块的序列号,并创建3个数组用于存储所有HTTP
-模块的create—main- conf、create—srv—conf、create—loc—conf方法返回的指针地址,并把这3
+模块的create_main_conf、create_srv_conf、create_loc_conf方法返回的指针地址,并把这3
 个教组的地址保存到ngx_http_conf_ ctx-t结构中.
     4)调用每个HTTP模块(当然也包括例子中的mytest模块)的create main conf.
-create—srv_conf. create一loc—conf(如果实现的话)方法.
+create_srv_conf. create_loc_conf(如果实现的话)方法.
     5)把各HTTP模块上述3个方法返回的地址依次保存到ngx_http_conf ctx_t结构体的
 3个数组中.
     6)调用每个HTTP模块的preconfiguration方法(如果实现的话).
@@ -164,38 +160,35 @@ ngx_command_t数组中的name项是否与配置项名相同.
 配置项),就调用ngx_command_t结构中的set方法来处理.
     11) set方法返回是否处理成功.如果处理失败,那么Nginx进程会停止.
     12)配置文件解析器继续检测配置项.如果发现server{．．．)配置项,就会调用ngx_http_
-core__ module模块来处理.因为ngx_http_core__ module模块明确表示希望处理server{}块下
+core_module模块来处理.因为ngx_http_core_module模块明确表示希望处理server{}块下
 的配置项.注意,这次调用到第18步才会返回.
     13) ngx_http_core_module棋块在解析server{...}之前,也会如第3步一样建立ngx_
 http_conf_ctx_t结构,并建立数组保存所有HTTP模块返回的指针地址.然后,它会调用每
-个HTTP模块的create—srv_ conf、create- loc—conf方法(如果实现的话).
-    14)将上一步各HTTP模块返回的指针地址保存到ngx_http_conf_ ctx-t对应的数组中.
+个HTTP模块的create_srv_ conf、create_loc_conf方法(如果实现的话).
+    14)将上一步各HTTP模块返回的指针地址保存到ngx_http_conf_ctx_t对应的数组中.
     15)开始调用配置文件解析器来处理server{．．．}里面的配置项,注意,这个过程在第17
 步返回.
-    16)继续重复第9步的过程,遍历nginx.conf中当前server{．．．)内的所有配置项.
+    16)继续重复第9步的过程,遍历nginx.conf中当前server{．．．}内的所有配置项.
     17)配置文件解析器继续解析配置项,发现当前server块已经遍历到尾部,说明server
-块内的配置项处理完毕,返回ngx_http_core__ module模块.
+块内的配置项处理完毕,返回ngx_http_core_module模块.
     18) http core模块也处理完server配置项了,返回至配置文件解析器继续解析后面的配
 置项.
-    19)配置文件解析器继续解析配置项,这时发现处理到了http{．．．)的尾部,返回给
+    19)配置文件解析器继续解析配置项,这时发现处理到了http{．．．}的尾部,返回给
 HTTP框架继续处理.
     20)在第3步和第13步,以及我们没有列幽来的某些步骤中(如发现其他server块
-或者location块),都创建了ngx_http_conf_ ctx_t结构,这时将开始调用merge_srv_conf、
+或者location块),都创建了ngx_http_conf_ctx_t结构,这时将开始调用merge_srv_conf、
 merge_loc_conf等方法合并这些不同块(http、server、location)中每个HTTP模块分配的数
 据结构.
     21) HTTP框架处理完毕http配置项(也就是ngx_command_t结构中的set回调方法处
 理完毕),返回给配置文件解析器继续处理其他http{．．．}外的配置项.
     22)配置文件解析器处理完所有配置项后会告诉Nginx主循环配置项解析完毕,这时
 Nginx才会启动Web服务器.
-    注意  图4-1并没有列出解析location{...)块的流程,实际上,解析location与解析
-server并没有本质上的区别,为了简化起见,没有把它画到图中.
-图形化参考:4.3.1  解析HTTP配置的流程图4-1
-*/
+    注意:图4-1并没有列出解析location{...}块的流程,实际上,解析location与解析
+server并没有本质上的区别,为了简化起见,没有把它画到图中*/
+
 //从ngx_http_module模块里面的http命令解析走到这里
-/*
-cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
-参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location
-*/
+/*cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
+参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location*/
 static char *
 ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 //这里的cf是从ngx_conf_handler里面的if (cmd->type & NGX_DIRECT_CONF)判断里面确定了
@@ -223,7 +216,6 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     //conf为ngx_conf_handler中的conf = confp[ngx_modules[i]->ctx_index];也就是conf指向的是ngx_cycle_s->conf_ctx[],
     //所以对conf赋值就是对ngx_cycle_s中的conf_ctx赋值
-    //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
     *(ngx_http_conf_ctx_t **) conf = ctx;
 
 
@@ -387,35 +379,24 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 
     /* create location trees */
-    /*
-   经过配置的读取之后,所有server都被保存在http core模块的main配置中的servers数组中,而每个server里面的location都被按配置中
+    /*经过配置的读取之后,所有server都被保存在http core模块的main配置中的servers数组中,而每个server里面的location都被按配置中
    出现的顺序保存在http core模块的loc配置的locations队列中,上面的代码中先对每个server的location进行排序和分类处理,这一步
-   发生在 ngx_http_init_location()函数中:
-   */
+   发生在 ngx_http_init_location()函数中*/
     for (s = 0; s < cmcf->servers.nelts; s++) {
-        /*
-         clcf是server块下的ngx_http_core_loc_conf_t结构体,locations成员以双向链表关联着隶属于这个server块的所有location块对应的ngx_http_core_loc_conf_t结构体
-         */
+        /*clcf是server块下的ngx_http_core_loc_conf_t结构体,locations成员以双向链表关联着隶属于这个server块的所有location块对应的ngx_http_core_loc_conf_t结构体*/
         //cscfp[]->ctx就是解析到二级server{}时所在的上下文ctx
         clcf = cscfp[s]->ctx->loc_conf[ngx_http_core_module.ctx_index];
-        /*
-       将ngx_http_core_loc_conf_t组成的双向链表按照location匹配字符串进行排序.注意:这个操作是递归进行的,如果某个location块下还具有其他location,那么它的locations链表也会被排序
-        */
+        /*将ngx_http_core_loc_conf_t组成的双向链表按照location匹配字符串进行排序.注意:这个操作是递归进行的,如果某个location块下还具有其他location,那么它的locations链表也会被排序*/
         if (ngx_http_init_locations(cf, cscfp[s], clcf) != NGX_OK) {
             //srver{}下所有loc空间(包括server自己的以及其下的location),这里的clcf是解析到server{}行的时候创建的loc_conf
             return NGX_CONF_ERROR;
         }
 
-        /*
-          根据已经按照location字符串排序过的双向链表,快速地构建静态的二叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的
-          */
-        /*
-        下面的ngx_http_init_static_location_trees函数就会将那些普通的location(就是ngx_http_init_locations中name noname regex以外的location(exact/inclusive)),
-        即staticlocation,进行树化(一种三叉树)处理,之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.
-        */
-        /*
-     根据已经按照location字符串排序过的双向链表,快速地构建静态的三叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的
-         */ //clcf中现在只有普通staticlocation
+        /*根据已经按照location字符串排序过的双向链表,快速地构建静态的二叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的*/
+        /*下面的ngx_http_init_static_location_trees函数就会将那些普通的location(就是ngx_http_init_locations中name noname regex以外的location(exact/inclusive)),
+        即staticlocation,进行树化(一种三叉树)处理,之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.*/
+        /*根据已经按照location字符串排序过的双向链表,快速地构建静态的三叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的*/
+        //clcf中现在只有普通staticlocation
         if (ngx_http_init_static_location_trees(cf, clcf) != NGX_OK) {
             return NGX_CONF_ERROR;
         }
@@ -477,15 +458,13 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return rv;
 }
 
-/*
-有7个HTTP阶段(NGX_HTTP_POST_READ_PHASE、NGX_HTTP_SERVER_REWRITE_PHASE、NGX_HTTP_REWRITE_PHASE、NGX_HTTP_PREACCESS_PHASE、
+/*有7个HTTP阶段(NGX_HTTP_POST_READ_PHASE、NGX_HTTP_SERVER_REWRITE_PHASE、NGX_HTTP_REWRITE_PHASE、NGX_HTTP_PREACCESS_PHASE、
 NGX_HTTP_ACCESS_PHASE、NGX_HTTP_CONTENT_PHASE、NGX_HTTP_LOG_PHASE)是允许任何一个HTTP模块实现自己的ngx_http_handler_pt处
 理方法,并将其加入到这7个阶段中去的.在调用HTTP模块的postconfiguration方法向这7个阶段中添加处理方法前,需要先将phases数
 组中这7个阶段里的handlers动态数组初始化(ngx_array_t类型需要执行ngx_array_init方法初始化),在这一步骤中,遁过调
 用ngx_http_init_phases方法来初始化这7个动态数组.
     通过调用所有HTTP模块的postconfiguration方法.HTTP模块可以在这一步骤中将自己的ngx_http_handler_pt处理方法添加到以上7个HTTP阶段中.
-这样在具体的每个阶段就可以执行到我们的handler回调
-*/
+这样在具体的每个阶段就可以执行到我们的handler回调*/
 static ngx_int_t
 ngx_http_init_phases(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 {
@@ -589,11 +568,10 @@ ngx_http_init_headers_in_hash(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
     return NGX_OK;
 }
 
-/*
-在各个HTTP模块能够介入的7个阶段中,实际上共享了4个checker方法:ngx_http_core_generic_phase、ngx_http_core_rewrite_phase、
+/*在各个HTTP模块能够介入的7个阶段中,实际上共享了4个checker方法:ngx_http_core_generic_phase、ngx_http_core_rewrite_phase、
 ngx_http_core_access_phase、ngx_http_core_content_phase.这4个checker方法的主要任务在于,根据phase_handler执行某个HTTP模块实现的
-回调方法,并根据方法的返回值决定:当前阶段已经完全结束了吗?下次要执行的回调方法是哪一个?究竟是立刻执行下一个回调方法还是先把控制权交还给epoll?
-*/
+回调方法,并根据方法的返回值决定:当前阶段已经完全结束了吗?下次要执行的回调方法是哪一个?究竟是立刻执行下一个回调方法还是先把控制权交还给epoll?*/
+
 //cmcf->phases[]数组各个阶段的ngx_http_handler_pt节点信息全部赋值给cmcf->phase_engine.handlers数组队列
 static ngx_int_t
 ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
@@ -632,13 +610,11 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
         h = cmcf->phases[i].handlers.elts;
 
         switch (i) { //所有阶段的checker在ngx_http_core_run_phases中调用
-            /*
-            NGX_HTTP_SERVERREWRITEPHASE阶段,和第3阶段NGXHTTPREWRITE_PHASE都属于地址重写,也都是针对rewrite模块而设定的阶段,前
+            /*NGX_HTTP_SERVERREWRITEPHASE阶段,和第3阶段NGXHTTPREWRITE_PHASE都属于地址重写,也都是针对rewrite模块而设定的阶段,前
             者用于server上下文里的地址重写,而后者用于location上下文里的地址重写.为什么要设置两个地址重写阶段,原因在于rewrite模块
             的相关指令(比如rewrite、if、set等)既可用于server上下文．又可用于location上下文.在客户端请求被Nginx接收后,首先做server
             查找与定位,在定位到server(如果没查找到就是默认server)后执行NGXHTTP_SERVER_REWRITEPHASE阶段上的回调函数,然后再进入到下
-            一个阶段:NGX_HTTP_FIND_CONFIG_PHASE阶段.
-              */
+            一个阶段:NGX_HTTP_FIND_CONFIG_PHASE阶段.*/
             case NGX_HTTP_SERVER_REWRITE_PHASE:
                 if (cmcf->phase_engine.server_rewrite_index == (ngx_uint_t) -1) {
                     cmcf->phase_engine.server_rewrite_index = n;
@@ -647,12 +623,10 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 
                 break;
 
-                /*
-    NGX_HTTP_FIND_CONFIG_PHASE、NGX_HTTP_POSTREWRITE_PHASE、NGX_HTTP_POST_ACCESS_PHASE、NGX_HTTP_TRY_FILES_PHASE这4个阶段则
-    不允许HTTP模块加入自己的ngx_http_handler_pt方法处理用户请求,但是他们的会占用cmcf->phase_engine.handlers[]数组中的一个成员
-     NGX_HTTP_FIND_CONFIG_PHASE阶段上不能挂载任何回调函数,因为它们永远也不 会被执行,该阶段完成的是Nginx的特定任务,即进行
-     Location定位.只有把当前请求的对应location找到了,才能以该location上下文中取出更多精确的用户配置值,做后续的进一步请求处理.
-     */
+                /*NGX_HTTP_FIND_CONFIG_PHASE、NGX_HTTP_POSTREWRITE_PHASE、NGX_HTTP_POST_ACCESS_PHASE、NGX_HTTP_TRY_FILES_PHASE这4个阶段则
+                 * 不允许HTTP模块加入自己的ngx_http_handler_pt方法处理用户请求,但是他们的会占用cmcf->phase_engine.handlers[]数组中的一个成员
+                 * NGX_HTTP_FIND_CONFIG_PHASE阶段上不能挂载任何回调函数,因为它们永远也不会被执行,该阶段完成的是Nginx的特定任务,即进行Location定位.
+                 * 只有把当前请求的对应location找到了,才能以该location上下文中取出更多精确的用户配置值,做后续的进一步请求处理.*/
             case NGX_HTTP_FIND_CONFIG_PHASE: //该阶段则不允许HTTP模块加入自己的ngx_http_handler_pt方法处理用户请求方法,直接把http框架方法加入到cmcf->phase_engine.handlers数组中
                 find_config_index = n;
 
@@ -721,12 +695,12 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 }
 
 //这里面包括合并location
-/*
-图4-4包括4重循环,第1层(最外层)遍历所有的HTTP模块(在该函数外面),第2层遍历所有的
-server{．．．)配置块,第3层是遍历某个server{}块中嵌套的所有location{．．．)块,第4层遍历
-某个location{)块中继续嵌套的所有location块(实际上,它会一直递归下去以解析可能被
-层层嵌套的’location块).读者可以对照上述4重循环来理解合并配置项的流程图.
-*/ //cf->ctx为http{}的上下文ctx,cmcf为server{}中的所有上下文ctx
+/*图4-4包括4重循环,第1层(最外层)遍历所有的HTTP模块(在该函数外面),第2层遍历所有的
+server{．．．}配置块,第3层是遍历某个server{}块中嵌套的所有location{．．．}块,第4层遍历
+某个location{}块中继续嵌套的所有location块(实际上,它会一直递归下去以解析可能被
+层层嵌套的location块).读者可以对照上述4重循环来理解合并配置项的流程图*/
+
+//cf->ctx为http{}的上下文ctx,cmcf为server{}中的所有上下文ctx
 //结合ngx_http_core_server与ngx_http_core_location一起阅读该段代码
 static char *
 ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
@@ -738,9 +712,8 @@ ngx_http_merge_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
     ngx_http_core_loc_conf_t    *clcf;
     ngx_http_core_srv_conf_t   **cscfp;
 
-    /*
-    //这里的cmcf是main和srv都可以出现的配置,但是是出现在http{}内,server{}外的,所以需要与server{}内的相同配置合并
-    //cmcf在外层赋值为ctx->main_conf,所以为http{}内,server{}外的server配置项, saved.srv_conf为ctx->srv_conf,所以为server{}内的server配置项
+    /*这里的cmcf是main和srv都可以出现的配置,但是是出现在http{}内,server{}外的,所以需要与server{}内的相同配置合并
+     * cmcf在外层赋值为ctx->main_conf,所以为http{}内,server{}外的server配置项, saved.srv_conf为ctx->srv_conf,所以为server{}内的server配置项
     例如
     http {
         aaa;
@@ -885,16 +858,12 @@ location 匹配的优先级(与location在配置文件中的顺序无关)
 普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
 ^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
 最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
-location 优先级官方文档
-1.Directives with the = prefix that match the query exactly. If found, searching stops.
-2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
-3.Regular expressions, in order of definition in the configuration file.
-4.If #3 yielded a match, that result is used. Else the match from #2 is used.
-1.=前缀的指令严格匹配这个查询.如果找到,停止搜索.
-2.所有剩下的常规字符串,最长的匹配.如果这个匹配使用^?前缀,搜索停止.
-3.正则表达式,在配置文件中定义的顺序.
-4.如果第3条规则产生匹配的话,结果被使用.否则,如同从第2条规则被使用.
-例如
+location 优先级官方文档:
+    1.=前缀的指令严格匹配这个查询.如果找到,停止搜索.
+    2.所有剩下的常规字符串,最长的匹配.如果这个匹配使用^?前缀,搜索停止.
+    3.正则表达式,在配置文件中定义的顺序.
+    4.如果第3条规则产生匹配的话,结果被使用.否则,如同从第2条规则被使用.
+例如:
 location  = / {
 # 只匹配"/".
 [ configuration A ]
@@ -925,7 +894,6 @@ proxy_pass http://fetch;
 */
 //ngx_http_add_location
 //cscf为server{}配置里面的srv_conf,pclcf->locations为该server{}类里面的所有(包括解析server行的时候开辟的local_crate和解析location行的时候开辟的loc_creat空间)loc_conf头部
-//参考:http://blog.csdn.net/fengmo_q/article/details/6683377和http://tech.uc.cn/?p=300
 static ngx_int_t
 ngx_http_init_locations(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
                         ngx_http_core_loc_conf_t *pclcf) //形成3叉树见ngx_http_init_static_location_trees
@@ -946,7 +914,8 @@ ngx_http_init_locations(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
         return NGX_OK;
     }
 
-    //如果location = /aaa {}  location ^~ /aaa {} 这两个的uri那么是一样的,他们分别存储在一个ngx_http_core_loc_conf_t中,怎么区分呢? 就通过exact_match noregex来区分,并且在队列中完全匹配在前面
+    //如果location = /aaa {}  location ^~ /aaa {} 这两个的uri那么是一样的,他们分别存储在一个ngx_http_core_loc_conf_t中,怎么区分呢?
+    // 就通过exact_match noregex来区分,并且在队列中完全匹配在前面
     /*
       按照类型排序location,排序完后的队列:  (exact_match 或 inclusive(前缀匹配)) (排序好的,如果某个exact_match名字和inclusive location相同,exact_match排在前面)
       |  regex(未排序)| named(排序好的)  |  noname(未排序)
@@ -1032,8 +1001,7 @@ ngx_http_init_locations(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
         }
     }
 
-    /*
-   先分离noname(没有像后面两个那样集中管理),在分离named(保存到cscf->named_locations),最后分离regex(保存到pclcf->regex_locations= clcfp),
+    /*先分离noname(没有像后面两个那样集中管理),在分离named(保存到cscf->named_locations),最后分离regex(保存到pclcf->regex_locations= clcfp),
    分离这些另类之后,我们处理那些普通的location,普通的location大家应该知道是指的哪些,nginx称为static location.*/
     if (q != ngx_queue_sentinel(locations)) { //如果队列里面有noname,则以该noname头拆分为locations和tail两个队列链表
         ngx_queue_split(locations, q, &tail); //未命名的拆分出来  noname named regex都连接到tail链表中
@@ -1102,14 +1070,10 @@ ngx_http_init_locations(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     return NGX_OK;
 }
 
-/*
-下面的ngx_http_init_static_location_trees函数就会将那些普通的location(就是ngx_http_init_locations中name noname regex以外的location),即staticlocation,进行树化(一种三叉树)处理,
-之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.
-*/
-/*
-注意,这里的二叉查找树并不是红黑树,不过,为什么不使用红黑树呢?因为location是由nginx.conf中读取到的,它是静态不变的,
-不存在运行过程中在树中添加或者删除location的场景,而且红黑树的查询效率也没有重新构造的静态的完全平衡二叉树高.
-*/
+/*下面的ngx_http_init_static_location_trees函数就会将那些普通的location(就是ngx_http_init_locations中name noname regex以外的location),即staticlocation,进行树化(一种三叉树)处理,
+之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.*/
+/*注意,这里的二叉查找树并不是红黑树,不过,为什么不使用红黑树呢?因为location是由nginx.conf中读取到的,它是静态不变的,
+不存在运行过程中在树中添加或者删除location的场景,而且红黑树的查询效率也没有重新构造的静态的完全平衡二叉树高*/
 //location tree的建立在ngx_http_init_static_location_trees中进行:
 //location树产生排序见ngx_http_init_locations
 static ngx_int_t
@@ -1144,10 +1108,8 @@ ngx_http_init_static_location_trees(ngx_conf_t *cf,
         }
     }
 
-    /*
-  join队列中名字相同的inclusive和exact类型location,也就是如果某个exact_match的location名字和普通字符串匹配的location名字相同的话,
-  就将它们合到一个节点中,分别保存在节点的exact和inclusive下,这一步的目的实际是去重,为后面的建立排序树做准备
-  */
+    /*join队列中名字相同的inclusive和exact类型location,也就是如果某个exact_match的location名字和普通字符串匹配的location名字相同的话,
+  就将它们合到一个节点中,分别保存在节点的exact和inclusive下,这一步的目的实际是去重,为后面的建立排序树做准备*/
     if (ngx_http_join_exact_locations(cf, locations) != NGX_OK) {
         return NGX_ERROR;
     }
@@ -1163,63 +1125,6 @@ ngx_http_init_static_location_trees(ngx_conf_t *cf,
 
     return NGX_OK;
 }
-
-/*
-= 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
-~ 开头表示区分大小写的正则匹配
-~*  开头表示不区分大小写的正则匹配
-!~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
-/ 通用匹配,任何请求都会匹配到.
-location匹配命令
-~      #波浪线表示执行一个正则匹配,区分大小写
-~*    #表示执行一个正则匹配,不区分大小写
-^~    #^~表示普通字符匹配,如果该选项匹配,只匹配该选项,不匹配别的选项,一般用来匹配目录
-=      #进行普通字符精确匹配
-@     #"@" 定义一个命名的 location,使用在内部定向时,例如 error_page, try_files
-location 匹配的优先级(与location在配置文件中的顺序无关)
-= 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
-普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
-^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
-location 优先级官方文档
-1.Directives with the = prefix that match the query exactly. If found, searching stops.
-2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
-3.Regular expressions, in order of definition in the configuration file.
-4.If #3 yielded a match, that result is used. Else the match from #2 is used.
-1.=前缀的指令严格匹配这个查询.如果找到,停止搜索.
-2.所有剩下的常规字符串,最长的匹配.如果这个匹配使用^?前缀,搜索停止.
-3.正则表达式,在配置文件中定义的顺序.
-4.如果第3条规则产生匹配的话,结果被使用.否则,如同从第2条规则被使用.
-例如
-location  = / {
-# 只匹配"/".
-[ configuration A ]
-}
-location  / {
-# 匹配任何请求,因为所有请求都是以"/"开始
-# 但是更长字符匹配或者正则表达式匹配会优先匹配
-[ configuration B ]
-}
-location ^~ /images/ {
-# 匹配任何以 /images/ 开始的请求,并停止匹配 其它location
-[ configuration C ]
-}
-location ~* \.(gif|jpg|jpeg)$ {
-# 匹配以 gif, jpg, or jpeg结尾的请求.
-# 但是所有 /images/ 目录的请求将由 [Configuration C]处理.
-[ configuration D ]
-}请求URI例子:
-?/ -> 符合configuration A
-?/documents/document.html -> 符合configuration B
-?/images/1.gif -> 符合configuration C
-?/documents/1.jpg ->符合 configuration D
-@location 例子
-error_page 404 = @fetch;
-location @fetch(
-proxy_pass http://fetch;
-)
-*/
 
 //locations为父级对应的loc_conf[]的location  clcf为本级的loc_conf[]
 //把所有的location{}中的配置通过lq->queue连接在一起,最终头部为父级server{}中的loc_conf配置里
@@ -1305,69 +1210,11 @@ ngx_http_escape_location_name(ngx_conf_t *cf, ngx_http_core_loc_conf_t *clcf)
     return NGX_OK;
 }
 
-/*
-= 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
-~ 开头表示区分大小写的正则匹配
-~*  开头表示不区分大小写的正则匹配
-!~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
-/ 通用匹配,任何请求都会匹配到.
-location匹配命令
-~      #波浪线表示执行一个正则匹配,区分大小写
-~*    #表示执行一个正则匹配,不区分大小写
-^~    #^~表示普通字符匹配,如果该选项匹配,只匹配该选项,不匹配别的选项,一般用来匹配目录
-=      #进行普通字符精确匹配
-@     #"@" 定义一个命名的 location,使用在内部定向时,例如 error_page, try_files
-location 匹配的优先级(与location在配置文件中的顺序无关)
-= 精确匹配会第一个被处理.如果发现精确匹配,nginx停止搜索其他匹配.
-普通字符匹配,正则表达式规则和长的块规则将被优先和查询匹配,也就是说如果该项匹配还需去看有没有正则表达式匹配和更长的匹配.
-^~ 则只匹配该规则,nginx停止搜索其他匹配,否则nginx会继续处理其他location指令.
-最后匹配理带有"~"和"~*"的指令,如果找到相应的匹配,则nginx停止搜索其他匹配;当没有正则表达式或者没有正则表达式被匹配的情况下,那么匹配程度最高的逐字匹配指令会被使用.
-location 优先级官方文档
-1.Directives with the = prefix that match the query exactly. If found, searching stops.
-2.All remaining directives with conventional strings, longest match first. If this match used the ^~ prefix, searching stops.
-3.Regular expressions, in order of definition in the configuration file.
-4.If #3 yielded a match, that result is used. Else the match from #2 is used.
-1.=前缀的指令严格匹配这个查询.如果找到,停止搜索.
-2.所有剩下的常规字符串,最长的匹配.如果这个匹配使用^?前缀,搜索停止.
-3.正则表达式,在配置文件中定义的顺序.
-4.如果第3条规则产生匹配的话,结果被使用.否则,如同从第2条规则被使用.
-例如
-location  = / {
-# 只匹配"/".
-[ configuration A ]
-}
-location  / {
-# 匹配任何请求,因为所有请求都是以"/"开始
-# 但是更长字符匹配或者正则表达式匹配会优先匹配
-[ configuration B ]
-}
-location ^~ /images/ {
-# 匹配任何以 /images/ 开始的请求,并停止匹配 其它location
-[ configuration C ]
-}
-location ~* \.(gif|jpg|jpeg)$ {
-# 匹配以 gif, jpg, or jpeg结尾的请求.
-# 但是所有 /images/ 目录的请求将由 [Configuration C]处理.
-[ configuration D ]
-}请求URI例子:
-?/ -> 符合configuration A
-?/documents/document.html -> 符合configuration B
-?/images/1.gif -> 符合configuration C
-?/documents/1.jpg ->符合 configuration D
-@location 例子
-error_page 404 = @fetch;
-location @fetch(
-proxy_pass http://fetch;
-)
-*/
-/*
-比较函数ngx_http_cmp_locations的算法原则是:
+/*比较函数ngx_http_cmp_locations的算法原则是:
 1 首先是如果比较的额两个节点中插入的是未命名的,那么把该节点加入到后面,如果比较的两个节点都是未命名的,那么保持原定次序.
 2 如果插入的两个节点中,插入的是命名的location,那么把该节点加入到后面,如果比较的两个节点都是命名的,那么比较location名称,按照字母序进行排序.
 3 如果两个比较节点中,插入的是正则location,那么就把插入即诶的那加入到后面,如果比较的两个节点都是正则,那么就按照原定次序,即保持用户在配置文件里书序的先后顺序.
-//所以插入的降序是未命名、命名、正则、前缀匹配|绝对匹配.
-*/
+//所以插入的降序是未命名、命名、正则、前缀匹配|绝对匹配.*/
 static ngx_int_t
 ngx_http_cmp_locations(const ngx_queue_t *one, const ngx_queue_t *two)
 {
@@ -1440,7 +1287,6 @@ ngx_http_cmp_locations(const ngx_queue_t *one, const ngx_queue_t *two)
     return rc;
 }
 
-//很好的图解,参考http://blog.csdn.net/fengmo_q/article/details/6683377
 static ngx_int_t
 ngx_http_join_exact_locations(ngx_conf_t *cf, ngx_queue_t *locations)
 {
@@ -1491,9 +1337,10 @@ ngx_http_join_exact_locations(ngx_conf_t *cf, ngx_queue_t *locations)
           /ab       /bc      /cd
             |       |        |
          /abc      /bcd       /cde
-*/ //递归locations队列中的每个节点,得到以当前节点的名字为前缀的location,并保存在当前节点的list字段 下
-static void //图形化参考http://blog.chinaunix.net/uid-27767798-id-3759557.html,这个博客很好理解
-ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q) //图形化理解参考http://blog.csdn.net/fengmo_q/article/details/6683377
+*/
+//递归locations队列中的每个节点,得到以当前节点的名字为前缀的location,并保存在当前节点的list字段下
+static void
+ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q)
 {
     u_char                     *name;
     size_t                      len;
@@ -1520,11 +1367,9 @@ ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q) //图形�
          x != ngx_queue_sentinel(locations);
          x = ngx_queue_next(x))
     {
-        /*
-           由于所有location已经按照顺序排列好,递归q节点的后继节点,如果后继节点的长度小于后缀节点的长度,那么可以断定,这个后
+        /*由于所有location已经按照顺序排列好,递归q节点的后继节点,如果后继节点的长度小于后缀节点的长度,那么可以断定,这个后
            继节点肯定和后缀节点不一样,并且不可能有共同的后缀;如果后继节点和q节点的交集做比较,如果不同,就表示不是同一个前缀,所以
-           可以看出,从q节点的location list应该是从q.next到x.prev节点
-         */
+           可以看出,从q节点的location list应该是从q.next到x.prev节点*/
         lx = (ngx_http_location_queue_t *) x;
 
         if (len > lx->name->len
@@ -1544,10 +1389,8 @@ ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q) //图形�
     ngx_queue_split(locations, q, &tail); //location从q节点开始分割,那么现在location就是q节点之前的一段list
     ngx_queue_add(&lq->list, &tail); //q节点的list初始为从q节点开始到最后的一段list
 
-    /*
-      原则上因为需要递归两段list,一个为p的location list(从p.next到x.prev),另一段为x.next到location的最后一个元素,这里如果x
-      已经是location的最后一个了,那么就没有必要递归x.next到location的这一段了,因为这一段都是空的.
-  */
+    /*原则上因为需要递归两段list,一个为p的location list(从p.next到x.prev),另一段为x.next到location的最后一个元素,这里如果x
+      已经是location的最后一个了,那么就没有必要递归x.next到location的这一段了,因为这一段都是空的*/
     if (x == ngx_queue_sentinel(locations)) {
         ngx_http_create_locations_list(&lq->list, ngx_queue_head(&lq->list));
         return;
@@ -1573,11 +1416,10 @@ ngx_http_create_locations_list(ngx_queue_t *locations, ngx_queue_t *q) //图形�
     3.      右边的部分,递归调用ngx_http_create_locations_tree,生成right树
     4.      中间位置的location,通过它的list,通过递归调用ngx_http_create_locations_tree,生成tree树(可以认为是中树).
 */
-//很好的图解,参考http://blog.csdn.net/fengmo_q/article/details/6683377
 static ngx_http_location_tree_node_t *
 ngx_http_create_locations_tree(ngx_conf_t *cf, ngx_queue_t *locations,
-                               size_t prefix) //图形化理解参考http://blog.csdn.net/fengmo_q/article/details/6683377
-{ //图形化理解location三叉树形成过程,参考http://blog.chinaunix.net/uid-27767798-id-3759557.html
+                               size_t prefix)
+{
     size_t                          len;
     ngx_queue_t                    *q, tail;
     ngx_http_location_queue_t      *lq;
@@ -1672,10 +1514,8 @@ ngx_http_add_listen(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
 
     port = cmcf->ports->elts;
 
-    /*
-     这段代码是遍历ports数组,查看新添加的端口信息是否已经存在,如果该端口信息存在则调用ngx_http_add_addresses函数在对应的端口结构
-     上添加地址信息.否则,在prots数组中添加一个元素,并初始化,然后调用ngx_http_add_address函数添加地址信息.
-     */
+    /*这段代码是遍历ports数组,查看新添加的端口信息是否已经存在,如果该端口信息存在则调用ngx_http_add_addresses函数在对应的端口结构
+     上添加地址信息.否则,在prots数组中添加一个元素,并初始化,然后调用ngx_http_add_address函数添加地址信息*/
     //下面的功能就是把相同端口不通IP地址的listen信息存储到相同的cmcf->ports[i]中,不通端口的在不同的[]中
     //如果配置中有listen 1.1.1.1:50  2.2.2.2:50,则解析到第一个listen的时候,走for外面的函数,如果第二个会满足下面的if条件,走if后面的流程
     for (i = 0; i < cmcf->ports->nelts; i++) {
@@ -1726,7 +1566,7 @@ ngx_http_add_addresses(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     addr = port->addrs.elts;
 
     /* 注意,如果是有多个ip:port相同,但是在不同的server{}中,则解析到这个ip:port中的第一个的时候,不会走到该循环中,而是执行循环外的
-             ngx_http_add_address,这里面会把addr[i].default_server赋值为该ip:port所在server{} */
+       ngx_http_add_address,这里面会把addr[i].default_server赋值为该ip:port所在server{} */
     for (i = 0; i < port->addrs.nelts; i++) {
 
         //比较新来的lsopt中的地址和ports->addrs地址池中是否有重复,如果addr[]中没有该ip:port存在,则直接指向for外面的ngx_http_add_address
@@ -1902,10 +1742,8 @@ ngx_http_add_server(ngx_conf_t *cf, ngx_http_core_srv_conf_t *cscf,
     return NGX_OK;
 }
 
-/*
-这个函数就是遍历所有的端口号,将端口号对应的地址结构的hash、wc_head和wc_tail初始化,这个在初始化后面的ngx_listening_t的servers字
-段时会用到.然后调用ngx_http_init_listening函数完成ngx_listening_t初始化.
-*/ //可以参考http://blog.csdn.net/chosen0ne/article/details/7754608
+/*这个函数就是遍历所有的端口号,将端口号对应的地址结构的hash、wc_head和wc_tail初始化,这个在初始化后面的ngx_listening_t的servers字
+段时会用到.然后调用ngx_http_init_listening函数完成ngx_listening_t初始化*/
 static ngx_int_t
 ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
                           ngx_array_t *ports)
@@ -1938,10 +1776,8 @@ ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
 #endif
                     )
             {   //相同端口,不同IP地址对应的server{},把每个server中的server_names配置进行hash存储
-                /*
-               初始addr(ngx_http_conf_addr_t)中的hash、wc_head和wc_tail哈希表. 这些哈希表以server_name(虚拟主机名)为key,server块
-               的ngx_http_core_srv_conf_t为 value,用于在处理请求时,根据请求的host请求行快速找到处理该请求的server配置结构.
-               */
+                /*初始addr(ngx_http_conf_addr_t)中的hash、wc_head和wc_tail哈希表. 这些哈希表以server_name(虚拟主机名)为key,server块
+               的ngx_http_core_srv_conf_t为 value,用于在处理请求时,根据请求的host请求行快速找到处理该请求的server配置结构.*/
                 if (ngx_http_server_names(cf, cmcf, &addr[a]) != NGX_OK) {
                     return NGX_ERROR;
                 }
@@ -2188,13 +2024,11 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
 
     i = 0;
 
-    /*
- 这个函数就是遍历某个端口port对应的所有address,如果所有address中不包含通配符,则对所有的address:port调用ngx_http_add_listening分配一
+    /*这个函数就是遍历某个端口port对应的所有address,如果所有address中不包含通配符,则对所有的address:port调用ngx_http_add_listening分配一
  个listen结构和ngx_http_port_t结构,并初始化它们.如果存在address包含通配符,则如果address:port需要bind,分配一个listen结构和
  ngx_http_port_t结构,并初始化它们,对所有address:port不需要bind的,它们和包含通配符*:port共同使用一个listen结构和ngx_http_port_t结构,
  并且listen结构中包含的地址是*:port,所以最好bind的地址是*:port.所有的listen都会存放在全局变量ngx_cycle的listening数组中,这样后面就
- 可以利用这些address:port信息建立每个套接字了.
- */
+ 可以利用这些address:port信息建立每个套接字了*/
     while (i < last) {
         //last代表的是address:port的个数,  如果没有通配符配置项,则有多少个last,就有多少次循环.bind=1的有多少次就执行多少次,如果有通配符和bind = 0的listen配置,
         //则在后面的if (bind_wildcard && !addr[i].opt.bind)进行continue,也就是这些未精确配置项合在一起在后面置执行一次分配ngx_http_port_t空间,把他们算在
@@ -2332,10 +2166,8 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     return ls;
 }
 
-/*
-ngx_http_add_addrs函数用于初始化ls->servers,这个属性主要是存放该监听socket对应的虚拟主机的信息,在处理请求时根据请求行的host匹配,
-选择对应的一个server块的ngx_http_core_srv_conf_t结构,这个结构里存放了刚请求处理的全局配置信息
-*/
+/*ngx_http_add_addrs函数用于初始化ls->servers,这个属性主要是存放该监听socket对应的虚拟主机的信息,在处理请求时根据请求行的host匹配,
+选择对应的一个server块的ngx_http_core_srv_conf_t结构,这个结构里存放了刚请求处理的全局配置信息*/
 //该函数主要把listen对应的server_name配置信息存放在hport->addrs[]中
 static ngx_int_t
 ngx_http_add_addrs(ngx_conf_t *cf, ngx_http_port_t *hport,

@@ -26,7 +26,7 @@ typedef struct {
 
 #endif
 
-//cycle->read_events和cycle->write_events这两个数组存放的是ngx_event_s,他们是对应的,见ngx_event_process_init  ngx_event_t事件和ngx_connection_t连接是一一对应的
+//cycle->read_events和cycle->write_events这两个数组存放的是ngx_event_s,他们是对应的,见ngx_event_process_init; ngx_event_t事件和ngx_connection_t连接是一一对应的
 //ngx_event_t事件和ngx_connection_t连接是处理TCP连接的基础数据结构, 在Nginx中,每一个事件都由ngx_event_t结构体来表示
 
 /*1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event),通过读写事件触发
@@ -39,10 +39,8 @@ epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取�
 /*一个ngx_connection_s对应一个ngx_event_s read和一个ngx_event_s write,其中事件的fd是从ngx_connection_s->fd获取,他们
 在ngx_worker_process_init->ngx_event_process_init中关联起来 */
 struct ngx_event_s {
-    /*
-    事件相关的对象.通常data都是指向ngx_connection_t连接对象,见ngx_get_connection.开启文件异步I/O时,它可能会指向ngx_event_aio_t(ngx_file_aio_init)结构体
-     */
-    void            *data;  //赋值见ngx_get_connection
+    /*事件相关的对象.通常data都是指向ngx_connection_t连接对象,见ngx_get_connection.开启文件异步I/O时,它可能会指向ngx_event_aio_t(ngx_file_aio_init)结构体*/
+    void            *data;
 
     //标志位,为1时表示事件是可写的.通常情况下,它表示对应的TCP连接目前状态是可写的,也就是连接处于可以发送网络包的状态
     unsigned         write:1; //见ngx_get_connection,可写事件ev默认为1  读ev事件应该默认还是0
@@ -77,8 +75,8 @@ struct ngx_event_s {
      */
     /*
     标志位,为1时表示当前事件是活跃的,为0时表示事件是不活跃的.这个状态对应着事件驱动模块处理方式的不同.例如,在添加事件、
-    删除事件和处理事件时,active标志位的不同都会对应着不同的处理方式.在使用事件时,一般不会直接改变active标志位
-     */  //ngx_epoll_add_event中也会置1  在调用该函数后,该值一直为1,除非调用ngx_epoll_del_event
+    删除事件和处理事件时,active标志位的不同都会对应着不同的处理方式.在使用事件时,一般不会直接改变active标志位 */
+    //ngx_epoll_add_event中也会置1  在调用该函数后,该值一直为1,除非调用ngx_epoll_del_event
     unsigned         active:1; //标记是否已经添加到事件驱动中,避免重复添加  在server端accept成功后,
     //或者在client端connect的时候把active置1,见ngx_epoll_add_connection.第一次添加epoll_ctl为EPOLL_CTL_ADD,如果再次添加发
     //现active为1,则epoll_ctl为EPOLL_CTL_MOD
@@ -231,7 +229,7 @@ struct ngx_event_s {
 #if (NGX_HAVE_FILE_AIO)
 
 struct ngx_event_aio_s { //ngx_file_aio_init中初始化,创建空间和赋值
-    void                      *data; //指向ngx_http_request_t  赋值见ngx_http_copy_aio_handler
+    void                      *data; //指向ngx_http_request_t,赋值见ngx_http_copy_aio_handler
 
     //执行地方在ngx_file_aio_event_handler,赋值地方在ngx_http_copy_aio_handler
     ngx_event_handler_pt       handler; //这是真正由业务模块实现的方法,在异步I/O事件完成后被调用
@@ -551,27 +549,19 @@ typedef struct {
     //默认赋值见ngx_event_core_init_conf,ngx_event_core_module后的第一个NGX_EVENT_MODULE也就是ngx_epoll_module默认作为第一个event模块
     ngx_uint_t    use; //选用的事件模块在所有事件模块中的序号,也就是ctx_index成员 赋值见ngx_event_use
 
-    /*
-    事件的available标志位对应着multi_accept配置项.当available为l时,告诉Nginx -次性尽量多地建立新连接,它的实现原理也就在这里
-     */ //默认0
-    ngx_flag_t    multi_accept; //标志位,如果为1,则表示在接收到一个新连接事件时,一次性建立尽可能多的连接
+    /*事件的available标志位对应着multi_accept配置项.当available为l时,告诉Nginx -次性尽量多地建立新连接,它的实现原理也就在这里*/
+    ngx_flag_t    multi_accept; //标志位,默认0,如果为1,则表示在接收到一个新连接事件时,一次性建立尽可能多的连接
 
-    /*
-     如果ccf->worker_processes > 1 && ecf->accept_mutex,则在创建进程后,调用ngx_event_process_init把accept添加到epoll事件驱动中,
-     否则在ngx_process_events_and_timers->ngx_trylock_accept_mutex中把accept添加到epoll事件驱动中
-     */
+    /*如果ccf->worker_processes > 1 && ecf->accept_mutex,则在创建进程后,调用ngx_event_process_init把accept添加到epoll事件驱动中,
+     否则在ngx_process_events_and_timers->ngx_trylock_accept_mutex中把accept添加到epoll事件驱动中*/
     ngx_flag_t    accept_mutex;//标志位,为1时表示启用负载均衡锁
 
-    /*
-    负载均衡锁会使有些worker进程在拿不到锁时延迟建立新连接,accept_mutex_delay就是这段延迟时间的长度.关于它如何影响负载均衡的内容
-     */ //默认500ms,也就是0.5s
-    ngx_msec_t    accept_mutex_delay; //单位ms  如果没获取到mutex锁,则延迟这么多毫秒重新获取
+    /*负载均衡锁会使有些worker进程在拿不到锁时延迟建立新连接,accept_mutex_delay就是这段延迟时间的长度.关于它如何影响负载均衡的内容*/
+    ngx_msec_t    accept_mutex_delay; //单位ms.如果没获取到mutex锁,则延迟这么多毫秒重新获取,默认500ms,也就是0.5s
 
     u_char       *name;//所选用事件模块的名字,它与use成员是匹配的  epoll select
 
-/*
-在-with-debug编译模式下,可以仅针对某些客户端建立的连接输出调试级别的日志,而debug_connection数组用于保存这些客户端的地址信息
-*/
+/*在-with-debug编译模式下,可以仅针对某些客户端建立的连接输出调试级别的日志,而debug_connection数组用于保存这些客户端的地址信息*/
 
 #if (NGX_DEBUG)
     ngx_array_t   debug_connection;

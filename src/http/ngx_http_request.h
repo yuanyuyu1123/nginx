@@ -21,8 +21,8 @@
 
 /*
 HTTP 1.0及HTTP0.9规定浏览器与服务器只保持短暂的连接,浏览器的每次请求都需要与服务器建立一个TCP连接,服务器完成请求处理后立即断开TCP连接,
-服务器不跟踪每个客户也不记录过去的请求.
-*/
+服务器不跟踪每个客户也不记录过去的请求.*/
+
 //如果和后端的tcp连接使用HTTP1.1以下版本,则会置connection_close为1,见ngx_http_proxy_process_status_line
 #define NGX_HTTP_VERSION_9                 9
 #define NGX_HTTP_VERSION_10                1000

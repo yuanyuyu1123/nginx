@@ -1,4 +1,4 @@
-# nginx
+# nginx :❄️
 
 说明:该源码为 1.21.5 版本
 
@@ -7,23 +7,23 @@
 1.进入nginx目录,分别执行(请将path改成自己的目录):
 
 ```shell
-    ./auto/configure --add-module=src/ext/http_mytest_module 
+./auto/configure --add-module=src/ext/http_mytest_module 
 ```
 
 或:
 ```shell
-    ./auto/configure --prefix=path/nginx  \
-            --conf-path=path/nginx/conf/nginx.conf \
-            --with-file-aio --with-pcre --with-debug \
-            --add-module=src/ext/http_mytest_module
+./auto/configure --prefix=path/nginx  \
+        --conf-path=path/nginx/conf/nginx.conf \
+        --with-file-aio --with-pcre --with-debug \
+        --add-module=src/ext/http_mytest_module
 ```
 2.
 ```shell
-    cmake .
+cmake .
 ```
 3.
 ```shell
-    make
+make
 ```
 
 4.在linux上用clion打开该项目
@@ -35,10 +35,10 @@
 
 6.运行
 
-注意: 如果使用 --with-file-aio需要安装libaio,否则无法debug!
+注意: 如果使用 --with-file-aio 需要安装libaio,否则无法debug!
 
 Ubuntu24:
 ```shell
-    sudo apt install libaio-dev libaio1t64
+sudo apt install libaio-dev libaio1t64
 ```
 

@@ -21,41 +21,37 @@
 ┃aio_context_t *ctxp)                    ┃数,ctxp是文件异步I/O的上下文描述    ┃文描述符,这个异步I/O上下文   ┃
 ┃                                        ┃符指针                           ┃将至少可以处理nr_events个事  ┃
 ┃                                        ┃                                ┃件.返回0表示成功              ┃
-┃                                        ┃                                ┃                          ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃                                        ┃                                    ┃  销毁文件异步I/O的上下文.   ┃
-┃int io_destroy (aio_context_t ctx)      ┃  ctx是文件异步I/O的上下文描述符         ┃      返回0表示成功      ┃
-┃                                        ┃                                    ┃            ┃
+┃                                        ┃                                 ┃  销毁文件异步I/O的上下文.   ┃
+┃int io_destroy (aio_context_t ctx)      ┃  ctx是文件异步I/O的上下文描述符     ┃ 返回0表示成功      ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃int io_submit(aio_context_t ctx,       ┃  ctx是文件异步I/O的上下文描述符,  ┃  提交文件异步I/O操作.返回   ┃
-┃                                        ┃nr是一次提交的事件个数,cbp是需要   ┃   值表示成功提交的事件个数    ┃
-┃long nr, struct iocb *cbp[])            ┃                               ┃                             ┃
-┃                                        ┃提交的事件数组中的首个元素地址      ┃                              ┃
+┃int io_submit(aio_context_t ctx,       ┃ ctx是文件异步I/O的上下文描述符,  ┃  提交文件异步I/O操作.返回   ┃
+┃   long nr, struct iocb *cbp[])        ┃nr是一次提交的事件个数,cbp是需要   ┃   值表示成功提交的事件个数    ┃
+┃                                        ┃提交的事件数组中的首个元素地址                                ┃                             ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃int io_cancel(aio_context_t ctx, struct ┃  ctx是文件异步I/O的上下文描述      ┃  取消之前使用io—sumbit提交  ┃
-┃                                        ┃符,iocb是要取消的异步I/O操作,而     ┃的一个文件异步I/O操作.返回   ┃
-┃iocb *iocb, struct io_event *result)    ┃                                ┃0表示成功                 ┃
-┃                                        ┃result表示这个操作的执行结果        ┃                    ┃
+┃int io_cancel(aio_context_t ctx, struct ┃  ctx是文件异步I/O的上下文描述      ┃  取消之前使用io_submit提交  ┃
+┃   iocb *iocb, struct io_event *result)  ┃符,iocb是要取消的异步I/O操作,     ┃的一个文件异步I/O操作.返回   ┃
+┃                                         ┃result表示这个操作的执行结果        ┃0表示成功                 ┃
 ┣━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
 ┃                I                       ┃  ctx是文件异步I/O的上下文描述      ┃                              ┃
 ┃int io_getevents(aio_context_t ctx,     ┃符;min_nr表示至少要获取mln_ nr个   ┃                              ┃
 ┃long min_nr, long nr,                   ┃事件;而nr表示至多获取nr个事件,      ┃从已经完成的文件异步I/O操   ┃
 ┃struct io_event *events, struct       ┃它与events数组的个数一般是相同的:     ┃作队列中读取操作              ┃
-┃timespec *timeout)                      ┃events是执行完成的事件数组;tlmeout ┃                              ┃
-┃                                       ┃是超时时间,也就是在获取mm- nr个    ┃                              ┃
-┃                                        ┃事件前的等待时间                    ┃                              ┃
+┃timespec *timeout)                      ┃events是执行完成的事件数组;timeout ┃                              ┃
+┃                                       ┃是超时时间,也就是在获取mm- nr个      ┃                              ┃
+┃                                        ┃事件前的等待时间                   ┃                              ┃
 ┗━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━┛
     表9-7中列举的这5种方法提供了内核级别的文件异步I/O机制,使用前需要先调用io_setup方法初始化异步I/O上下文.
 虽然一个进程可以拥有多个异步I/O上下文,但通常有一个就足够了.调用io_setup方法后会获得这个异步I/O上下文的描述符(aio_context_t类型),
-这个描述符和epoll_create返回的描述符一样,是贯穿始终的.注意,nr_ events只是指定了异步I/O至少初始化的上下文容量,
+这个描述符和epoll_create返回的描述符一样,是贯穿始终的.注意,nr_events只是指定了异步I/O至少初始化的上下文容量,
 它并没有限制最大可以处理的异步I/O事件数目.为了便于理解,不妨将io_setup与epoll_create进行对比,它们还是很相似的.
     既然把epoll和异步I/O进行对比,那么哪些调用相当于epoll_ctrl呢?就是io_submit和io_cancel.
 其中io_submit相当于向异步I/O中添加事件,而io_cancel则相当于从异步I/O中移除事件.io_submit中用到了一个结构体iocb,下面简单地看一下它的定义.
     struct iocb {
-    //存储着业务需要的指针.例如,在Nginx中,这个字段通常存储着对应的ngx_event_t亭件的指针.它实际上与io_getevents方法中返回的io_event结构体的data成员是完全一致的
+    //存储着业务需要的指针.例如,在Nginx中,这个字段通常存储着对应的ngx_event_t事件的指针.它实际上与io_getevents方法中返回的io_event结构体的data成员是完全一致的
     u_int64_t aio_data;
     //不需要设置
-    PADDED(aio_key,aio_raservedl);
+    u_int32_t PADDED(aio_key,aio_raservedl);
     //操作码,其取值范围是io_iocb_cmd_t中的枚举命令
     u_int16_t aio_lio_opcode;
     //请求的优先级
@@ -69,9 +65,9 @@
     // 读/写操作对应于文件中的偏移量
     int64_t aio_offset;
     //保留字段
-    u_int64 aio_reserved2;
+    u_int64_t aio_reserved2;
     //表示可以设置为IOCB_FLAG_RESFD,它会告诉内核当有异步I/O请求处理完成时使用eventfd进行通知,可与epoll配合使用
-    u_int32_aio_flags;
+    u_int32_t aio_flags;
   //表示当使用IOCB_FLAG_RESFD标志位时,用于进行事件通知的句柄
     u_int32_t aio_resfd;
 };
@@ -152,7 +148,7 @@ ngx_file_aio_init(ngx_file_t *file, ngx_pool_t *pool) {
     return NGX_OK;
 }
 
-/*而io_cancel则相当于从异步I/O中移除事件.
+/*io_cancel则相当于从异步I/O中移除事件.
 怎样向异步I/O上下文中提交异步I/O操作呢?ngx_linux_aio_read.c文件中的ngx_file_aio_read方法,在打开文件异步I/O后,这个方法将会负责磁盘文件的读取
 
 ngx_epoll_aio_init初始化aio事件列表, ngx_file_aio_read添加读文件事件,当读取完毕后epoll会触发
@@ -262,7 +258,7 @@ ngx_file_aio_event_handler(ngx_event_t *ev) {
     ngx_log_debug2(NGX_LOG_DEBUG_CORE, ev->log, 0,
                    "aio event handler fd:%d %V", aio->fd, &aio->file->name);
     /* 这里调用了ngx_event_aio_t结构体的handler回调方法,这个回调方法是由真正的业务
-模块实现的,也就是说,任一个业务模块想使用文件异步I/O,就可以实现handler穷法,这
+模块实现的,也就是说,任一个业务模块想使用文件异步I/O,就可以实现handler方法,这
 样,在文件异步操作完成后,该方法就会被回调. */
     aio->handler(ev); //例如ngx_output_chain_copy_buf->ngx_http_copy_aio_handler
 }

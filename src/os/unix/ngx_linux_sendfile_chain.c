@@ -249,11 +249,9 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
         }
 
         /* get the file buf */
-        //=0等于0,则表明chain链中的所有数据在文件中,一般sendfile on的时候走这里
-        /*
-         说明chain中的数据是in_file的,也就是在缓存文件中,一般开启sendfile on的时候走这里,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.
-         in_file中的内存还是in_file的,而不会拷贝到新分配的内存中, 参考ngx_http_copy_filter->ngx_output_chain   ngx_output_chain_as_is等
-            */
+        //等于0,则表明chain链中的所有数据在文件中,一般sendfile on的时候走这里
+        /*说明chain中的数据是in_file的,也就是在缓存文件中,一般开启sendfile on的时候走这里,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.
+         in_file中的内存还是in_file的,而不会拷贝到新分配的内存中, 参考ngx_http_copy_filter->ngx_output_chain   ngx_output_chain_as_is等*/
         if (header.count == 0 && cl && cl->buf->in_file && send < limit) {
             file = cl->buf;
 

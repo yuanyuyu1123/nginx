@@ -191,7 +191,6 @@ typedef struct { //相关空间创建和赋值见ngx_http_block, 该结构是ngx
 } ngx_http_conf_ctx_t; //ctx是content的简称,表示上下文
 
 //参考:http://tech.uc.cn/?p=300   ngx_http_conf_ctx_t变量的指针ctx存储在ngx_cycle_t的conf_ctx所指向的指针数组,以ngx_http_module的index为下标的数组元素
-//http://tech.uc.cn/?p=300参数解析相关数据结构参考
 
 /*
 Nginx安装完毕后,会有响应的安装目录,安装目录里nginx.conf为nginx的主配置文件,ginx主配置文件分为4部分,main(全局配置)、server(主机设置)、upstream(负载均衡服务器设)和location(URL匹配特定位置的设置),这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
