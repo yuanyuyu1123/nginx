@@ -37,20 +37,18 @@ static ngx_int_t ngx_http_request_body_chunked_filter(ngx_http_request_t *r,
 
 
 //HTTP包体的长度有可能非常大,如果试图一次性调用并读取完所有的包体,那么多半会阻塞Nginx进程.HTTP框架提供了一种方法来异步地接收包体:
-/*
-ngx_http_read_client_request_body是一个异步方法,调用它只是说明要求Nginx开始接收请求的包体,并不表示是否已经接收完,当接收完所有的包体内容后,
+/*ngx_http_read_client_request_body是一个异步方法,调用它只是说明要求Nginx开始接收请求的包体,并不表示是否已经接收完,当接收完所有的包体内容后,
 post_handler指向的回调方法会被调用.因此,即使在调用了ngx_http_read_client_request_body方法后它已经返回,也无法确定这时是否已经调用过post_handler
 指向的方法.换句话说,ngx_http_read_client_request_body返回时既有可能已经接收完请求中所有的包体(假如包体的长度很小),也有可能还没开始接收包体.
 如果ngx_http_read_client_request_body是在ngx_http_mytest_handler处理方法中调用的,那么后者一般要返回NGX_DONE,因为下一步就是将它的返回值作为参数
-传给ngx_http_finalize_request.
-*/ //包体接收完毕后会执行回调方法ngx_http_client_body_handler_pt post_handler
+传给ngx_http_finalize_request*/
 
+//包体接收完毕后会执行回调方法ngx_http_client_body_handler_pt post_handler
 //ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body
 
-/*
-调用了ngx_http_read_client_request_body方法就相当于启动了接收包体这一动作,在这个动作完成后,就会回调HTTP模块定义的post_handler方法
-丢弃包体时,HTTP框架提供的方法是ngx_http_discard_request_body
-*/
+/*调用了ngx_http_read_client_request_body方法就相当于启动了接收包体这一动作,在这个动作完成后,就会回调HTTP模块定义的post_handler方法
+丢弃包体时,HTTP框架提供的方法是ngx_http_discard_request_body*/
+
 /* HTTP框架提供了两种方式处理HTTP包体,当然,这两种方式保持了完全无阻塞的事件驱动机制,非常高效.第一种方式就是把请求中的包体
 接收到内存或者文件中,当然,由于包体的长度是可变的,同时内存又是有限的,因此,一般都是将包体存放到文件中.第二种方式是选择丢弃包体,
 注意,丢弃不等于可以不接收包体,这样做可能会导致客户端出现发送请求超时的错误,所以,这个丢弃只是对于HTTP模块而言的,HTTP框架还是需
@@ -58,11 +56,10 @@ post_handler指向的回调方法会被调用.因此,即使在调用了ngx_http_
 
 //一般都是需要访问上游服务器的时候才会读取包体,例如ngx_http_proxy_handler
 
-/*
-一般都是如果解析头部行后,后面有携带包体,则会走到这里,如果包体还没读完,下次也不会走到该函数,而是走ngx_http_do_read_client_request_body
+/*一般都是如果解析头部行后,后面有携带包体,则会走到这里,如果包体还没读完,下次也不会走到该函数,而是走ngx_http_do_read_client_request_body
 实际上走到这里面的包体内容是在读取头部的时候,一起读出来的,读取地方见ngx_http_wait_request_handler
-在NGX_HTTP_CONTENT_PHASE阶段通过ngx_http_core_content_phase调用content阶段的handler从而执行ngx_http_proxy_handler  ngx_http_redis2_handler  ngx_http_fastcgi_handler等,在这些函数中开始读取包体
-*/
+在NGX_HTTP_CONTENT_PHASE阶段通过ngx_http_core_content_phase调用content阶段的handler从而
+ 执行ngx_http_proxy_handler  ngx_http_redis2_handler  ngx_http_fastcgi_handler等,在这些函数中开始读取包体*/
 ngx_int_t //只有在连接后端服务器的时候才会读取客户端请求包体,见ngx_http_xxx_handler(proxy fastcgi等)
 ngx_http_read_client_request_body(ngx_http_request_t *r,
                                   ngx_http_client_body_handler_pt post_handler) {  //post_handler在ngx_http_do_read_client_request_body接收完所有包体后执行,或者在本函数能读取完包体后也会执行
@@ -91,21 +88,16 @@ ngx_http_read_client_request_body(ngx_http_request_t *r,
       已经存满了(recv的数据存在该空间里面),并且数据分成三个ngx_buf_t指向这些空间,然后连接到了转存到了r->request_body->bufs链表上.在
     6.ngx_http_request_body_save_filter中检测到rb->buf->last == rb->buf->end,上面的buf(buf1+buf2+buf3)已经填满,然后通过r->request_body->bufs
       把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
-      内核协议栈读取数据存储在里面了,然后从复1-5的过程
-*/
+      内核协议栈读取数据存储在里面了,然后从复1-5的过程*/
 
-    /*
-     首先把该请求对应的原始请求的引用计数加l.这同时是在要求每一个HTTP模块在传入的post_handler方法被回调时,务必调用类似
-     ngx_http_finalize_request的方法去结束请求,否则引用计数会始终无法清零,从而导致请求无法释放.
-     */
+    /*首先把该请求对应的原始请求的引用计数加l.这同时是在要求每一个HTTP模块在传入的post_handler方法被回调时,务必调用类似
+     ngx_http_finalize_request的方法去结束请求,否则引用计数会始终无法清零,从而导致请求无法释放.*/
     r->main->count++;
     //因为执行该函数一般都是向后端转发,例如可以参考ngx_http_read_client_request_body(r, ngx_http_upstream_init);,在ngx_http_upstream_init没有执行count++操作,实际上在这里
 
-    /*
-  检查请求ngx_http_request_t结构体中的request_body成员,如果它已经被分配过了,证明已经读取过HTTP包体了,不需要再次读取一遍;
-再检查请求ngx_http_request_t结构体中的discard_body标志位,如果discard_body为1,则证明曾经执行过丢弃包体的方法,现在包体正在被丢弃中.
-只有这两个条件都不满足,才说明真正需要接收HTTP包体.
-   */
+    /*检查请求ngx_http_request_t结构体中的request_body成员,如果它已经被分配过了,证明已经读取过HTTP包体了,不需要再次读取一遍;
+    再检查请求ngx_http_request_t结构体中的discard_body标志位,如果discard_body为1,则证明曾经执行过丢弃包体的方法,现在包体正在被丢弃中.
+    只有这两个条件都不满足,才说明真正需要接收HTTP包体.*/
     if (r != r->main || r->request_body || r->discard_body) {
         r->request_body_no_buffering = 0;
         post_handler(r); //直接执行各HTTP模块提供的post_handler回调方法
@@ -160,7 +152,7 @@ ngx_http_read_client_request_body(ngx_http_request_t *r,
     }
 #endif
     /* 接收HTTP头部的流程中,是有可能接收到HTTP包体的.首先我们需要检查在header_in缓冲区中已经接收到的包体长度,确定其是否大于或者等于
-content-length头部指定的长度,如果大干或等于则说明已经接收到完整的包体 */
+    content-length头部指定的长度,如果大干或等于则说明已经接收到完整的包体 */
     preread = r->header_in->last - r->header_in->pos;
 
     if (preread) { //注意在ngx_http_wait_request_handler中第一次读的时候默认是读1024字节,有可能ngx_http_wait_request_handler已经把包体读了
@@ -258,12 +250,10 @@ content-length头部指定的长度,如果大干或等于则说明已经接收�
     } else {
         size = clcf->client_body_buffer_size; //如果不是缓存到同一个buf,则一次最多开辟这么多空间,这样可能需要多个buf才能读取完
     }
-    /*
-   说明确实需要分配用于接收包体的缓冲区了.缓冲区长度由nginx.conf丈件中的client_body_buffer_size配置项指定,缓冲区就在ngx_http_request_body_t
-   结构体的buf成员中存放着,同时,bufs和to_ write这两个缓冲区链表首部也指向该buf.
-    */
+    /*说明确实需要分配用于接收包体的缓冲区了.缓冲区长度由nginx.conf丈件中的client_body_buffer_size配置项指定,缓冲区就在ngx_http_request_body_t
+   结构体的buf成员中存放着,同时,bufs和to_ write这两个缓冲区链表首部也指向该buf*/
 
-/*
+    /*
         这里开辟真正的读取数据的空间后,buf的指针指向终端空间的头尾以及解析完的数据的位置,
                     buf1                       buf2                    buf3
         _________________________________________________________________________________
@@ -281,23 +271,18 @@ content-length头部指定的长度,如果大干或等于则说明已经接收�
        把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
        内核协议栈读取数据存储在里面了,然后从复1-5的过程
 
-    //读取客户包体即使是存入临时文件中,当所有包体读取完毕后(ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址
-*/
+    读取客户包体即使是存入临时文件中,当所有包体读取完毕后(ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址*/
     rb->buf = ngx_create_temp_buf(r->pool, size); //这个是为下次读取准备的
     if (rb->buf == NULL) {
         rc = NGX_HTTP_INTERNAL_SERVER_ERROR;
         goto done;
     }
-    /*
-     设置请求ngx_http_request_t结构体的read_ event_ handler成员为上面介绍过的ngx_http_read_client_request_body_handler方法,
-     它意味着如果epoll再次检测到可读事件或者读事件的定时器超时,HTTP框架将调用ngx_http_read_client_request_body_handler方法处理
-     */
+    /*设置请求ngx_http_request_t结构体的read_ event_ handler成员为上面介绍过的ngx_http_read_client_request_body_handler方法,
+     它意味着如果epoll再次检测到可读事件或者读事件的定时器超时,HTTP框架将调用ngx_http_read_client_request_body_handler方法处理*/
     r->read_event_handler = ngx_http_read_client_request_body_handler;
     r->write_event_handler = ngx_http_request_empty_handler;
-    /*
-    调用ngx_http_do_read_client_request_body方法接收包体.该方法的意义在于把客户端与Nginx之间TCP连接上套接字缓冲区中的当前字符流全
-    部读出来,并判断是否需要写入文件,以及是否接收到全部的包体,同时在接收到完整的包体后激活post_handler回调方法
-     */
+    /*调用ngx_http_do_read_client_request_body方法接收包体.该方法的意义在于把客户端与Nginx之间TCP连接上套接字缓冲区中的当前字符流全
+    部读出来,并判断是否需要写入文件,以及是否接收到全部的包体,同时在接收到完整的包体后激活post_handler回调方法*/
     rc = ngx_http_do_read_client_request_body(r); //这里面添加ngx_handle_read_event的时候,对应的handler为ngx_http_read_client_request_body_handler
 
     done:
@@ -354,19 +339,15 @@ ngx_http_read_unbuffered_request_body(ngx_http_request_t *r) {
     return rc;
 }
 
-/*
-在接收较大的包体时,无法在一次调度中完成.通俗地讲,就是接收包体不是调用一次ngx_http_read_client_request_body方法就能完成的.但是HTTP框架希望对于它
+/*在接收较大的包体时,无法在一次调度中完成.通俗地讲,就是接收包体不是调用一次ngx_http_read_client_request_body方法就能完成的.但是HTTP框架希望对于它
 的用户,也就是HTTP模块而言,接收包体时只需要调用一次ngx_http_read_client_request_body方法就好,这时就需要有另一个方法在
 ngx_http_read_client_request_body没接收到完整的包体时,如果连接上再次接收到包体就被调用(触发ngx_http_request_handler),这个方
-法就是ngx_http_read_client_request_body_handler.通过ngx_http_request_handler执行这里的handler
-*/
+法就是ngx_http_read_client_request_body_handler.通过ngx_http_request_handler执行这里的handler*/
 static void
 ngx_http_read_client_request_body_handler(ngx_http_request_t *r) {
     ngx_int_t rc;
-    /*
-  首先检查连接上读事件的timeout标志位,如果为l,则表示接收HTTP包体超时,这时把连接ngx_connection_t结构体上的timeout标志位也置为1,
-同时调用ngx_http_finalize_request方法结束请求,并发送408超时错误码
-   */
+    /*首先检查连接上读事件的timeout标志位,如果为l,则表示接收HTTP包体超时,这时把连接ngx_connection_t结构体上的timeout标志位也置为1,
+        同时调用ngx_http_finalize_request方法结束请求,并发送408超时错误码*/
     if (r->connection->read->timedout) {
         r->connection->timedout = 1;
         ngx_http_finalize_request(r, NGX_HTTP_REQUEST_TIME_OUT);
@@ -380,11 +361,11 @@ ngx_http_read_client_request_body_handler(ngx_http_request_t *r) {
     }
 }
 
-/*
-调用ngx_http_do_read_client_request_body方法接收包体.该方法的意义在于把客户端与Nginx之间TCP连接上套接字缓冲区中的当前字符流全
-部读出来,并判断是否需要写入文件,以及是否接收到全部的包体,同时在接收到完整的包体后激活post_handler回调方法
- */
+/*调用ngx_http_do_read_client_request_body方法接收包体.该方法的意义在于把客户端与Nginx之间TCP连接上套接字缓冲区中的当前字符流全
+部读出来,并判断是否需要写入文件,以及是否接收到全部的包体,同时在接收到完整的包体后激活post_handler回调方法*/
+
 //负责具体的读取包体工作,该函数会在for循环中会反复读直到包体读取完毕,如果内核已经没有数据并且包体还没有读完,则添加读事件,并推出循环,这样HTTP模块还能继续作用其他功能,避免阻塞
+
 /* 读取的时候一个buf装满后,会把buf中存储的数据写道临时文件中(不管有没有配置request_body_in_file_only),然后继续使用该buf读取数据,存储
 数据的内存分配地方有两个:1.在读取报文头部的时候ngx_http_wait_request_handler  2.如果在1中读到的内容里面不包括完整包体,则需要在
 ngx_http_read_client_request_body中会重新分配内存读取,触发再次读取的地方未ngx_http_read_client_request_body中为读取到完整包体的时候
@@ -411,10 +392,8 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
     for (;;) {
 
         for (;;) {
-            /*
-             首先检查请求的request_body成员中的buf缓冲区,如果缓冲区还有空闲的空间,则跳过该if{}去读取内核中套接字缓冲区里的TCP字符流;
-             如果缓冲区已经写满,则调用ngx_http_write_request_body方法把缓冲区中的字符流写入文件.不管有没有配置request_body_in_file_only置1
-              */
+            /*首先检查请求的request_body成员中的buf缓冲区,如果缓冲区还有空闲的空间,则跳过该if{}去读取内核中套接字缓冲区里的TCP字符流;
+             如果缓冲区已经写满,则调用ngx_http_write_request_body方法把缓冲区中的字符流写入文件.不管有没有配置request_body_in_file_only置1*/
             if (rb->rest == 0) {
                 break;
             }
@@ -463,11 +442,10 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
                 }
 
                 flush = 0;
-                /*
-                   为什么能下次还可以直接利用rb->buf空间来读取数据呢?
+                /*为什么能下次还可以直接利用rb->buf空间来读取数据呢?
                        当一个rb->buf填满后就会通过ngx_http_write_request_body把bufs链表中的所有ngx_chain_t->ngx_buf_t中指向的数据
-                   写入到临时文件,因此rb->buf中的内存就可以再次使用了
-                  */
+                   写入到临时文件,因此rb->buf中的内存就可以再次使用了*/
+
                 //只需要把缓冲区ngx_buf_t结构体的last指针指向start指针,缓冲区即可复用.
                 rb->buf->pos = rb->buf->start;
                 rb->buf->last = rb->buf->start;
@@ -503,10 +481,9 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
                 c->error = 1;
                 return NGX_HTTP_BAD_REQUEST;
             }
-            /*
-              根据接收到的TCP流长度,修改缓冲区参数.例如,把缓冲区ngx_buf_t结构体的last揩针加上接收到的长度,同时更新request_body结
-              构体中表示待接收的剩余包体长度的rest成员、更新ngx_http_request_t结构体中表示已接收请求长度的request_length成员.
-              */ //从这里可以看出在多次读取包体的时候,需要先把前面开辟空间buf中没有填充的部分填满,如果buf填满了,则重新利用该buf读取数据
+            /*根据接收到的TCP流长度,修改缓冲区参数.例如,把缓冲区ngx_buf_t结构体的last揩针加上接收到的长度,同时更新request_body结
+              构体中表示待接收的剩余包体长度的rest成员、更新ngx_http_request_t结构体中表示已接收请求长度的request_length成员*/
+            //从这里可以看出在多次读取包体的时候,需要先把前面开辟空间buf中没有填充的部分填满,如果buf填满了,则重新利用该buf读取数据
             //之前读取到填满buf中的数据取出来存放到临时文件中,参考前面的if (rb->buf->last == rb->buf->end)
             rb->buf->last += n;
             r->request_length += n;
@@ -549,18 +526,16 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
         //printf("yang test ngx agin xxxxxxxxxxxxxxxxxxxxxxxxx\n");
         //
         //return NGX_AGAIN; //yang test xxxxxxxxxxxxxx
-        /*
-        如果当前已经没有可读的字符流,同时还没有接收到完整的包体,则说明需要把读事件添加到事件模块,等待可读事件发生时,事件框架可以再次
-        调度到这个方法接收包体.这一步是调用ngx_add_timer方法将读事件添加到定时器中,超时时间以nginx.conf文件中的client_body_timeout配置项参数为准.
-          */ //说明前面的 n = c->recv(c, rb->buf->last, size);返回的是NGX_AGAIN,所以在recv中会把ready置0
+        /*如果当前已经没有可读的字符流,同时还没有接收到完整的包体,则说明需要把读事件添加到事件模块,等待可读事件发生时,事件框架可以再次
+        调度到这个方法接收包体.这一步是调用ngx_add_timer方法将读事件添加到定时器中,超时时间以nginx.conf文件中的client_body_timeout配置项参数为准.*/
+
+        //说明前面的 n = c->recv(c, rb->buf->last, size);返回的是NGX_AGAIN,所以在recv中会把ready置0
         if (!c->read->ready || rb->rest == 0) {
 
             clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
             //当读取到完整的包体后,会删除该定时器,见后面的ngx_del_timer(c->read);
             ngx_add_timer(c->read, clcf->client_body_timeout); //handle应该是ngx_http_request_handler
-            /*
-             这个请求连接上的读事件触发时的回调方法ngx_http_request_handler,从而会调用read_event_handler方法(ngx_http_read_client_request_body_handler)
-               */
+            /*这个请求连接上的读事件触发时的回调方法ngx_http_request_handler,从而会调用read_event_handler方法(ngx_http_read_client_request_body_handler) */
             if (ngx_handle_read_event(c->read, 0) != NGX_OK) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
@@ -575,17 +550,13 @@ ngx_http_do_read_client_request_body(ngx_http_request_t *r) { //返回值大于N
     //只有包体读取完毕,才会从上面的for()循环中退出
 
 
-    /*
-       表明已经接收到完整的包体,需要做一些收尾工作了.首先不需要检查是否接收HTTP包体超时了,要把读事件从定时器中取出,防止不必要的定时器触发.这一
-    步会检查读事件的timer set标志位,如果为1,则调用ngx_del_timer方法把读事件从定时器中移除.
-     */
+    /*表明已经接收到完整的包体,需要做一些收尾工作了.首先不需要检查是否接收HTTP包体超时了,要把读事件从定时器中取出,防止不必要的定时器触发.这一
+    步会检查读事件的timer set标志位,如果为1,则调用ngx_del_timer方法把读事件从定时器中移除.*/
     if (c->read->timer_set) {
         ngx_del_timer(c->read);
     }
-    /*
-    在之前read_event_handler成员设置为ngx_http_read_client_request_body_handler方法,现在既然已经接收到完整的包体了,就会把
-    read_event_handler设为ngx_http_block_reading方法,表示连接上再有读事件将不做任何处理.
-     */
+    /*在之前read_event_handler成员设置为ngx_http_read_client_request_body_handler方法,现在既然已经接收到完整的包体了,就会把
+    read_event_handler设为ngx_http_block_reading方法,表示连接上再有读事件将不做任何处理*/
     if (!r->request_body_no_buffering) {
         r->read_event_handler = ngx_http_block_reading;
         rb->post_handler(r); //执行ngx_http_read_client_request_body的第二个参数
@@ -694,7 +665,7 @@ ngx_http_copy_pipelined_header(ngx_http_request_t *r, ngx_buf_t *buf) {
        把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
        内核协议栈读取数据存储在里面了,然后从复1-5的过程
 */
-//创建零食文件,并把rb = r->request_body->bufs中的所有ngx_chain_t中的所有数据写入到临时文件中,当一个ngx_chain_t中的ngx_buf_t填满后
+//创建临时文件,并把rb = r->request_body->bufs中的所有ngx_chain_t中的所有数据写入到临时文件中,当一个ngx_chain_t中的ngx_buf_t填满后
 //就会通过ngx_http_write_request_body把bufs链表中的所有ngx_chain_t->ngx_buf_t中指向的数据写入到临时文件,并把ngx_buf_t结构加入poll->chain,通过poll统一释放他们
 static ngx_int_t //把bufs数据写入临时文件,然后把对应节点从bufs中摘除,之前bufs中ngx_http_request_body_t节点所指向的空间可以继续使用,来读写数据
 ngx_http_write_request_body(ngx_http_request_t *r) { //ngx_http_write_request_body把bufs中的内容写入临时文件后,会把bufs(ngx_chain_t)节点放入r->pool->chain中
@@ -776,29 +747,26 @@ ngx_http_write_request_body(ngx_http_request_t *r) { //ngx_http_write_request_bo
 }
 
 //如果不想处理请求中的包体,那么可以调用ngx_http_discard_request_body方法将接收自客户端的HTTP包体丢弃掉.
-/* //丢弃请求中的包体
-ngx_http_discard_request_body只是丢弃包体,不处理包体不就行了吗?何必还要调用ngx_http_discard_request_body方法呢?其实这一步非常有意义,
-因为有些客户端可能会一直试图发送包体,而如果HTTP模块不接收发来的TCP流,有可能造成客户端发送超时.
-*/ //获取接收请求包体的函数为ngx_http_read_client_request_body
 
-/*
-对于HTTP模块而言,放弃接收包体就是简单地不处理包体了,可是对于HTTP框架而言,并不是不接收包体就可以的.因为对于客户端而言,通常
+/*ngx_http_discard_request_body只是丢弃包体,不处理包体不就行了吗?何必还要调用ngx_http_discard_request_body方法呢?其实这一步非常有意义,
+因为有些客户端可能会一直试图发送包体,而如果HTTP模块不接收发来的TCP流,有可能造成客户端发送超时.*/
+
+//获取接收请求包体的函数为ngx_http_read_client_request_body
+
+/*对于HTTP模块而言,放弃接收包体就是简单地不处理包体了,可是对于HTTP框架而言,并不是不接收包体就可以的.因为对于客户端而言,通常
 会调用一些阻塞的发送方法来发送包体,如果HTTP框架一直不接收包体,会导致实现上不够健壮的客户端认为服务器超时无响应,因而简单地关
 闭连接,可这时Nginx模块可能还在处理这个连接.因此,HTTP模块中的放弃接收包体,对HTTP框架而言就是接收包体,但是接收后不做保存,直接丢弃.
 HTTP模块调用的ngx_http_discard_request_body方法用于第一次启动丢弃包体动作,而ngx_http_discarded_request_body_handler是作为请
 求的read_event_handler方法的,在有新的可读事件时会调用它处理包体.ngx_http_read discarded_request_body方法则是根据上述两个方法
-通用部分提取出的公共方法,用来读取包体且不做任何处理.
-*/
+通用部分提取出的公共方法,用来读取包体且不做任何处理.*/
 ngx_int_t
 ngx_http_discard_request_body(ngx_http_request_t *r) {
     ssize_t size;
     ngx_int_t rc;
     ngx_event_t *rev;
-    /*
-     首先检查当前请求是一个子请求还是原始请求.为什么要检查这个呢?因为对于子请求而言,它不是来自客户端的请求,所以不存在处理HTTP
+    /*首先检查当前请求是一个子请求还是原始请求.为什么要检查这个呢?因为对于子请求而言,它不是来自客户端的请求,所以不存在处理HTTP
      请求包体的概念.如果当前请求是原始请求,则继续执行;如果它是子请求,则直接返回NGX_OK表示丢弃包体成功.检查ngx_http_request_t结构
-     体的request_body成员,如果它已经被赋值过且不再为NULL空指针,则说明已经接收过包体了,这时也需要返回NGX_OK表示成功.
-     */
+     体的request_body成员,如果它已经被赋值过且不再为NULL空指针,则说明已经接收过包体了,这时也需要返回NGX_OK表示成功.*/
     if (r != r->main || r->discard_body || r->request_body) {
         return NGX_OK;
     }
@@ -817,11 +785,9 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
     rev = r->connection->read;
 
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, rev->log, 0, "http set discard body");
-    /*
-   检查请求连接上的读事件是否在定时器中,这是因为丢弃包体不用考虑超时问题(linger_timer例外,本章不考虑此情况).如果读事件
+    /*检查请求连接上的读事件是否在定时器中,这是因为丢弃包体不用考虑超时问题(linger_timer例外,本章不考虑此情况).如果读事件
    的timer set标志位为1,则从定时器中移除此事件.还要检查content-length头部,如果它的值小于或等于0,同样意味着可以直接返回
-   NGX一OK,表示成功丢弃了全部包体.
-    */
+   NGX_OK,表示成功丢弃了全部包体*/
     if (rev->timer_set) {
         ngx_del_timer(rev);
     }
@@ -843,11 +809,9 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
             return NGX_OK;
         }
     }
-    /*
-     在接收HTTP头部时,还是要检查是否凑巧已经接收到完整的包体(如果包体很小,那么这是非常可能发生的事),如果已经接收到完整的包
+    /*在接收HTTP头部时,还是要检查是否凑巧已经接收到完整的包体(如果包体很小,那么这是非常可能发生的事),如果已经接收到完整的包
  体,则直接返回NGX OK,表示丢弃包体成功,否则,说明需要多次的调度才能完成丢弃包体这一动作,此时把请求的read_event_handler
- 成员设置为ngx_http_discarded_request_body_handler方法.
-   */
+ 成员设置为ngx_http_discarded_request_body_handler方法*/
     rc = ngx_http_read_discarded_request_body(r);
 
     if (rc == NGX_OK) {
@@ -868,22 +832,20 @@ ngx_http_discard_request_body(ngx_http_request_t *r) {
     if (ngx_handle_read_event(rev, 0) != NGX_OK) { //调用ngx_handle_read_event方法把读事件添加到epoll中handle为ngx_http_request_handler
         return NGX_HTTP_INTERNAL_SERVER_ERROR;
     }
-    /*
-  返回非NGX_OK表示Nginx的事件框架触发事件需要多次调度才能完成丢弃包体这一动作,于是先把引用计数加1,防止这边还在丢弃包体,
+    /*返回非NGX_OK表示Nginx的事件框架触发事件需要多次调度才能完成丢弃包体这一动作,于是先把引用计数加1,防止这边还在丢弃包体,
   而其他事件却已让请求意外销毁,引发严重错误.同时把ngx_http_request_t结构体的discard_body标志位置为1,表示正在丢弃包体,并
-  返回NGX_OK,当然,达时的NGX_OK绝不表示已经成功地接收完包体,只是说明ngx_http_discard_request_body执行完毕而已.
-   */
+  返回NGX_OK,当然,达时的NGX_OK绝不表示已经成功地接收完包体,只是说明ngx_http_discard_request_body执行完毕而已*/
     r->count++;
     r->discard_body = 1;
 
     return NGX_OK;
 }
 
-/*
-HTTP模块调用的ngx_http_discard_request_body方法用于第一次启动丢弃包体动作,而ngx_http_discarded_request_body_handler是作为请
+/*HTTP模块调用的ngx_http_discard_request_body方法用于第一次启动丢弃包体动作,而ngx_http_discarded_request_body_handler是作为请
 求的read_event_handler方法的,在有新的可读事件时会调用它处理包体.ngx_http_read_discarded_request_body方法则是根据上述两个方法
-通用部分提取出的公共方法,用来读取包体且不做任何处理.
-*/ //当读取客户端包体一次读取不能完成的时候,会分多次调用该函数ngx_http_discarded_request_body_handler
+通用部分提取出的公共方法,用来读取包体且不做任何处理.*/
+
+//当读取客户端包体一次读取不能完成的时候,会分多次调用该函数ngx_http_discarded_request_body_handler
 void
 ngx_http_discarded_request_body_handler(ngx_http_request_t *r) {
     ngx_int_t rc;
@@ -958,6 +920,7 @@ ngx_http_discarded_request_body_handler(ngx_http_request_t *r) {
 HTTP模块调用的ngx_http_discard_request_body方法用于第一次启动丢弃包体动作,而ngx_http_discarded_request_body_handler是作为请
 求的read_event_handler方法的,在有新的可读事件时会调用它处理包体.ngx_http_read discarded_request_body方法则是根据上述两个方法
 通用部分提取出的公共方法,用来读取包体且不做任何处理.*/
+
 //ngx_http_read_discarded_request_body方法与ngx_http_do_read_client_request_body方法很类似
 static ngx_int_t
 ngx_http_read_discarded_request_body(ngx_http_request_t *r) {
@@ -975,13 +938,11 @@ ngx_http_read_discarded_request_body(ngx_http_request_t *r) {
     b.temporary = 1;
 
     for (;;) {
-        /*
-    丢弃包体时请求的request_body成员实际上是NULL室指针,那么用什么变量来表示已经丢弃的包体有多大呢？实际上这时使用
-了请求ngx_http_request_t结构体headers_in成员里的content_length_n,最初它等于content-length头部,而每丢弃一部分包体,就会在
-content_length_n变量中减去相应的大小.因此,content_length_n表示还需要丢弃的包体长度,这里首先检查请求的content_length_n成员,
-如果它已经等于0,则表示已经接收到完整的包体,这时要把read event_handler重置为ngx_http_block_reading方法,表示如果再有可读
-事件被触发时,不做任何处理.同时返回NGX_OK,告诉上层的方法已经丢弃了所有包体.
-  */
+        /*丢弃包体时请求的request_body成员实际上是NULL室指针,那么用什么变量来表示已经丢弃的包体有多大呢？实际上这时使用
+        了请求ngx_http_request_t结构体headers_in成员里的content_length_n,最初它等于content-length头部,而每丢弃一部分包体,就会在
+        content_length_n变量中减去相应的大小.因此,content_length_n表示还需要丢弃的包体长度,这里首先检查请求的content_length_n成员,
+        如果它已经等于0,则表示已经接收到完整的包体,这时要把read event_handler重置为ngx_http_block_reading方法,表示如果再有可读
+        事件被触发时,不做任何处理.同时返回NGX_OK,告诉上层的方法已经丢弃了所有包体*/
         if (r->headers_in.content_length_n == 0) {
             break;
         }
@@ -1183,8 +1144,7 @@ ngx_http_test_expect(ngx_http_request_t *r) {
        把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
        内核协议栈读取数据存储在里面了,然后从复1-5的过程
 
-//读取客户包体即使是存入临时文件中,当所有包体读取完毕后(ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址
-*/
+读取客户包体即使是存入临时文件中,当所有包体读取完毕后(ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址*/
 static ngx_int_t
 ngx_http_request_body_filter(ngx_http_request_t *r, ngx_chain_t *in) { //in其实也是从r->request_body->buf中来的
     if (r->headers_in.chunked) {
@@ -1212,13 +1172,13 @@ ngx_http_request_body_filter(ngx_http_request_t *r, ngx_chain_t *in) { //in其�
      6.ngx_http_request_body_save_filter中检测到rb->buf->last == rb->buf->end,上面的buf(buf1+buf2+buf3)已经填满,然后通过r->request_body->bufs
        把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
        内核协议栈读取数据存储在里面了,然后从复1-5的过程
-//读取客户包体即使是存入临时文件中,当所有包体读取完毕后(见ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址
-*/
 
-/*
-ngx_http_request_body_filter 函数的目的就是要解析读取到的数据 in,追加到 request body 里的 bufs 列表中,busy 也指向要解析到的 chain 和 buf,
-同时 函数会更新 request body 中 rest 的值,此值表示当前请求还有多少字节没有读取.
-*/ //指向该函数后一般in->buf->last = in->buf->pos
+读取客户包体即使是存入临时文件中,当所有包体读取完毕后(见ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址*/
+
+/*ngx_http_request_body_filter 函数的目的就是要解析读取到的数据 in,追加到 request body 里的 bufs 列表中,busy 也指向要解析到的 chain 和 buf,
+同时 函数会更新 request body 中 rest 的值,此值表示当前请求还有多少字节没有读取*/
+
+//指向该函数后一般in->buf->last = in->buf->pos
 static ngx_int_t
 ngx_http_request_body_length_filter(ngx_http_request_t *r, ngx_chain_t *in) { //in其实也是从r->request_body->buf中来的
     size_t size;
@@ -1506,8 +1466,7 @@ ngx_http_request_body_chunked_filter(ngx_http_request_t *r, ngx_chain_t *in) {
        已经存满了(recv的数据存在该空间里面),并且数据分成三个ngx_buf_t指向这些空间,然后连接到了转存到了r->request_body->bufs链表上.在
      6.ngx_http_request_body_save_filter中检测到rb->buf->last == rb->buf->end,上面的buf(buf1+buf2+buf3)已经填满,然后通过r->request_body->bufs
        把三个ngx_buf_t指向的内存空间一次性写入临时文件,写入临时文件后,r->request_body->buf中的pos last指针重新指向头部,又可以从新从
-       内核协议栈读取数据存储在里面了,然后从复1-5的过程
-*/
+       内核协议栈读取数据存储在里面了,然后从复1-5的过程*/
 
 //把in表中的成员buff拼接到r->request_body后面,如果rb->buf->last == rb->buf->end则会把
 //当一个rb->buf填满后就会通过ngx_http_write_request_body把bufs链表中的所有ngx_chain_t->ngx_buf_t中指向的数据

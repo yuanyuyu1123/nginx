@@ -18,6 +18,7 @@ typedef pid_t ngx_pid_t;
 #define NGX_INVALID_PID  -1
 /*Worker进程的工作循环ngx_worker_process_cycle方法也是依照ngx_spawn_proc_pt来定义的
 cacheManage进程或者cache_loader进程的工作循环ngx_cache_manager_process_cycle方法也是如此*/
+
 //ngx_spawn_process函数中调用
 typedef void (*ngx_spawn_proc_pt)(ngx_cycle_t *cycle, void *data);
 /*在解释master工作流程前,还需要对master进程管理子进程的数据结构有个初步了解.下面定义了pgx_processes全局数组,虽然子进程中也会

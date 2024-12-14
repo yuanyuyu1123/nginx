@@ -555,7 +555,6 @@ keepalive:配置到后端的最大连接数,保持长连接,不必为每一个�
     长连接,例如fastcgi:fastcgi_keep_conn on;       proxy:  proxy_http_version 1.1;  proxy_set_header Connection "";
 least_conn:根据其权重值,将请求发送到活跃连接数最少的那台服务器
 hash:可以按照uri  ip 等参数进行做hash
-参考http://tengine.taobao.org/nginx_docs/cn/docs/http/ngx_http_upstream_module.html#ip_hash
 */
 
 
@@ -570,8 +569,6 @@ Nginx不仅仅可以用做Web服务器.upstream机制其实是由ngx_http_upstre
 upstream在客户端跟后端比如FCGI/PHP之间,接收客户端的HTTP body,发送给FCGI,然后接收FCGI的结果,发送给客户端.作为一个桥梁的作用.
 同时,upstream为了充分显示其灵活性,至于后端具体是什么协议,什么系统他都不care,我只实现主体的框架,具体到FCGI协议的发送,接收,
 解析,这些都交给后面的插件来处理,比如有fastcgi,memcached,proxy等插件
-http://chenzhenianqing.cn/articles/category/%e5%90%84%e7%a7%8dserver/nginx
-upstream和FastCGI memcached  uwsgi  scgi proxy的关系参考:http://chenzhenianqing.cn/articles/category/%e5%90%84%e7%a7%8dserver/nginx
 */
 ngx_module_t ngx_http_upstream_module = { //该模块是访问上游服务器相关模块的基础(例如 FastCGI memcached  uwsgi  scgi proxy都会用到upstream模块  ngx_http_proxy_module  ngx_http_memcached_module)
         NGX_MODULE_V1,
@@ -1380,8 +1377,7 @@ ngx_http_upstream_cache_send(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
     header_start: [ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"] 也就是上面的第一行和第二行
     body_start: [ngx_http_file_cache_header_t]["\nKEY: "][fastcgi_cache_key中的KEY]["\n"][header]也就是上面的第一到第五行内容
-    因此:body_start = header_start + [header]部分(例如fastcgi返回的头部行标识部分)
-         */
+    因此:body_start = header_start + [header]部分(例如fastcgi返回的头部行标识部分)*/
     if (c->header_start == c->body_start) {
         r->http_version = NGX_HTTP_VERSION_9;
         return ngx_http_cache_send(r);
@@ -1845,15 +1841,14 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
 }
 
 
-/*
-upstream机制与上游服务器是通过TCP建立连接的,众所周知,建立TCP连接需要三次握手,而三次握手消耗的时间是不可控的.为了保证建立TCP
+/*upstream机制与上游服务器是通过TCP建立连接的,众所周知,建立TCP连接需要三次握手,而三次握手消耗的时间是不可控的.为了保证建立TCP
 连接这个操作不会阻塞进程,Nginx使用无阻塞的套接字来连接上游服务器.调用的ngx_http_upstream_connect方法就是用来连接上游服务器的,
 由于使用了非阻塞的套接字,当方法返回时与上游之间的TCP连接未必会成功建立,可能还需要等待上游服务器返回TCP的SYN/ACK包.因此,
 ngx_http_upstream_connect方法主要负责发起建立连接这个动作,如果这个方法没有立刻返回成功,那么需要在epoll中监控这个套接字,当
-它出现可写事件时,就说明连接已经建立成功了.
+它出现可写事件时,就说明连接已经建立成功了.*/
 //调用socket,connect连接一个后端的peer,然后设置读写事件回调函数,进入发送数据的ngx_http_upstream_send_request里面
 //这里负责连接后端服务,然后设置各个读写事件回调.最后如果连接建立成功,会调用ngx_http_upstream_send_request进行数据发送.
-*/
+
 static void
 ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     ngx_int_t rc;
@@ -1916,11 +1911,9 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     c->requests++;
 
     c->data = r;
-    /*
-设置上游连接 ngx_connection_t 结构体的读事件、写事件的回调方法 handler 都为 ngx_http_upstream_handler,设置 ngx_http_upstream_t
-结构体的写事件 write_event_handler 的回调为 ngx_http_upstream_send_request_handler,读事件 read_event_handler 的回调方法为
-ngx_http_upstream_process_header;
-*/
+    /*设置上游连接 ngx_connection_t 结构体的读事件、写事件的回调方法 handler 都为 ngx_http_upstream_handler,设置 ngx_http_upstream_t
+    结构体的写事件 write_event_handler 的回调为 ngx_http_upstream_send_request_handler,读事件 read_event_handler 的回调方法为
+    ngx_http_upstream_process_header;  */
     c->write->handler = ngx_http_upstream_handler;
     c->read->handler = ngx_http_upstream_handler;
     //这一步骤实际上决定了向上游服务器发送请求的方法是ngx_http_upstream_send_request_handler.
@@ -2452,7 +2445,7 @@ ngx_http_upstream_reinit(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
 static void
 ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
-                               ngx_uint_t do_write) { //向上游服务器发送请求   当一次发送不完,通过ngx_http_upstream_send_request_handler再次触发发送
+                               ngx_uint_t do_write) { //向上游服务器发送请求,当一次发送不完,通过ngx_http_upstream_send_request_handler再次触发发送
     ngx_int_t rc;
     ngx_connection_t *c;
 
@@ -2485,10 +2478,9 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
         ngx_http_upstream_finalize_request(r, u, rc);
         return;
     }
-    /*
-        若返回值rc = NGX_AGAIN,表示请求数据并未完全发送, 即有剩余的请求数据保存在output中,但此时,写事件已经不可写,
-        则调用ngx_add_timer方法把当前连接上的写事件添加到定时器机制, 并调用ngx_handle_write_event方法将写事件注册到epoll事件机制中;
-    */ //通过ngx_http_upstream_read_request_handler进行再次epoll write
+    /*若返回值rc = NGX_AGAIN,表示请求数据并未完全发送, 即有剩余的请求数据保存在output中,但此时,写事件已经不可写,
+        则调用ngx_add_timer方法把当前连接上的写事件添加到定时器机制, 并调用ngx_handle_write_event方法将写事件注册到epoll事件机制中;*/
+    //通过ngx_http_upstream_read_request_handler进行再次epoll write
     if (rc == NGX_AGAIN) { //协议栈缓冲区已满,需要等待发送数据出去后出发epoll可写,从而继续write
         if (!c->write->ready || u->request_body_blocked) {
             //这里加定时器的原因是,例如我把数据扔到协议栈了,并且协议栈已经满了,但是对方就是不接受数据,造成数据一直在协议栈缓存中
@@ -3693,12 +3685,10 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
     if (p->cacheable) {
         p->temp_file->persistent = 1;
-        /*
-默认情况下p->temp_file->path = u->conf->temp_path; 也就是由ngx_http_fastcgi_temp_path指定路径,但是如果是缓存方式(p->cacheable=1)并且配置
-proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示不使用ngx_http_fastcgi_temp_path配置的path),
-则p->temp_file->path = r->cache->file_cache->temp_path; 也就是临时文件/a/b/temp.use_temp_path=off表示不使用ngx_http_fastcgi_temp_path
-配置的路径,而使用指定的临时路径/a/b/temp   见ngx_http_upstream_send_response
-*/
+        /*默认情况下p->temp_file->path = u->conf->temp_path; 也就是由ngx_http_fastcgi_temp_path指定路径,但是如果是缓存方式(p->cacheable=1)并且配置
+        proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示不使用ngx_http_fastcgi_temp_path配置的path),
+        则p->temp_file->path = r->cache->file_cache->temp_path; 也就是临时文件/a/b/temp.use_temp_path=off表示不使用ngx_http_fastcgi_temp_path
+        配置的路径,而使用指定的临时路径/a/b/temp   见ngx_http_upstream_send_response*/
 #if (NGX_HTTP_CACHE)
         if (r->cache && !r->cache->file_cache->use_temp_path) {
             p->temp_file->path = r->cache->file_cache->path;
@@ -3742,10 +3732,8 @@ proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示
             return;
         }
         //指向的是为获取后端头部行的时候分配的第一个缓冲区,buf大小由xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)指定
-        /*
-            这里面只存储了头部行buffer中头部行的内容部分,因为后面写临时文件的时候,需要把后端头部行也写进来,由于前面读取头部行后指针已经指向了数据部分
-            因此需要临时用buf_to_file->start指向头部行部分开始,pos指向数据部分开始,也就是头部行部分结尾
-          */
+        /*这里面只存储了头部行buffer中头部行的内容部分,因为后面写临时文件的时候,需要把后端头部行也写进来,由于前面读取头部行后指针已经指向了数据部分
+            因此需要临时用buf_to_file->start指向头部行部分开始,pos指向数据部分开始,也就是头部行部分结尾*/
         p->buf_to_file->start = u->buffer.start;
         p->buf_to_file->pos = u->buffer.start;
         p->buf_to_file->last = u->buffer.pos;
@@ -5343,7 +5331,6 @@ ngx_http_upstream_process_expires(ngx_http_request_t *r, ngx_table_elt_t *h,
     return NGX_OK;
 }
 
-//参考http://blog.csdn.net/clh604/article/details/9064641
 static ngx_int_t
 ngx_http_upstream_process_accel_expires(ngx_http_request_t *r,
                                         ngx_table_elt_t *h, ngx_uint_t offset) {

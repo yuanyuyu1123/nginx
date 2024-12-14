@@ -15,14 +15,13 @@
 
 
 typedef struct {
-    /*
-    关于pos && code: 每次调用code,都会将解析到的新的字符串放入pos指向的字符串处,然后将pos向后移动,下次进入的时候,会自动将数据追加到后面的.
+    /*关于pos && code: 每次调用code,都会将解析到的新的字符串放入pos指向的字符串处,然后将pos向后移动,下次进入的时候,会自动将数据追加到后面的.
 	对于ip也是这个原理,code里面会将e->ip向后移动.移动的大小根据不同的变量类型相关.ip指向一快内存,其内容为变量相关的一个结构体,比
 	如ngx_http_script_copy_capture_code_t,结构体之后,又是下一个ip的地址.比如移动时是这样的 :code = (ngx_http_script_copy_capture_code_t *) e->ip;
-     e->ip += sizeof(ngx_http_script_copy_capture_code_t);//移动这么多位移.
-	*/
+     e->ip += sizeof(ngx_http_script_copy_capture_code_t);//移动这么多位移*/
+
     /* 包含了在配置解析过程中设置的一些处理结构体,下面的rlcf->codes是一个数组,注意的是,这些结构体的第一个成员就是一个处理handler,
-    这里处理时,都会将该结构体类型强转,拿到其处理handler,然后按照顺序依次执行之   */
+    这里处理时,都会将该结构体类型强转,拿到其处理handler,然后按照顺序依次执行之*/
     u_char                     *ip; //参考ngx_http_rewrite_handler  IP实际上是函数指针数组
     u_char                     *pos; //pos之前的数据就是解析成功的,后面的数据将追加到pos后面.pos指向的是后面的buf数据末尾处
     //这里貌似是用sp来保存中间结果,比如保存当前这一步的进度,到下一步好用e->sp--来找到上一步的结果.
@@ -74,13 +73,12 @@ Nginx 将取值过程分成两个脚本,一个负责计算变量的值长度,另
 当配置解析代码碰到 access_log 指令后,会调用配置项回调函数 ngx_http_log_set_log 解析配置项参数.
 */
 //可以以access_log为例,参考ngx_http_log_set_log
-//参考:http://ialloc.org/posts/2013/10/20/ngx-notes-http-variables/    http://blog.csdn.net/brainkick/article/details/7065244
 //ngx_http_rewrite中,rewrite aaa bbb break;配置中,aaa解析使用ngx_regex_compile_t,bbb解析使用ngx_http_script_compile_t
 //赋值见ngx_http_rewrite
 typedef struct {//脚本化辅助结构体 - 作为脚本化包含变量的参数时的统一输入.   ngx_http_script_init_arrays中分配相关内存
 
     ngx_conf_t                 *cf;
-    ngx_str_t                  *source; /* 配置文件中的原始参数字符串  比如http://$http_host/aa.mp4*/
+    ngx_str_t                  *source; /* 配置文件中的原始参数字符串,比如http://$http_host/aa.mp4*/
 
     //ngx_http_script_add_copy_code   ngx_http_script_add_var_code  ngx_http_script_add_args_code
     ngx_array_t               **flushes;//从ngx_http_variable_t->variables中获取, 这里面存储的是变量的index序号,见ngx_http_script_add_var_code
@@ -88,9 +86,8 @@ typedef struct {//脚本化辅助结构体 - 作为脚本化包含变量的参�
     ngx_http_rewrite_value中赋值为ngx_http_script_complex_value_code_t->lengths,ngx_http_script_complex_value_code会执行该数组中的节点pt,
      */
     ngx_array_t               **lengths; /* 存放用于获取变量对应的值长度的脚本 */ //  数组中的每个成员就1字节
-    /*
-    ngx_http_rewrite_value中赋值为ngx_http_rewrite_loc_conf_t->codes,节点pt在在ngx_http_rewrite_handler会得到执行
-     */ //成员pt可以是ngx_http_script_copy_var_code,见ngx_http_script_add_var_code
+    /*ngx_http_rewrite_value中赋值为ngx_http_rewrite_loc_conf_t->codes,节点pt在在ngx_http_rewrite_handler会得到执行*/
+    //成员pt可以是ngx_http_script_copy_var_code,见ngx_http_script_add_var_code
     //和ngx_http_script_compile_t->values一样,见ngx_http_rewrite_value
     ngx_array_t               **values; /* 存放用于获取变量对应的值的脚本 */ // 数组中的每个成员就1字节
 
@@ -99,16 +96,13 @@ typedef struct {//脚本化辅助结构体 - 作为脚本化包含变量的参�
     ngx_uint_t                  variables; /* 原始参数字符中出现的变量个数 */  //参考ngx_http_script_compile
     ngx_uint_t                  ncaptures; // 当前处理时,出现的$n变量的最大值,如配置的最大为$3,那么ncaptures就等于3
 
-    /*
-       * 以位移的形式保存$1,$2...$9等变量,即响应位置上置1来表示,主要的作用是为dup_capture准备,
-       * 正是由于这个mask的存在,才比较容易得到是否有重复的$n出现.
-     */
+    /* 以位移的形式保存$1,$2...$9等变量,即响应位置上置1来表示,主要的作用是为dup_capture准备,
+       * 正是由于这个mask的存在,才比较容易得到是否有重复的$n出现*/
     ngx_uint_t                  captures_mask; //赋值见ngx_http_script_compile
     ngx_uint_t                  size;// 待compile的字符串中,"常量字符串"的总长度
 
-    /*
-     对于main这个成员,有许多要挖掘的东西.main一般用来指向一个ngx_http_script_regex_code_t的结构
-     */  //ngx_http_rewrite指向ngx_http_script_regex_code_t
+    /*对于main这个成员,有许多要挖掘的东西.main一般用来指向一个ngx_http_script_regex_code_t的结构*/
+    //ngx_http_rewrite指向ngx_http_script_regex_code_t
     void                       *main; //正则表达式结构这是顶层的表达式,里面包含了lengths等.
 
     // 是否需要处理请求参数

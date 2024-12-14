@@ -142,7 +142,7 @@ TCP链接的过程中,默认开启Nagle算法,进行小包发送的优化.
   naggle(tcp_nodelay设置)算法,只要发送出去一个包,并且受到应答,内核就会继续把缓冲区的数据发送出去.
   core(tcp_core设置)算法,受到对方应答后,内核首先检查当前缓冲区中的包是否有1500,如果有则直接发送,如果受到应答的时候还没有1500,则
   等待200ms,如果200ms内还没有1500字节,则发送
-*/ //参考http://m.blog.csdn.net/blog/c_cyoxi/8673645  http://blog.csdn.net/zmj_88888888/article/details/9169227
+*/
 int
 ngx_tcp_nopush(ngx_socket_t s) {
     int cork;

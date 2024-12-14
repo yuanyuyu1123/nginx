@@ -23,7 +23,7 @@ typedef struct ngx_http_upstream_rr_peer_s ngx_http_upstream_rr_peer_t;
 则ngx_http_upstream_rr_peers_s会包含两个ngx_http_upstream_rr_peer_s信息
 */
 
-/* //server backend1.example.com weight=5;
+/* server backend1.example.com weight=5;
 ·weight = NUMBER - 设置服务器权重,默认为1.
 ·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
 ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
@@ -44,22 +44,20 @@ struct ngx_http_upstream_rr_peer_s {
     ngx_uint_t                      conns; //该后端peer上面的成功连接数
     ngx_uint_t max_conns;
 
-    /*
-       当fails达到最大上限次数max_fails,则当fail_timeout时间过后会再次选择该后端服务器,
-       选择后端服务器成功后ngx_http_upstream_free_round_robin_peer会把fails置0
-    */
+    /*当fails达到最大上限次数max_fails,则当fail_timeout时间过后会再次选择该后端服务器,
+       选择后端服务器成功后ngx_http_upstream_free_round_robin_peer会把fails置0 */
     ngx_uint_t                      fails;//已尝试失败次数  赋值见ngx_http_upstream_free_XXX_peer(ngx_http_upstream_free_round_robin_peer)
     //选取的后端服务器异常则跟新accessed时间为当前选取后端服务器的时候检测到异常的时间,见ngx_http_upstream_free_round_robin_peer
     time_t                          accessed;//检测失败时间,用于计算超时
 
-    /*
-       fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
+    /*fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
        答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了,参考ngx_http_upstream_get_peer
        //checked用来检测时间,例如某个时间段fail_timeout这段时间后端失效了,那么这个fail_timeout过了后,也可以试探使用该服务器
        1)如果server的失败次数(peers->peer[i].fails)没有达到了max_fails所设置的最大失败次数,则该server是有效的.
       2)如果server已经达到了max_fails所设置的最大失败次数,从这一时刻开始算起,在fail_timeout 所设置的时间段内, server是无效的.
-      3)当server的失败次数(peers->peer[i].fails)为最大的失败次数,当距离现在的时间(最近一次选举该服务器失败)超过了fail_timeout 所设置的时间段, 则令peers->peer[i].fails =0,使得该server重新有效.
-    */
+      3)当server的失败次数(peers->peer[i].fails)为最大的失败次数,当距离现在的时间(最近一次选举该服务器失败)超过了fail_timeout 所设置的时间段,
+        则令peers->peer[i].fails =0,使得该server重新有效.*/
+
     //checked用来检测时间,例如某个时间段fail_timeout这段时间后端失效了,那么这个fail_timeout过了后,也可以试探使用该服务器
     time_t                          checked;//和fail_timeout配合阅读  一个fail_timeout时间段到了,则跟新checeked为当前时间
 
@@ -107,7 +105,7 @@ struct ngx_http_upstream_rr_peers_s { //每个upstream节点的信息
     ngx_uint_t tries;
 
     unsigned                        single:1;//是否只有一个服务器,例如upstrem xxx {server ip}这种情况下就一个ngx_http_upstream_init_round_robin
-    ////为1表示总的权重值等于服务器数量
+    //为1表示总的权重值等于服务器数量
     unsigned                        weighted:1; //如果为1,表示后端服务器全部一样  ngx_http_upstream_init_round_robin
 
     ngx_str_t                      *name; //upstrem xxx {}中的xxx,如果是fastcgi_pass IP:PORT,则没有name
@@ -170,12 +168,9 @@ struct ngx_http_upstream_rr_peers_s { //每个upstream节点的信息
 
 #endif
 
-/*
-current_weight,effective_weight,weight三者的意义是不同的,三者一起来计算优先级,见下面链接:
-http://blog.sina.com.cn/s/blog_7303a1dc01014i0j.html
+/*current_weight,effective_weight,weight三者的意义是不同的,三者一起来计算优先级
 tried字段实现了一个位图.对于后端服务器小于32台时,使用一个32位int来标识各个服务器是否尝试连接过.当后端服务器大于32台时,
-会在内存池中新申请内存来存储该位图.data是该字段实际存储的位置.current是当前尝试到哪台服务器.
-*/
+会在内存池中新申请内存来存储该位图.data是该字段实际存储的位置.current是当前尝试到哪台服务器*/
 typedef struct {
     ngx_uint_t config;
     ngx_http_upstream_rr_peers_t   *peers;//所有服务器信息   ngx_http_upstream_init_round_robin_peer)

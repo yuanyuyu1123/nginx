@@ -1090,15 +1090,13 @@ struct ngx_http_request_s { //当接收到客户端请求数据后,调用ngx_htt
    */
     ngx_connection_t *connection;
 
-    /*
-   ctx与ngx_http_conf_ctxt结构的3个数组成员非常相似,它们都
+    /*ctx与ngx_http_conf_ctxt结构的3个数组成员非常相似,它们都
    表示指向void指针的数组.HTTP框架就是在ctx数组中保存所有HTTP模块上下文结构体的指针的,所有模块的请求上下文空间在
    ngx_http_create_request中创建.获取和设置分别在ngx_http_get_module_ctx和ngx_http_set_ctx,为每个请求创建ngx_http_request_s的时候
-   都会为该请求的ctx[]为所有的模块创建一个指针,也就是每个模块在ngx_http_request_s中有一个ctx
-   */ //在应答完后,在ngx_http_filter_finalize_request会把ctx指向的空间全部清0  参考4.5节
+   都会为该请求的ctx[]为所有的模块创建一个指针,也就是每个模块在ngx_http_request_s中有一个ctx */
+    //在应答完后,在ngx_http_filter_finalize_request会把ctx指向的空间全部清0  参考4.5节
     void                            **ctx; //指向存放所有HTTP模块的上下文结构体的指针数组,实际上发送给客户端的应答完成后,会把ctx全部置0
-    /*
-    当客户端建立连接后,并发送请求数据过来后,在ngx_http_create_request中从ngx_http_connection_t->conf_ctx获取这三个值,也就是根据客户端连接
+    /*当客户端建立连接后,并发送请求数据过来后,在ngx_http_create_request中从ngx_http_connection_t->conf_ctx获取这三个值,也就是根据客户端连接
     本端所处IP:port所对应的默认server{}块上下文,如果是以下情况:ip:port相同,单在不同的server{}块中,那么有可能客户端请求过来的时候携带的host
     头部项的server_name不在默认的server{}中,而在另外的server{}中,所以需要通过ngx_http_set_virtual_server重新获取server{}和location{}上下文配置
     例如:
@@ -1113,45 +1111,41 @@ struct ngx_http_request_s { //当接收到客户端请求数据后,调用ngx_htt
         这个配置在ngx_http_init_connection中把ngx_http_connection_t->conf_ctx指向ngx_http_addr_conf_s->default_server,也就是指向#1,然后
         ngx_http_create_request中把main_conf srv_conf  loc_conf 指向#1,
         但如果请求行的头部的host:bbb,那么需要重新获取对应的server{} #2,见ngx_http_set_virtual_server*/
+
     //ngx_http_create_request和ngx_http_set_virtual_server 已经rewrite过程中(例如ngx_http_core_find_location
     //ngx_http_core_post_rewrite_phase ngx_http_internal_redirect ngx_http_internal_redirect 子请求ngx_http_subrequest)都可能对他们赋值
     void                            **main_conf; //指向请求对应的存放main级别配置结构体的指针数组
     void                            **srv_conf; //指向请求对应的存放srv级别配置结构体的指针数组   赋值见ngx_http_set_virtual_server
     void                            **loc_conf; //指向请求对应的存放loc级别配置结构体的指针数组   赋值见ngx_http_set_virtual_server
 
-    /*
-     在接收完HTTP头部,第一次在业务上处理HTTP请求时,HTTP框架提供的处理方法是ngx_http_process_request.但如果该方法无法一次处
+    /*在接收完HTTP头部,第一次在业务上处理HTTP请求时,HTTP框架提供的处理方法是ngx_http_process_request.但如果该方法无法一次处
      理完该请求的全部业务,在归还控制权到epoll事件模块后,该请求再次被回调时,将通过ngx_http_request_handler方法来处理,而这个
      方法中对于可读事件的处理就是调用read_event_handler处理请求.也就是说,HTTP模块希望在底层处理请求的读事件时,重新实现read_event_handler方法
-     //在读取客户端来的包体时,赋值为ngx_http_read_client_request_body_handler
-     丢弃客户端的包体时,赋值为ngx_http_discarded_request_body_handler
-     */ //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
+     在读取客户端来的包体时,赋值为ngx_http_read_client_request_body_handler
+     丢弃客户端的包体时,赋值为ngx_http_discarded_request_body_handler  */
+    //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
     ngx_http_event_handler_pt         read_event_handler;
 
     /* 与read_event_handler回调方法类似,如果ngx_http_request_handler方法判断当前事件是可写事件,则调用write_event_handler处理请求 */
     /*请求行和请求头部解析完成后,会在ngx_http_handler中赋值为ngx_http_core_run_phases   子请求的的handler为ngx_http_handler
-       当发送响应的时候,如果一次没有发送完,则设在为ngx_http_writer
-     */ //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
+       当发送响应的时候,如果一次没有发送完,则设在为ngx_http_writer */
+    //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
     //如果采用buffer方式缓存后端包体,则在发送包体给客户端浏览器的时候,会把客户端连接的write_e_hand置为ngx_http_upstream_process_downstream
     //在触发epoll_in的同时也会触发epoll_out,从而会执行该函数
     ngx_http_event_handler_pt         write_event_handler;//父请求重新激活后的回调方法
 
 #if (NGX_HTTP_CACHE)
-//通过ngx_http_upstream_cache_get获取
+    //通过ngx_http_upstream_cache_get获取
     ngx_http_cache_t *cache; //在客户端请求过来后,在ngx_http_upstream_cache->ngx_http_file_cache_new中赋值r->caceh = ngx_http_cache_t
 #endif
 
-    /*
-    如果没有使用upstream机制,那么ngx_http_request_t中的upstream成员是NULL空指针,在ngx_http_upstream_create中创建空间
-    */
+    /*如果没有使用upstream机制,那么ngx_http_request_t中的upstream成员是NULL空指针,在ngx_http_upstream_create中创建空间*/
     ngx_http_upstream_t              *upstream; //upstream机制用到的结构体
     ngx_array_t                      *upstream_states; //创建空间和赋值见ngx_http_upstream_init_request
     /* of ngx_http_upstream_state_t */
 
-    /*
-    表示这个请求的内存池,在ngx_http_free_request方法中销毁.它与ngx_connection-t中的内存池意义不同,当请求释放时,TCP连接可能并
-    没有关闭,这时请求的内存池会销毁,但ngx_connection_t的内存池并不会销毁
-     */
+    /*表示这个请求的内存池,在ngx_http_free_request方法中销毁.它与ngx_connection-t中的内存池意义不同,当请求释放时,TCP连接可能并
+    没有关闭,这时请求的内存池会销毁,但ngx_connection_t的内存池并不会销毁*/
     ngx_pool_t                       *pool;
     //其中,header_in指向Nginx收到的未经解析的HTTP头部,这里暂不关注它(header_in就是接收HTTP头部的缓冲区). header_in存放请求行,headers_in存放头部行
     //请求行和请求头部内容都在该buffer中
@@ -1159,9 +1153,8 @@ struct ngx_http_request_s { //当接收到客户端请求数据后,调用ngx_htt
 
     //类型的headers_in则存储已经解析过的HTTP头部.
     /*常用的HTTP头部信息可以通过r->headers_in获取,不常用的HTTP头部则需要遍历r->headers_in.headers来遍历获取*/
-/*
- ngx_http_process_request_headers方法在接收、解析完HTTP请求的头部后,会把解析完的每一个HTTP头部加入到headers_in的headers链表中,同时会构造headers_in中的其他成员
- */ //参考ngx_http_headers_in,通过该数组中的回调hander来存储解析到的请求行name:value中的value到headers_in的响应成员中,见ngx_http_process_request_headers
+    /*ngx_http_process_request_headers方法在接收、解析完HTTP请求的头部后,会把解析完的每一个HTTP头部加入到headers_in的headers链表中,同时会构造headers_in中的其他成员*/
+    //参考ngx_http_headers_in,通过该数组中的回调hander来存储解析到的请求行name:value中的value到headers_in的响应成员中,见ngx_http_process_request_headers
     //注意:在需要把客户端请求头发送到后端的话,在请求头后面可能添加有HTTP_相关变量,例如fastcgi,见ngx_http_fastcgi_create_request
     ngx_http_headers_in_t             headers_in; //http头部行解析后的内容都由该成员存储  header_in存放请求行,headers_in存放头部行
     //只要指定headers_out中的成员,就可以在调用ngx_http_send_header时正确地把HTTP头部发出
@@ -1169,58 +1162,56 @@ struct ngx_http_request_s { //当接收到客户端请求数据后,调用ngx_htt
     ngx_http_headers_out_t            headers_out;
     //如果是upstream赋值的来源是后端服务器会有的头部行中拷贝,参考ngx_http_upstream_headers_in中的copy_handler
 
-/*
-接收完请求的包体后,可以在r->request_body->temp_file->file中获取临时文件(假定将r->request_body_in_file_only标志位设为1,那就一定可以
-在这个变量获取到包体.).file是一个ngx_file_t类型.这里,我们可以从
-r->request_body->temp_file->file.name中获取Nginx接收到的请求包体所在文件的名称(包括路径).
-*/ //在ngx_http_read_client_request_body中分配存储空间 读取的客户端包体存储在r->request_body->bufs链表和临时文件r->request_body->temp_file中 ngx_http_read_client_request_body
-//读取客户包体即使是存入临时文件中,当所有包体读取完毕后(见ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址
-//向上游发送包体u->request_bufs(ngx_http_fastcgi_create_request),接收客户端的包体在r->request_body
+    /*接收完请求的包体后,可以在r->request_body->temp_file->file中获取临时文件(假定将r->request_body_in_file_only标志位设为1,那就一定可以
+    在这个变量获取到包体.).file是一个ngx_file_t类型.这里,我们可以从
+    r->request_body->temp_file->file.name中获取Nginx接收到的请求包体所在文件的名称(包括路径) */
+    //在ngx_http_read_client_request_body中分配存储空间 读取的客户端包体存储在r->request_body->bufs链表和临时文件r->request_body->temp_file中 ngx_http_read_client_request_body
+    //读取客户包体即使是存入临时文件中,当所有包体读取完毕后(见ngx_http_do_read_client_request_body),还是会让r->request_body->bufs指向文件中的相关偏移内存地址
+    //向上游发送包体u->request_bufs(ngx_http_fastcgi_create_request),接收客户端的包体在r->request_body
     ngx_http_request_body_t          *request_body; //接收HTTP请求中包体的数据结构,为NULL表示还没有分配空间
     //min(lingering_time,lingering_timeout)这段时间内可以继续读取数据,如果客户端有发送数据过来,见ngx_http_set_lingering_close
     time_t                            lingering_time; //延迟关闭连接的时间
     //ngx_http_request_t结构体中有两个成员表示这个请求的开始处理时间:start sec成员和start msec成员
-    /*
-     当前请求初始化时的时间.start sec是格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的秒数.如果这个请求是子请求,则该时间
-     是子请求的生成时间;如果这个请求是用户发来的请求,则是在建立起TCP连接后,第一次接收到可读事件时的时间
-     */
+    /*当前请求初始化时的时间.start sec是格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的秒数.如果这个请求是子请求,则该时间
+     是子请求的生成时间;如果这个请求是用户发来的请求,则是在建立起TCP连接后,第一次接收到可读事件时的时间*/
     time_t                            start_sec;
     ngx_msec_t                        start_msec;//与start_sec配合使用,表示相对于start_set秒的毫秒偏移量
 
 
 
-//以下9个成员都是ngx_http_proces s_request_line方法在接收、解析HTTP请求行时解析出的信息
-/*
-注意　Nginx中对内存的控制相当严格,为了避免不必要的内存开销,许多需要用到的成员都不是重新分配内存后存储的,而是直接指向用户请求中的相应地址.
-例如,method_name.data、request_start这两个指针实际指向的都是同一个地址.而且,因为它们是简单的内存指针,不是指向字符串的指针,所以,在大部分情况下,都不能将这些u_char*指针当做字符串使用.
-*/ //NGX_HTTP_GET | NGX_HTTP_HEAD等,为NGX_HTTP_HEAD表示只需要发送HTTP头部字段
+    //以下9个成员都是ngx_http_proces s_request_line方法在接收、解析HTTP请求行时解析出的信息
+
+    /*注意:Nginx中对内存的控制相当严格,为了避免不必要的内存开销,许多需要用到的成员都不是重新分配内存后存储的,而是直接指向用户请求中的相应地址.
+    例如,method_name.data、request_start这两个指针实际指向的都是同一个地址.而且,因为它们是简单的内存指针,不是指向字符串的指针,所以,在大部分情况下,都不能将这些u_char*指针当做字符串使用.*/
+
+    //NGX_HTTP_GET | NGX_HTTP_HEAD等,为NGX_HTTP_HEAD表示只需要发送HTTP头部字段
     /* HTTP2的method赋值见ngx_http_v2_parse_method */
     ngx_uint_t                        method; //对应客户端请求中请求行的请求方法GET、POS等,取值见NGX_HTTP_GET,也可以用下面的method_name进行字符串比较
-/*
-http_protocol指向用户请求中HTTP的起始地址.
-http_version是Nginx解析过的协议版本,它的取值范围如下:
-#define NGX_HTTP_VERSION_9                 9
-#define NGX_HTTP_VERSION_10                1000
-#define NGX_HTTP_VERSION_11                1001
-建议使用http_version分析HTTP的协议版本.
-最后,使用request_start和request_end可以获取原始的用户请求行.
-*/
+    /*
+    http_protocol指向用户请求中HTTP的起始地址.
+    http_version是Nginx解析过的协议版本,它的取值范围如下:
+    #define NGX_HTTP_VERSION_9                 9
+    #define NGX_HTTP_VERSION_10                1000
+    #define NGX_HTTP_VERSION_11                1001
+    建议使用http_version分析HTTP的协议版本.
+    最后,使用request_start和request_end可以获取原始的用户请求行.
+    */
     ngx_uint_t                        http_version;//http_version是Nginx解析过的协议版本,它的取值范围如下:
     /* 如果是HTTP2,则赋值见ngx_http_v2_construct_request_line */
     ngx_str_t                         request_line; //请求行内容
 
 
-/*
-2016/01/07 12:38:01[      ngx_http_process_request_line,  1002]  [debug] 20090#20090: *14 http request line: "GET /download/nginx-1.9.2.rar?st=xhWL03HbtjrojpEAfiD6Mw&e=1452139931 HTTP/1.1"
-2016/01/07 12:38:01[       ngx_http_process_request_uri,  1223]  [debug] 20090#20090: *14 http uri: "/download/nginx-1.9.2.rar"
-2016/01/07 12:38:01[       ngx_http_process_request_uri,  1226]  [debug] 20090#20090: *14 http args: "st=xhWL03HbtjrojpEAfiD6Mw&e=1452139931"
-2016/01/07 12:38:01[       ngx_http_process_request_uri,  1229]  [debug] 20090#20090: *14 http exten: "rar"
-*/
+    /*
+    2016/01/07 12:38:01[      ngx_http_process_request_line,  1002]  [debug] 20090#20090: *14 http request line: "GET /download/nginx-1.9.2.rar?st=xhWL03HbtjrojpEAfiD6Mw&e=1452139931 HTTP/1.1"
+    2016/01/07 12:38:01[       ngx_http_process_request_uri,  1223]  [debug] 20090#20090: *14 http uri: "/download/nginx-1.9.2.rar"
+    2016/01/07 12:38:01[       ngx_http_process_request_uri,  1226]  [debug] 20090#20090: *14 http args: "st=xhWL03HbtjrojpEAfiD6Mw&e=1452139931"
+    2016/01/07 12:38:01[       ngx_http_process_request_uri,  1229]  [debug] 20090#20090: *14 http exten: "rar"
+    */
 
 
-//ngx_str_t类型的uri成员指向用户请求中的URI.同理,u_char*类型的uri_start和uri_end也与request_start、method_end的用法相似,唯一不
-//同的是,method_end指向方法名的最后一个字符,而uri_end指向URI结束后的下一个地址,也就是最后一个字符的下一个字符地址(HTTP框架的行为),
-//这是大部分u_char*类型指针对"xxx_start"和"xxx_end"变量的用法.
+    //ngx_str_t类型的uri成员指向用户请求中的URI.同理,u_char*类型的uri_start和uri_end也与request_start、method_end的用法相似,唯一不
+    //同的是,method_end指向方法名的最后一个字符,而uri_end指向URI结束后的下一个地址,也就是最后一个字符的下一个字符地址(HTTP框架的行为),
+    //这是大部分u_char*类型指针对"xxx_start"和"xxx_end"变量的用法.
     //http://10.135.10.167/mytest中的/mytest  http://10.135.10.167/mytest?abc?ttt中的/mytest
     //同时"GET /mytest?abc?ttt HTTP/1.1"中的mytest和uri中的一样
     ngx_str_t                         uri;
@@ -1236,23 +1227,23 @@ http_version是Nginx解析过的协议版本,它的取值范围如下:
     uri_ext指针指向的地址与extern.data相同.
     */
     ngx_str_t                         exten; //http://10.135.10.167/mytest/ac.txt中的txt
-/*
-url参数中出现+、空格、=、%、&、#等字符的解决办法
-url出现了有+,空格,/,?,%,#,&,=等特殊符号的时候,可能在服务器端无法获得正确的参数值,如何是好?
-解决办法
-将这些字符转化成服务器可以识别的字符,对应关系如下:
-URL字符转义
-用其它字符替代吧,或用全角的.
-+    URL 中+号表示空格                      %2B
-空格 URL中的空格可以用+号或者编码           %20
-/   分隔目录和子目录                        %2F
-?    分隔实际的URL和参数                    %3F
-%    指定特殊字符                           %25
-#    表示书签                               %23
-&    URL 中指定的参数间的分隔符             %26
-=    URL 中指定参数的值                     %3D
-*/
-//unparsed_uri表示没有进行URL解码的原始请求.例如,当uri为"/a b"时,unparsed_uri是"/a%20b"(空格字符做完编码后是%20).
+    /*
+    url参数中出现+、空格、=、%、&、#等字符的解决办法
+    url出现了有+,空格,/,?,%,#,&,=等特殊符号的时候,可能在服务器端无法获得正确的参数值,如何是好?
+    解决办法
+    将这些字符转化成服务器可以识别的字符,对应关系如下:
+    URL字符转义
+    用其它字符替代吧,或用全角的.
+    +    URL 中+号表示空格                      %2B
+    空格 URL中的空格可以用+号或者编码           %20
+    /   分隔目录和子目录                        %2F
+    ?    分隔实际的URL和参数                    %3F
+    %    指定特殊字符                           %25
+    #    表示书签                               %23
+    &    URL 中指定的参数间的分隔符             %26
+    =    URL 中指定参数的值                     %3D
+    */
+    //unparsed_uri表示没有进行URL解码的原始请求.例如,当uri为"/a b"时,unparsed_uri是"/a%20b"(空格字符做完编码后是%20).
     ngx_str_t                         unparsed_uri;//参考:为什么要对URI进行编码:
     /* HTTP2的method赋值见ngx_http_v2_parse_method,在组新的HTTP2头部行后,赋值见ngx_http_v2_construct_request_line */
     ngx_str_t                         method_name;//见method   GET  POST等
@@ -1260,8 +1251,8 @@ URL字符转义
     ngx_str_t schema;
 
     /* 当ngx_http_header_filter方法无法一次性发送HTTP头部时,将会有以下两个现象同时发生:请求的out成员中将会保存剩余的响应头部,见ngx_http_header_filter */
-/* 表示需要发送给客户端的HTTP响应.out中保存着由headers_out中序列化后的表示HTTP头部的TCP流.在调用ngx_http_output_filter方法后,
-out中还会保存待发送的HTTP包体,它是实现异步发送HTTP响应的关键 */
+    /* 表示需要发送给客户端的HTTP响应.out中保存着由headers_out中序列化后的表示HTTP头部的TCP流.在调用ngx_http_output_filter方法后,
+    out中还会保存待发送的HTTP包体,它是实现异步发送HTTP响应的关键 */
     ngx_chain_t                      *out;//ngx_http_write_filter把in中的数据拼接到out后面,然后调用writev发送,没有发送完
 
     /* 当前请求既可能是用户发来的请求,也可能是派生出的子请求,而main则标识一系列相关的派生子请
@@ -1280,52 +1271,48 @@ out中还会保存待发送的HTTP包体,它是实现异步发送HTTP响应的�
     ngx_http_postponed_request_t     *postponed; //与subrequest子请求相关的功能  postponed中数据依次发送参考ngx_http_postpone_filter方法
     ngx_http_post_subrequest_t       *post_subrequest;/* 保存回调handler及数据,在子请求执行完,将会调用 */
 
-/* 所有的子请求都是通过posted_requests这个单链表来链接起来的,执行post子请求时调用的
-ngx_http_run_posted_requests方法就是通过遍历该单链表来执行子请求的 */
-//ngx_http_post_request中创建ngx_http_posted_request_t空间
-//ngx_http_post_request将该子请求挂载在主请求的posted_requests链表队尾,在ngx_http_run_posted_requests中执行
+    /* 所有的子请求都是通过posted_requests这个单链表来链接起来的,执行post子请求时调用的
+    ngx_http_run_posted_requests方法就是通过遍历该单链表来执行子请求的 */
+    //ngx_http_post_request中创建ngx_http_posted_request_t空间
+    //ngx_http_post_request将该子请求挂载在主请求的posted_requests链表队尾,在ngx_http_run_posted_requests中执行
     ngx_http_posted_request_t        *posted_requests; //通过posted_requests就把各个子请求以单向链表的数据结构形式组织起来
 
-/*
-全局的ngx_http_phase_engine_t结构体中定义了一个ngx_http_phase_handler_t回调方法组成的数组,而phase_handler成员则与该数组配合使用,
-表示请求下次应当执行以phase_handler作为序号指定的数组中的回调方法.HTTP框架正是以这种方式把各个HTTP摸块集成起来处理请求的
-*///phase_handler实际上是该阶段的处理方法函数在ngx_http_phase_engine_t->handlers数组中的位置
+    /*全局的ngx_http_phase_engine_t结构体中定义了一个ngx_http_phase_handler_t回调方法组成的数组,而phase_handler成员则与该数组配合使用,
+    表示请求下次应当执行以phase_handler作为序号指定的数组中的回调方法.HTTP框架正是以这种方式把各个HTTP摸块集成起来处理请求的*/
+
+    //phase_handler实际上是该阶段的处理方法函数在ngx_http_phase_engine_t->handlers数组中的位置
     ngx_int_t                         phase_handler;
     //表示NGX HTTP CONTENT PHASE阶段提供给HTTP模块处理请求的一种方式,content handler指向HTTP模块实现的请求处理方法,在ngx_http_core_content_phase中执行
     //ngx_http_proxy_handler  ngx_http_redis2_handler  ngx_http_fastcgi_handler等
-    ngx_http_handler_pt               content_handler; ////在ngx_http_update_location_config中赋值给r->content_handler = clcf->handler;
-/*
-    在NGX_HTTP_ACCESS_PHASE阶段需要判断请求是否具有访问权限时,通过access_code来传递HTTP模块的handler回调方法的返回值,如果access_code为0,
-则表示请求具备访问权限,反之则说明请求不具备访问权限
-    NGXHTTPPREACCESSPHASE、NGX_HTTP_ACCESS_PHASE、NGX HTTPPOST_ACCESS_PHASE,很好理解,做访问权限检查的前期、中期、后期工作,
-其中后期工作是固定的,判断前面访问权限检查的结果(状态码存故在字段r->access_code内),如果当前请求没有访问权限,那么直接返回状
-态403错误,所以这个阶段也无法去挂载额外的回调函数.
-*/
+    ngx_http_handler_pt               content_handler; //在ngx_http_update_location_config中赋值给r->content_handler = clcf->handler;
+    /*在NGX_HTTP_ACCESS_PHASE阶段需要判断请求是否具有访问权限时,通过access_code来传递HTTP模块的handler回调方法的返回值,如果access_code为0,
+    则表示请求具备访问权限,反之则说明请求不具备访问权限NGXHTTPPREACCESSPHASE、NGX_HTTP_ACCESS_PHASE、NGX HTTPPOST_ACCESS_PHASE,很好理解,做访问权限检查的前期、中期、后期工作,
+    其中后期工作是固定的,判断前面访问权限检查的结果(状态码存故在字段r->access_code内),如果当前请求没有访问权限,那么直接返回状
+    态403错误,所以这个阶段也无法去挂载额外的回调函数.*/
     ngx_uint_t                        access_code; //赋值见ngx_http_core_access_phase
-    /*
-    ngx_http_core_main_conf_t->variables数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variables数组成员结构是ngx_variable_value_t,
+    /*ngx_http_core_main_conf_t->variables数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variables数组成员结构是ngx_variable_value_t,
     这两个结构的关系很密切,一个所谓变量,一个所谓变量值
     r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
-相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
-量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值
-    */ //分配的节点数见ngx_http_create_request,和ngx_http_core_main_conf_t->variables一一对应
+    相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
+    量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值*/
+
+    //分配的节点数见ngx_http_create_request,和ngx_http_core_main_conf_t->variables一一对应
     //变量ngx_http_script_var_code_t->index表示Nginx变量$file在ngx_http_core_main_conf_t->variables数组内的下标,对应每个请求的变量值存储空间就为r->variables[code->index],参考ngx_http_script_set_var_code
     ngx_http_variable_value_t        *variables; //注意和ngx_http_core_main_conf_t->variables的区别
 
 #if (NGX_PCRE)
-    /*
-      例如正则表达式语句re.name= ^(/download/.*)/media/(.*)/tt/(.*)$,  s=/download/aa/media/bdb/tt/ad,则他们会匹配,同时匹配的
+    /*例如正则表达式语句re.name= ^(/download/.*)/media/(.*)/tt/(.*)$,  s=/download/aa/media/bdb/tt/ad,则他们会匹配,同时匹配的
       变量数有3个,则返回值为3+1=4,如果不匹配则返回-1
-      这里*2是因为获取前面例子中的3个变量对应的值需要成对使用r->captures,参考ngx_http_script_copy_capture_code等
-      */
+      这里*2是因为获取前面例子中的3个变量对应的值需要成对使用r->captures,参考ngx_http_script_copy_capture_code等*/
     ngx_uint_t                        ncaptures; //赋值见ngx_http_regex_exec   //最大的$n*2
     int                              *captures; //每个不同的正则解析之后的结果,存放在这里.$1,$2等
     u_char                           *captures_data; //进行正则表达式匹配的原字符串,例如http://10.135.2.1/download/aaa/media/bbb.com中的/download/aaa/media/bbb.com
 #endif
 
     /* limit_rate成员表示发送响应的最大速率,当它大于0时,表示需要限速.limit rate表示每秒可以发送的字节数,超过这个数字就需要限速;
-然而,限速这个动作必须是在发送了limit_rate_after字节的响应后才能生效(对于小响应包的优化设计) */
-//实际最后通过ngx_writev_chain发送数据的时候,还会限制一次
+    然而,限速这个动作必须是在发送了limit_rate_after字节的响应后才能生效(对于小响应包的优化设计) */
+
+    //实际最后通过ngx_writev_chain发送数据的时候,还会限制一次
     size_t                            limit_rate; //限速的相关计算方法参考ngx_http_write_filter
     size_t                            limit_rate_after;
 
@@ -1346,34 +1333,29 @@ ngx_http_run_posted_requests方法就是通过遍历该单链表来执行子请�
 
     ngx_http_log_handler_pt log_handler;
     //在这个请求中如果打开了某些资源,并需要在请求结束时释放,那么都需要在把定义的释放资源方法添加到cleanup成员中
-    /*
-    如果没有需要清理的资源,则cleanup为空指针,否则HTTP模块可以向cleanup中以单链表的形式无限制地添加ngx_http_cleanup_t结构体,
-    用以在请求结束时释放资源 */
+
+    /*如果没有需要清理的资源,则cleanup为空指针,否则HTTP模块可以向cleanup中以单链表的形式无限制地添加ngx_http_cleanup_t结构体,用以在请求结束时释放资源 */
     ngx_http_cleanup_t *cleanup;
-    /*
-在阅读HTTP反向代理模块(ngx_http_proxy_module)源代码时,会发现它并没有调用r->main->count++,其中proxy模块是这样启动upstream机制的:
-ngx_http_read_client_request_body(r,ngx_http_upstream_init);,这表示读取完用户请求的HTTP包体后才会调用ngx_http_upstream_init方法
-启动upstream机制.由于ngx_http_read_client_request_body的第一行有效语句是r->maln->count++,所以HTTP反向代理模块不能
-再次在其代码中执行r->main->count++.
-这个过程看起来似乎让人困惑.为什么有时需要把引用计数加1,有时却不需要呢?因为ngx_http_read- client_request_body读取请求包体是
-一个异步操作(需要epoll多次调度方能完成的可称其为异步操作),ngx_http_upstream_init方法启用upstream机制也是一个异步操作,因此,
-从理论上来说,每执行一次异步操作应该把引用计数加1,而异步操作结束时应该调用ngx_http_finalize_request方法把引用计数减1.另外,
-ngx_http_read_client_request_body方法内是加过引用计数的,而ngx_http_upstream_init方法内却没有加过引用计数(或许Nginx将来会修改
-这个问题).在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用"ngx_http_read- client_request_body(r,ngx_http_upstream_init);"
-语句同时启动了两个异步操作,注意,这行语句中只加了一次引用计数.执行这行语句的ngx_http_proxy_handler方法返回时只调用
-ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一样,务必要保证对引用计数的增加和减少是配对进行的.
-*/
-/*
-表示当前请求的引用次数.例如,在使用subrequest功能时,依附在这个请求上的子请求数目会返回到count上,每增加一个子请求,count数就要加1.
-其中任何一个子请求派生出新的子请求时,对应的原始请求(main指针指向的请求)的count值都要加1.又如,当我们接收HTTP包体时,由于这也是
-一个异步调用,所以count上也需要加1,这样在结束请求时,就不会在count引用计数未清零时销毁请求
-*/
+    /*在阅读HTTP反向代理模块(ngx_http_proxy_module)源代码时,会发现它并没有调用r->main->count++,其中proxy模块是这样启动upstream机制的:
+    ngx_http_read_client_request_body(r,ngx_http_upstream_init);,这表示读取完用户请求的HTTP包体后才会调用ngx_http_upstream_init方法
+    启动upstream机制.由于ngx_http_read_client_request_body的第一行有效语句是r->maln->count++,所以HTTP反向代理模块不能
+    再次在其代码中执行r->main->count++.
+    这个过程看起来似乎让人困惑.为什么有时需要把引用计数加1,有时却不需要呢?因为ngx_http_read- client_request_body读取请求包体是
+    一个异步操作(需要epoll多次调度方能完成的可称其为异步操作),ngx_http_upstream_init方法启用upstream机制也是一个异步操作,因此,
+    从理论上来说,每执行一次异步操作应该把引用计数加1,而异步操作结束时应该调用ngx_http_finalize_request方法把引用计数减1.另外,
+    ngx_http_read_client_request_body方法内是加过引用计数的,而ngx_http_upstream_init方法内却没有加过引用计数(或许Nginx将来会修改
+    这个问题).在HTTP反向代理模块中,它的ngx_http_proxy_handler方法中用"ngx_http_read- client_request_body(r,ngx_http_upstream_init);"
+    语句同时启动了两个异步操作,注意,这行语句中只加了一次引用计数.执行这行语句的ngx_http_proxy_handler方法返回时只调用
+    ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一样,务必要保证对引用计数的增加和减少是配对进行的.*/
+
+    /*表示当前请求的引用次数.例如,在使用subrequest功能时,依附在这个请求上的子请求数目会返回到count上,每增加一个子请求,count数就要加1.
+    其中任何一个子请求派生出新的子请求时,对应的原始请求(main指针指向的请求)的count值都要加1.又如,当我们接收HTTP包体时,由于这也是
+    一个异步调用,所以count上也需要加1,这样在结束请求时,就不会在count引用计数未清零时销毁请求*/
     unsigned count: 16; //应用计数   ngx_http_close_request中-1
     //默认值r->subrequests = NGX_HTTP_MAX_SUBREQUESTS + 1;见ngx_http_create_request
     unsigned                          subrequests:8; //该r最多还可以处理多少个子请求
     /* 如果AIO上下文中还在处理这个请求,blocked必然是大于0的,这时ngx_http_close_request方法不能结束请求
-       ngx_http_copy_aio_handler会自增,当内核把数据发送出去后会在ngx_http_copy_aio_event_handler自剪
-    */
+       ngx_http_copy_aio_handler会自增,当内核把数据发送出去后会在ngx_http_copy_aio_event_handler自剪*/
     unsigned                          blocked:8; //阻塞标志位,目前仅由aio使用  为0,表示没有HTTP模块还需要处理请求
     //ngx_http_copy_aio_handler handler ngx_http_copy_aio_event_handler执行后,会置回到0
     //ngx_http_copy_thread_handler ngx_http_copy_thread_event_handler置0
@@ -1403,10 +1385,9 @@ ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一�
     //如果有rewrite 内部重定向 uri带有args等会直接置0,否则如果uri中有空格会置1
     unsigned                          valid_unparsed_uri:1;//r->valid_unparsed_uri = r->space_in_uri ? 0 : 1;
 
-    /*
-    将uri_changed设置为0后,也就标志说URL没有变化,那么,在ngx_http_core_post_rewrite_phase中就不会执行里面的if语句,也就不会
-    再次走到find config的过程了,而是继续处理后面的.不然正常情况,rewrite成功后是会重新来一次的,相当于一个全新的请求.
-     */ // 例如rewrite   ^.*$ www.galaxywind.com last;就会多次执行rewrite       ngx_http_script_regex_start_code中置1
+    /*将uri_changed设置为0后,也就标志说URL没有变化,那么,在ngx_http_core_post_rewrite_phase中就不会执行里面的if语句,也就不会
+    再次走到find config的过程了,而是继续处理后面的.不然正常情况,rewrite成功后是会重新来一次的,相当于一个全新的请求*/
+    // 例如rewrite   ^.*$ www.galaxywind.com last;就会多次执行rewrite       ngx_http_script_regex_start_code中置1
     unsigned                          uri_changed:1; //标志位,为1时表示URL发生过rewrite重写  只要不是rewrite xxx bbb sss;aaa不是break结束都会置1
     //表示使用rewrite重写URL的次数.因为目前最多可以更改10次,所以uri_changes初始化为11,而每重写URL -次就把uri_changes减1,
     //一旦uri_changes等于0,则向用户返回失败
@@ -1425,13 +1406,11 @@ ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一�
     //默认是为0的表示需要缓存客户端包体,决定是否需要转发客户端包体到后端,如果request_body_no_buffering为1表示不用缓存包体,那么request_body_in_file_only也为0,因为不用缓存包体,那么就不用写到临时文件中
     unsigned                          request_body_no_buffering:1; //是否缓存HTTP包体,如果不缓存包体,和request_body_in_file_only是互斥的,见ngx_http_read_client_request_body
 
-    /*
-        upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
+    /*upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
     当请求的ngx_http_request_t结构体中subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体
     到下游,由HTTP模块实现的input_filter方法处理包体;当subrequest_in_memory为0时,upstream会转发响应包体.当ngx_http_upstream_conf_t
     配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;当buffering
-    为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.
-    */
+    为0时,将使用固定大小的缓冲区(就是上面介绍的buffer缓冲区)来转发响应包体.*/
     unsigned                          subrequest_in_memory:1; //ngx_http_subrequest中赋值 NGX_HTTP_SUBREQUEST_IN_MEMORY
     unsigned                          waited:1; //ngx_http_subrequest中赋值 NGX_HTTP_SUBREQUEST_WAITED
 
@@ -1479,16 +1458,16 @@ ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一�
     //在1.0以上版本默认是长连接,1.0以上版本默认置1,如果在请求头里面没有设置连接方式,见ngx_http_handler
     //标志位,为1时表示当前请求是keepalive请求  1长连接   0短连接  长连接时间通过请求头部的Keep-Alive:设置,参考ngx_http_headers_in_t
     unsigned                          keepalive:1;  //赋值见ngx_http_handler
-//延迟关闭标志位,为1时表示需要延迟关闭.例如,在接收完HTTP头部时如果发现包体存在,该标志位会设为1,而放弃接收包体时则会设为o
+    //延迟关闭标志位,为1时表示需要延迟关闭.例如,在接收完HTTP头部时如果发现包体存在,该标志位会设为1,而放弃接收包体时则会设为o
     unsigned                          lingering_close:1;
     //如果discard_body为1,则证明曾经执行过丢弃包体的方法,现在包体正在被丢弃中,见ngx_http_read_client_request_body
     unsigned                          discard_body:1;//标志住,为1时表示正在丢弃HTTP请求中的包体
     unsigned                          reading_body:1; //标记包体还没有读完,需要继续读取包体,见ngx_http_read_client_request_body
 
     /* 在这一步骤中,把phase_handler序号设为server_rewrite_index,这意味着无论之前执行到哪一个阶段,马上都要重新从NGX_HTTP_SERVER_REWRITE_PHASE
-阶段开始再次执行,这是Nginx的请求可以反复rewrite重定向的基础.见ngx_http_handler */
-//ngx_http_internal_redirect置1    创建子请求的时候,子请求也要置1,见ngx_http_subrequest,所有子请求需要做重定向
-//内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)
+    阶段开始再次执行,这是Nginx的请求可以反复rewrite重定向的基础.见ngx_http_handler */
+    //ngx_http_internal_redirect置1,创建子请求的时候,子请求也要置1,见ngx_http_subrequest,所有子请求需要做重定向
+    //内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)
     unsigned                          internal:1;//t标志位,为1时表示请求的当前状态是在做内部跳转,
     unsigned                          error_page:1; //默认0,在ngx_http_special_response_handler中可能置1
     unsigned                          filter_finalize:1;
@@ -1529,11 +1508,10 @@ ngx_http_finalize_request方法一次,这是正确的.对于mytest模块也一�
     //存储Accept-Language:zh-cn中的Accept-Language字符串到lowcase_header.如果是AAA_BBB:CCC,则该数组存储的是_BBB
     u_char                            lowcase_header[NGX_HTTP_LC_HEADER_LEN]; //http头部内容,不包括应答行或者请求行,参考ngx_http_parse_header_line
 
-/*
-例如:Accept:image/gif.image/jpeg,**
-Accept对应于key,header_name_start header_name_end分别指向这个Accept字符串的头和尾
-image/gif.image/jpeg,** 为value部分,header_start header_end分别对应value的头和尾,可以参考mytest_upstream_process_header
-*/
+    /*例如:Accept:image/gif.image/jpeg,**
+    Accept对应于key,header_name_start header_name_end分别指向这个Accept字符串的头和尾
+    image/gif.image/jpeg,** 为value部分,header_start header_end分别对应value的头和尾,可以参考mytest_upstream_process_header*/
+
     //header_name_start指向Accept-Language:zh-cn中的A处
     u_char                           *header_name_start; //解析到的一行http头部行中的一行的name开始处 //赋值见ngx_http_parse_header_line
     //header_name_start指向Accept-Language:zh-cn中的:处
@@ -1546,17 +1524,17 @@ image/gif.image/jpeg,** 为value部分,header_start header_end分别对应value�
      * via ngx_http_ephemeral_t
      */
 
-//ngx_str_t类型的uri成员指向用户请求中的URI.同理,u_char*类型的uri_start和uri_end也与request_start、request_end的用法相似,唯一不
-//同的是,method_end指向方法名的最后一个字符,而uri_end指向URI结束后的下一个地址,也就是最后一个字符的下一个字符地址(HTTP框架的行为),
-//这是大部分u_char*类型指针对"xxx_start"和"xxx_end"变量的用法.
+    //ngx_str_t类型的uri成员指向用户请求中的URI.同理,u_char*类型的uri_start和uri_end也与request_start、request_end的用法相似,唯一不
+    //同的是,method_end指向方法名的最后一个字符,而uri_end指向URI结束后的下一个地址,也就是最后一个字符的下一个字符地址(HTTP框架的行为),
+    //这是大部分u_char*类型指针对"xxx_start"和"xxx_end"变量的用法.
     u_char                           *uri_start;//HTTP2的赋值见ngx_http_v2_parse_path
     u_char                           *uri_end;//HTTP2的赋值见ngx_http_v2_parse_path
 
-/*
-ngx_str_t类型的extern成员指向用户请求的文件扩展名.例如,在访问"GET /a.txt HTTP/1.1"时,extern的值是{len = 3, data = "txt"},
-而在访问"GET /a HTTP/1.1"时,extern的值为空,也就是{len = 0, data = 0x0}.
-uri_ext指针指向的地址与extern.data相同.
-*/ //GET /sample.jsp HTTP/1.1 后面的文件如果有.字符,则指向该.后面的jsp字符串,表示文件扩展名
+    /*ngx_str_t类型的extern成员指向用户请求的文件扩展名.例如,在访问"GET /a.txt HTTP/1.1"时,extern的值是{len = 3, data = "txt"},
+    而在访问"GET /a HTTP/1.1"时,extern的值为空,也就是{len = 0, data = 0x0}.
+    uri_ext指针指向的地址与extern.data相同.*/
+
+    //GET /sample.jsp HTTP/1.1 后面的文件如果有.字符,则指向该.后面的jsp字符串,表示文件扩展名
     u_char                           *uri_ext;
     //"GET /aaaaaaaa?bbbb.txt HTTP/1.1"中的bbb.txt字符串头位置处
     u_char                           *args_start;//args_start指向URL参数的起始地址,配合uri_end使用也可以获得URL参数.

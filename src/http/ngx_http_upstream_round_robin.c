@@ -291,52 +291,16 @@ ngx_http_upstream_init_round_robin(ngx_conf_t *cf,
 }
 
 /*
-Load-blance模块中4个关键回调函数:
-回调指针                  函数功能                          round_robin模块                     IP_hash模块
-
-uscf->peer.init_upstream默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行
-解析配置文件过程中调用,根据upstream里各个server配置项做初始准备工作,另外的核心工作是设置回调指针us->peer.init.配置文件解析完后不再被调用
-ngx_http_upstream_init_round_robin
-设置:us->peer.init = ngx_http_upstream_init_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash
-设置:us->peer.init = ngx_http_upstream_init_ip_hash_peer;
-
-us->peer.init
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数为本次转发选择合适的后端服务器做初始准备工作,另外的核心工
-作是设置回调指针r->upstream->peer.get和r->upstream->peer.free等
-
-ngx_http_upstream_init_round_robin_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_round_robin_peer;
-r->upstream->peer.free = ngx_http_upstream_free_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_ip_hash_peer;
-r->upstream->peer.free为空
-
-r->upstream->peer.get
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数实现具体的位本次转发选择合适的后端服务器的算法逻辑,即
-完成选择获取合适后端服务器的功能
-
-ngx_http_upstream_get_round_robin_peer
-加权选择当前权值最高的后端服务器
-
-ngx_http_upstream_get_ip_hash_peer
-根据IP哈希值选择后端服务器
-
-r->upstream->peer.free
-在每一次Nginx完成与后端服务器之间的交互后都会调用该函数.
-ngx_http_upstream_free_round_robin_peer
-更新相关数值,比如rrp->current
-轮询策略和IP哈希策略对比
-加权轮询策略
-优点:适用性更强,不依赖于客户端的任何信息,完全依靠后端服务器的情况来进行选择.能把客户端请求更合理更均匀地分配到各个后端服务器处理.
-缺点:同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理,无法满足做会话保持的应用的需求.
-IP哈希策略
-优点:能较好地把同一个客户端的多次请求分配到同一台服务器处理,避免了加权轮询无法适用会话保持的需求.
-缺点:当某个时刻来自某个IP地址的请求特别多,那么将导致某台后端服务器的压力可能非常大,而其他后端服务器却空闲的不均衡情况、
+轮询策略和IP哈希策略对比:
+1.加权轮询策略
+    优点:适用性更强,不依赖于客户端的任何信息,完全依靠后端服务器的情况来进行选择.能把客户端请求更合理更均匀地分配到各个后端服务器处理.
+    缺点:同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理,无法满足做会话保持的应用的需求.
+2.IP哈希策略
+    优点:能较好地把同一个客户端的多次请求分配到同一台服务器处理,避免了加权轮询无法适用会话保持的需求.
+    缺点:当某个时刻来自某个IP地址的请求特别多,那么将导致某台后端服务器的压力可能非常大,而其他后端服务器却空闲的不均衡情况、
 */
-//如果没有手动设置访问后端服务器的算法,则默认用robin方式  //轮询负债均衡算法ngx_http_upstream_init_round_robin_peer  iphash负载均衡算法ngx_http_upstream_init_ip_hash_peer
+//如果没有手动设置访问后端服务器的算法,则默认用robin方式
+// 轮询负债均衡算法ngx_http_upstream_init_round_robin_peer  iphash负载均衡算法ngx_http_upstream_init_ip_hash_peer
 ngx_int_t  //ngx_http_upstream_init_request准备好FCGI数据,buffer后,会调用这里进行一个peer的初始化,此处是轮询peer的初始化.
 ngx_http_upstream_init_round_robin_peer(ngx_http_request_t *r,
                                         ngx_http_upstream_srv_conf_t *us) { // (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)
@@ -511,60 +475,6 @@ ngx_http_upstream_create_round_robin_peer(ngx_http_request_t *r,
 
 
 /*
-Load-blance模块中4个关键回调函数:
-回调指针                  函数功能                          round_robin模块                     IP_hash模块
-
-uscf->peer.init_upstream (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)
-解析配置文件过程中调用,根据upstream里各个server配置项做初始准备工作,另外的核心工作是设置回调指针us->peer.init.配置文件解析完后不再被调用
-ngx_http_upstream_init_round_robin
-设置:us->peer.init = ngx_http_upstream_init_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash
-设置:us->peer.init = ngx_http_upstream_init_ip_hash_peer;
-
-us->peer.init
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数为本次转发选择合适的后端服务器做初始准备工作,另外的核心工
-作是设置回调指针r->upstream->peer.get和r->upstream->peer.free等
-
-ngx_http_upstream_init_round_robin_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_round_robin_peer;
-r->upstream->peer.free = ngx_http_upstream_free_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_ip_hash_peer;
-r->upstream->peer.free为空
-
-r->upstream->peer.get
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数实现具体的位本次转发选择合适的后端服务器的算法逻辑,即
-完成选择获取合适后端服务器的功能
-
-ngx_http_upstream_get_round_robin_peer
-加权选择当前权值最高的后端服务器
-
-ngx_http_upstream_get_ip_hash_peer
-根据IP哈希值选择后端服务器
-
-r->upstream->peer.free
-在每一次Nginx完成与后端服务器之间的交互后都会调用该函数.
-ngx_http_upstream_free_round_robin_peer
-更新相关数值,比如rrp->current
-轮询策略和IP哈希策略对比
-加权轮询策略
-优点:适用性更强,不依赖于客户端的任何信息,完全依靠后端服务器的情况来进行选择.能把客户端请求更合理更均匀地分配到各个后端服务器处理.
-缺点:同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理,无法满足做会话保持的应用的需求.
-IP哈希策略
-优点:能较好地把同一个客户端的多次请求分配到同一台服务器处理,避免了加权轮询无法适用会话保持的需求.
-缺点:当某个时刻来自某个IP地址的请求特别多,那么将导致某台后端服务器的压力可能非常大,而其他后端服务器却空闲的不均衡情况、
-轮询策略和IP哈希策略对比
-加权轮询策略
-优点:适用性更强,不依赖于客户端的任何信息,完全依靠后端服务器的情况来进行选择.能把客户端请求更合理更均匀地分配到各个后端服务器处理.
-缺点:同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理,无法满足做会话保持的应用的需求.
-IP哈希策略
-优点:能较好地把同一个客户端的多次请求分配到同一台服务器处理,避免了加权轮询无法适用会话保持的需求.
-缺点:当某个时刻来自某个IP地址的请求特别多,那么将导致某台后端服务器的压力可能非常大,而其他后端服务器却空闲的不均衡情况、
-*/
-
-/*
  判断server 是否有效的方法是:
  1)如果server的失败次数(peers->peer[i].fails)没有达到了max_fails所设置的最大失败次数,则该server是有效的.
  2)如果server已经达到了max_fails所设置的最大失败次数,从这一时刻开始算起,在fail_timeout 所设置的时间段内, server是无效的.
@@ -670,12 +580,11 @@ ngx_http_upstream_get_round_robin_peer(ngx_peer_connection_t *pc, void *data) {
     return NGX_BUSY;
 }
 
-/*
-   fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
+/*fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
    答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了,参考ngx_http_upstream_get_peer
-   //checked用来检测时间,例如某个时间段fail_timeout这段时间后端失效了,那么这个fail_timeout过了后,也可以试探使用该服务器
- */
-//get_peer函数返回优先级最大的服务器 //按照当前各服务器权值进行选择
+   checked用来检测时间,例如某个时间段fail_timeout这段时间后端失效了,那么这个fail_timeout过了后,也可以试探使用该服务器 */
+
+//get_peer函数返回优先级最大的服务器,按照当前各服务器权值进行选择
 static ngx_http_upstream_rr_peer_t *
 ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp) { //ngx_http_upstream_get_peer和ngx_http_upstream_init_round_robin_peer配合阅读
     time_t now;
@@ -708,10 +617,8 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp) { //ngx_http_u
             continue;
         }
 
-        /*
-         fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
-         答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了
-         */
+        /*fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
+         答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了*/
         if (peer->max_fails
             && peer->fails >= peer->max_fails
             && now - peer->checked <= peer->fail_timeout) { //根据指定一段时间内最大失败次数做判断
@@ -744,7 +651,6 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp) { //ngx_http_u
                    a                                   { 8, 0, 0 }              { 0, 0, 0 }
            经过一轮选择以后,优先级恢复到初始状态.这个性质使得代码得以缩短.Cool!
          */
-        //加权轮训算法可以参考:http://blog.sina.com.cn/s/blog_7303a1dc01014i0j.html
         peer->current_weight += peer->effective_weight;
         total += peer->effective_weight;
 
@@ -770,10 +676,8 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp) { //ngx_http_u
     rrp->tried[n] |= m; //位图相应位置置位
 
     best->current_weight -= total;
-    /*
-      fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
-      答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了
-    */
+    /*fail_timeout事件内访问后端出现错误的次数大于等于max_fails,则认为该服务器不可用,那么如果不可用了,后端该服务器有恢复了怎么判断检测呢?
+      答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了*/
     if (now - best->checked > best->fail_timeout) {
         best->checked = now;
     }
@@ -781,52 +685,6 @@ ngx_http_upstream_get_peer(ngx_http_upstream_rr_peer_data_t *rrp) { //ngx_http_u
     return best;
 }
 
-/*
-Load-blance模块中4个关键回调函数:
-回调指针                  函数功能                          round_robin模块                     IP_hash模块
-
-uscf->peer.init_upstream (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)
-解析配置文件过程中调用,根据upstream里各个server配置项做初始准备工作,另外的核心工作是设置回调指针us->peer.init.配置文件解析完后不再被调用
-ngx_http_upstream_init_round_robin
-设置:us->peer.init = ngx_http_upstream_init_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash
-设置:us->peer.init = ngx_http_upstream_init_ip_hash_peer;
-
-us->peer.init
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数为本次转发选择合适的后端服务器做初始准备工作,另外的核心工
-作是设置回调指针r->upstream->peer.get和r->upstream->peer.free等
-
-ngx_http_upstream_init_round_robin_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_round_robin_peer;
-r->upstream->peer.free = ngx_http_upstream_free_round_robin_peer;
-
-ngx_http_upstream_init_ip_hash_peer
-设置:r->upstream->peer.get = ngx_http_upstream_get_ip_hash_peer;
-r->upstream->peer.free为空
-
-r->upstream->peer.get
-在每一次Nginx准备转发客户端请求到后端服务器前都会调用该函数.该函数实现具体的位本次转发选择合适的后端服务器的算法逻辑,即
-完成选择获取合适后端服务器的功能
-
-ngx_http_upstream_get_round_robin_peer
-加权选择当前权值最高的后端服务器
-
-ngx_http_upstream_get_ip_hash_peer
-根据IP哈希值选择后端服务器
-
-r->upstream->peer.free
-在每一次Nginx完成与后端服务器之间的交互后都会调用该函数.
-ngx_http_upstream_free_round_robin_peer
-更新相关数值,比如rrp->current
-轮询策略和IP哈希策略对比
-加权轮询策略
-优点:适用性更强,不依赖于客户端的任何信息,完全依靠后端服务器的情况来进行选择.能把客户端请求更合理更均匀地分配到各个后端服务器处理.
-缺点:同一个客户端的多次请求可能会被分配到不同的后端服务器进行处理,无法满足做会话保持的应用的需求.
-IP哈希策略
-优点:能较好地把同一个客户端的多次请求分配到同一台服务器处理,避免了加权轮询无法适用会话保持的需求.
-缺点:当某个时刻来自某个IP地址的请求特别多,那么将导致某台后端服务器的压力可能非常大,而其他后端服务器却空闲的不均衡情况、
-*/
 
 //ngx_http_upstream_free_round_robin_peer函数将服务器的标志字段都恢复到初始状态,以便后续使用
 void

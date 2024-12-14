@@ -100,18 +100,18 @@ ngx_module_t ngx_http_write_filter_module = {
         NGX_MODULE_V1_PADDING
 };
 
-/*
-ngx_http_header_filter发送头部内容是通过调用ngx_http_write_filter方法来发送响应头部的.事实上,这个方法是包体过滤模块链表中的
+/*ngx_http_header_filter发送头部内容是通过调用ngx_http_write_filter方法来发送响应头部的.事实上,这个方法是包体过滤模块链表中的
 最后一个模块ngx_http_write_filter_module的处理方法,当HTTP模块调用ngx_http_output_filter方法发送包体时,最终也是通过该方法发送响应的
 .当一次无法发送全部的缓冲区内容时,ngx_http_write_filter方法是会返回NGX_AGAIN的(同时将未发送完成的缓冲区放到请求的out成员
 中),也就是说,发送响应头部的ngx_http_header_filter方法会返回NGX_AGAIN.如果不需要再发送包体,那么这时就需要调用
 ngx_http_finalize_request方法来结束请求,其中第2个参数务必要传递NGX_AGAIN,这样HTTP框架才会继续将可写事件注册到epoll,并持
-续地把请求的out成员中缓冲区里的HTTP响应发送完毕才会结束请求.
-*/ //发送数据的时候调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_writer添加epoll write事件来触发
+续地把请求的out成员中缓冲区里的HTTP响应发送完毕才会结束请求.*/
+
+//发送数据的时候调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_writer添加epoll write事件来触发
 ngx_int_t //ngx_http_write_filter把in中的数据拼接到out后面,然后调用writev发送,没有发送完的数据最后留在out中
 ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面的数据,和参数里面的数据一并以writev的机制发送给客户端,如果没有发送完所有的,则将剩下的放在r->out
 
-//调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_set_write_handler->ngx_http_writer添加epoll write事件来触发
+    //调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_set_write_handler->ngx_http_writer添加epoll write事件来触发
     off_t size, sent, nsent, limit;
     ngx_uint_t last, flush, sync;
     ngx_msec_t delay;
@@ -306,20 +306,18 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     2025/02/08 00:56:18 [debug] 13330#0: *1 http close request
     */
 
-    /*
-    3个标志位同时为0(即待发送的out链表中没有一个缓冲区表示响应已经结束或需要立刻发送出去),而且本次要发送的缓冲区in虽然不为空,
-    但以上两步骤中计算出的待发送响应的大小又小于配置文件中的postpone_output参数,那么说明当前的缓冲区是不完整的且没有必要立刻发送
-     */ //例如如果有头部,又有包体,则一般最尾部的头部filter函数ngx_http_header_filter->ngx_http_write_filter到这里的时候一般头部字段
+    /*3个标志位同时为0(即待发送的out链表中没有一个缓冲区表示响应已经结束或需要立刻发送出去),而且本次要发送的缓冲区in虽然不为空,
+    但以上两步骤中计算出的待发送响应的大小又小于配置文件中的postpone_output参数,那么说明当前的缓冲区是不完整的且没有必要立刻发送*/
+
+    //例如如果有头部,又有包体,则一般最尾部的头部filter函数ngx_http_header_filter->ngx_http_write_filter到这里的时候一般头部字段
     //过少,这里直接返回NGX_OK,这样就可以让头部和包体在最尾部的包体filter函数ngx_http_write_filter->ngx_http_write_filter和包体在一个报文中发送出去
     if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
         //如果last flush都等于0,并且in不为NULL,并且输出链中的数据小于postpone_output,则直接返回,表示等数据跟多(达到postpone_output),或者指定last flush则输出
         return NGX_OK;
     }
-    /*
- 首先检查连接上写事件的标志位delayed,如果delayed为1,则表示这一次的epoll调度中请求仍需要减速,是不可以发送响应的,delayed为1
- 指明了响应需要延迟发送;如果delayed为0,表示本次不需要减速,那么再检查ngx_http_request_t结构体中的limit_rate
- 发送响应的速率,如果limit_rate为0,表示这个请求不需要限制发送速度;如果limit rate大干0,则说明发送响应的速度不能超过limit_rate指定的速度.
- */
+    /*首先检查连接上写事件的标志位delayed,如果delayed为1,则表示这一次的epoll调度中请求仍需要减速,是不可以发送响应的,delayed为1
+     指明了响应需要延迟发送;如果delayed为0,表示本次不需要减速,那么再检查ngx_http_request_t结构体中的limit_rate
+     发送响应的速率,如果limit_rate为0,表示这个请求不需要限制发送速度;如果limit rate大干0,则说明发送响应的速度不能超过limit_rate指定的速度.*/
     if (c->write->delayed) { //在后面的限速中置1
         //将客户端对应的buffered标志位放上NGX_HTTP_WRITE_BUFFERED宏,同时返回NGX AGAIN,这是在告诉HTTP框架out缓冲区中还有响应等待发送.
         c->buffered |= NGX_HTTP_WRITE_BUFFERED;
@@ -363,11 +361,9 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
                                                               clcf->limit_rate_after, 0);
             r->limit_rate_after_set = 1;
         }
-        /*
-   ngx_time()方法,它取出了当前时间,而start sec表示开始接收到客户端请求内容的时间,c->sent表示这条连接上已经发送了的HTTP响
+        /*ngx_time()方法,它取出了当前时间,而start sec表示开始接收到客户端请求内容的时间,c->sent表示这条连接上已经发送了的HTTP响
    应长度,这样计算出的变量limit就表示本次可以发送的字节数了.如果limit小于或等于0,它表示这个连接上的发送响应速度已经超出
-   了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行;如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应.
-     */
+   了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行;如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应*/
         limit = (off_t) r->limit_rate * (ngx_time() - r->start_sec + 1)
                 - (c->sent - r->limit_rate_after); //实际上这发送过程中就比实际的limit_rate多发送limit_rate_after,也就是先发送limit_rate_after后才开始计算是否超速了
 
@@ -385,11 +381,9 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
             return NGX_AGAIN;
             //调用ngx_http_write_filter写数据,如果返回NGX_AGAIN,则以后的写数据触发通过在ngx_http_set_write_handler->ngx_http_writer添加epoll write事件来触发
         }
-        /*
-        本步将把响应发送给客户端.然而,缓冲区中的响应可能非常大,那么这一次应该发送多少字节呢?这要根据前面计算出的limit变量,
-    前面取得的配置项sendfile_max_chunk来计算,同时要根据遍历缓冲区计算出的待发送字节数来决定,这3个值中的最小值即作为本
-    次发送的响应长度. 实际最后通过ngx_writev_chain发送数据的时候,还会限制一次
-    */
+        /*本步将把响应发送给客户端.然而,缓冲区中的响应可能非常大,那么这一次应该发送多少字节呢?这要根据前面计算出的limit变量,
+            前面取得的配置项sendfile_max_chunk来计算,同时要根据遍历缓冲区计算出的待发送字节数来决定,这3个值中的最小值即作为本
+            次发送的响应长度. 实际最后通过ngx_writev_chain发送数据的时候,还会限制一次*/
         if (clcf->sendfile_max_chunk
             && (off_t) clcf->sendfile_max_chunk < limit) {
             limit = clcf->sendfile_max_chunk;
@@ -433,10 +427,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
         }
         //从新计算是否超速了,如果超速了则启动延迟定时器延迟发送
         delay = (ngx_msec_t) ((nsent - sent) * 1000 / r->limit_rate);
-        /*
-          前面调用c->send_chain发送的响应速度还是过快了,已经超发了一些响应,从新计算出至少要经过多少毫秒后才可以继续发送,
-          调用ngx_add_timer方法将写事件按照上面计算出的毫秒作为超时时间添加到定时器中.同时,把写事件的delayed标志位置为1.
-          */
+        /*前面调用c->send_chain发送的响应速度还是过快了,已经超发了一些响应,从新计算出至少要经过多少毫秒后才可以继续发送,
+          调用ngx_add_timer方法将写事件按照上面计算出的毫秒作为超时时间添加到定时器中.同时,把写事件的delayed标志位置为1*/
         if (delay > 0) {
             c->write->delayed = 1;
             //添加定时器的时候为什么没有ngx_handle_write_event? 因为一旦添加wrie epoll事件,那么只要内核数据发送出去就会触发write事件,
@@ -448,17 +440,15 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     if (chain && c->write->ready && !c->write->delayed) {
         ngx_post_event(c->write, &ngx_posted_next_events);
     }
-    /*
-    重置ngx_http_request_t结构体的out缓冲区,把已经发送成功的缓冲区归还给内存池.如果out链表中还有剩余的没有发送出去的缓冲区,
-    则添加到out链表头部;如果已经将out链表中的所有缓冲区都发送给客户端了,则r->out链上为空
-    */
+    /*重置ngx_http_request_t结构体的out缓冲区,把已经发送成功的缓冲区归还给内存池.如果out链表中还有剩余的没有发送出去的缓冲区,
+    则添加到out链表头部;如果已经将out链表中的所有缓冲区都发送给客户端了,则r->out链上为空*/
     for (cl = r->out; cl && cl != chain; /* void */) {  //chain为r->out中还未发送的数据不符
         ln = cl;
         cl = cl->next;
         ngx_free_chain(r->pool, ln);
     }
     /*实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,这部分数据始终在r->out的最前面,后面在读到数据后在
-ngx_http_write_filter中会把新来的数据加到r->out后面,也就是未发送的数据在r->out前面新数据在链后面,所以实际write是之前未发送的先发送出去*/
+    ngx_http_write_filter中会把新来的数据加到r->out后面,也就是未发送的数据在r->out前面新数据在链后面,所以实际write是之前未发送的先发送出去*/
 
     r->out = chain; //把还没有发送完的数据从新添加到out中,实际上in中的相关chain和buf与r->out中的相关chain和buf指向了相同的还为发送出去的数据内存
 

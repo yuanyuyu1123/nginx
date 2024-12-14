@@ -108,7 +108,8 @@ Connection:Keep-Alive
 Host:localhost
 User-Agent:Mozila/4.0(compatible:MSIE5.01:Windows NT5.0)
 Accept-Encoding:gzip,deflate.
-*/ //解析上面的GET /sample.jsp HTTP/1.1
+*/
+//解析上面的GET /sample.jsp HTTP/1.1
 //ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body
 
 /*返回值主要有3类:返回NGX—OK表示成功地解析到完整的HTTP请求行;返回NGX AGAIN表示目前接收到的字符流不足以构成完成的请求行,还需要

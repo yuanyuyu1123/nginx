@@ -4,7 +4,7 @@
 
 环境搭建:
 
-1.进入nginx目录,分别执行(请将path改成自己的目录):
+1.进入nginx目录,分别执行(请将path改成自己的目录:/home/yuan/code/cgit):
 
 ```shell
 ./auto/configure --add-module=src/ext/http_mytest_module 
@@ -14,7 +14,7 @@
 ```shell
 ./auto/configure --prefix=path/nginx  \
         --conf-path=path/nginx/conf/nginx.conf \
-        --with-file-aio --with-pcre --with-debug \
+        --with-pcre --with-debug \
         --add-module=src/ext/http_mytest_module
 ```
 2.
@@ -34,8 +34,6 @@ make
 ```
 
 6.运行
-
-注意: 如果使用 --with-file-aio 需要安装libaio,否则无法debug!
 
 Ubuntu24:
 ```shell
