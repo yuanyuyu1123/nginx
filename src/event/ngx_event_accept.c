@@ -21,8 +21,7 @@ static void ngx_reorder_accept_events(ngx_listening_t *ls);
 static void ngx_close_accepted_connection(ngx_connection_t *c);
 
 
-/*
-如何建立新连接
+/*如何建立新连接
     上文提刭过,处理新连接事件的回调函数是ngx_event_accept,其原型如下.void ngx_event_accept (ngx_event_t★ev)
     下面简单介绍一下它的流程,如图9-6所示.
     下面对流程中的7个步骤进行说明.
@@ -34,8 +33,8 @@ static void ngx_close_accepted_connection(ngx_connection_t *c);
     6)将这个新连接对应的读事件添加到epoll等事件驱动模块中,这样,在这个连接上如果接收到用户请求epoll_wait,就会收集到这个事件.
     7)调用监听对象ngx_listening_t中的handler回调方法.ngx_listening_t结构俸的handler回调方法就是当新的TCP连接刚刚建立完成时在这里调用的.
     最后,如果监听事件的available标志位为1,再次循环到第1步,否则ngx_event_accept方法结束.事件的available标志位对应着multi_accept配置
-    项.当available为l时,告诉Nginx -次性尽量多地建立新连接,它的实现原理也就在这里
-*/
+    项.当available为l时,告诉Nginx -次性尽量多地建立新连接,它的实现原理也就在这里*/
+
 //这里的event是在ngx_event_process_init中从连接池中获取的 ngx_connection_t中的->read读事件
 //accept是在ngx_event_process_init(但进程或者不配置负载均衡的时候)或者(多进程,配置负载均衡)的时候把accept事件添加到epoll中
 void //该形参中的ngx_connection_t(ngx_event_t)是为accept事件连接准备的空间,当accept返回成功后,会重新获取一个ngx_connection_t(ngx_event_t)用来读写该连接
@@ -166,8 +165,8 @@ ngx_event_accept(ngx_event_t *ev) { //在ngx_process_events_and_timers中执行
         //设置负载均衡阀值 最开始free_connection_n=connection_n,见ngx_event_process_init
         ngx_accept_disabled = ngx_cycle->connection_n / 8
                               - ngx_cycle->free_connection_n; //判断可用连接的数目和总数目的八分之一大小,如果可用的小于八分之一,为正
-        //在服务器端accept客户端连接成功(ngx_event_accept)后,会通过ngx_get_connection从连接池获取一个ngx_connection_t结构,也就是每个客户端连接对于一个ngx_connection_t结构,
-        //并且为其分配一个ngx_http_connection_t结构,ngx_connection_t->data = ngx_http_connection_t,见ngx_http_init_connection
+        /*在服务器端accept客户端连接成功(ngx_event_accept)后,会通过ngx_get_connection从连接池获取一个ngx_connection_t结构,也就是每个客户端连接对于一个ngx_connection_t结构,
+        并且为其分配一个ngx_http_connection_t结构,ngx_connection_t->data = ngx_http_connection_t,见ngx_http_init_connection*/
 
         //从连接池中获取一个空闲ngx_connection_t,用于客户端连接建立成功后向该连接读写数据,函数形参中的ngx_event_t对应的是为accept事件对应的
         //ngx_connection_t中对应的event
@@ -355,10 +354,10 @@ ngx_event_accept(ngx_event_t *ev) { //在ngx_process_events_and_timers中执行
 #endif
 }
 
-/*
-获得accept锁,多个worker仅有一个可以得到这把锁.获得锁不是阻塞过程,都是立刻返回,获取成功的话ngx_accept_mutex_held被置为1.
-拿到锁,意味着监听句柄被放到本进程的epoll中了,如果没有拿到锁,则监听句柄会被从epoll中取出.
-*/ //尝试获取锁,如果获取了锁,那么还要将当前监听端口全部注册到当前worker进程的epoll当中去
+/*获得accept锁,多个worker仅有一个可以得到这把锁.获得锁不是阻塞过程,都是立刻返回,获取成功的话ngx_accept_mutex_held被置为1.
+拿到锁,意味着监听句柄被放到本进程的epoll中了,如果没有拿到锁,则监听句柄会被从epoll中取出*/
+
+//尝试获取锁,如果获取了锁,那么还要将当前监听端口全部注册到当前worker进程的epoll当中去
 ngx_int_t
 ngx_trylock_accept_mutex(ngx_cycle_t *cycle) {
     if (ngx_shmtx_trylock(&ngx_accept_mutex)) {
@@ -404,13 +403,11 @@ ngx_enable_accept_events(ngx_cycle_t *cycle) {
     ngx_connection_t *c;
 
     ls = cycle->listening.elts;
-    /*
-   注意:这里的循环会把所有的listening加入到了epoll中,那不是每个进程都会把所有的listening加入到epoll中吗,不是有惊群了吗?
+    /*注意:这里的循环会把所有的listening加入到了epoll中,那不是每个进程都会把所有的listening加入到epoll中吗,不是有惊群了吗?
    答案:实际上在本进程ngx_enable_accept_events把所有listen加入本进程epoll中后,本进程获取到ngx_accept_mutex锁后,在执行accept事件的
    过程中如果如果其他进程也开始ngx_trylock_accept_mutex,如果之前已经获取到锁,并把所有的listen添加到了epoll中,这时会因为没法获取到
    accept锁,而把之前加入到本进程,但没有accept过的时间全部清除.和ngx_disable_accept_events配合使用
-   最终只有一个进程能accept到同一个客户端连接
-    */
+   最终只有一个进程能accept到同一个客户端连接*/
     for (i = 0; i < cycle->listening.nelts; i++) {
 
         c = ls[i].connection;

@@ -38,7 +38,6 @@ struct ngx_shm_zone_s {  //初始化见ngx_shared_memory_add,真正的共享内�
 };
 
 
-//http://tech.uc.cn/?p=300 参数解析相关数据结构参考
 //初始化参考ngx_init_cycle,最终有一个全局类型的ngx_cycle_s,即ngx_cycle,  ngx_conf_s中包含该类型成员cycle
 struct ngx_cycle_s {
     /*保存着所有模块存储配置项的结构体指针,它首先是一个数组,数组大小为ngx_max_module,正好与Nginx的module个数一样;
@@ -49,28 +48,36 @@ struct ngx_cycle_s {
     可如何由ngx_cycle_t核心结构体中找到main级别的配置结构体呢?Nginx提供的ngx_http_cycle_get_module_main_conf宏可以实现这个功能*/
     void ****conf_ctx; //有多少个模块就会有多少个指向这些模块的指针,见ngx_init_cycle   ngx_max_module
     ngx_pool_t *pool; // 内存池
+
     /*日志模块中提供了生成基本ngx_log_t日志对象的功能,这里的log实际上是在还没有执行ngx_init_cycle方法前,
     也就是还没有解析配置前,如果有信息需要输出到日志,就会暂时使用log对象,它会输出到屏幕.
     在ngx_init_cycle方法执行后,将会根据nginx.conf配置文件中的配置项,构造出正确的日志文件,此时会对log重新赋值.*/
+
     //ngx_init_cycle中赋值cycle->log = &cycle->new_log;
     ngx_log_t *log; //指向ngx_log_init中的ngx_log,如果配置error_log,指向这个配置后面的文件参数,见ngx_error_log.否则在ngx_log_open_default中设置
     /* 由nginx.conf配置文件读取到日志文件路径后,将开始初始化error_log日志文件,由于log对象还在用于输出日志到屏幕,
     这时会用new_log对象暂时性地替代log日志,待初始化成功后,会用new_log的地址覆盖上面的log指针*/
+
     // 如果没有配置error_log则在ngx_log_open_default设置为NGX_ERROR_LOG_PATH,如果通过error_log有配置过则通过ngx_log_set_log添加到该new_log->next链表连接起来
+
     /* 全局中配置的error_log xxx存储在ngx_cycle_s->new_log,http{}、server{}、local{}配置的error_log保存在ngx_http_core_loc_conf_t->error_log,
-    见ngx_log_set_log,如果只配置全局error_log,不配置http{}、server{}、local{}则在ngx_http_core_merge_loc_conf conf->error_log = &cf->cycle->new_log;*/
+    见ngx_log_set_log,如果只配置全局error_log,不配置http{}、server{}、local{}则在ngx_http_core_merge_loc_conf conf->error_log = &cf->cycle->new_log; */
+
     //ngx_log_insert插入,在ngx_log_error_core找到对应级别的日志配置进行输出,因为可以配置error_log不同级别的日志存储在不同的日志文件中
     ngx_log_t new_log; //如果配置error_log,指向这个配置后面的文件参数,见ngx_error_log.否则在ngx_log_open_default中设置
 
     ngx_uint_t log_use_stderr;  /* unsigned  log_use_stderr:1; */
+
     /* 对于poll,rtsig这样的事件模块,会以有效文件句柄数来预先建立这些ngx_connection t结构
       体,以加速事件的收集、分发.这时files就会保存所有ngx_connection_t的指针组成的数组,files_n就是指
       针的总数,而文件句柄的值用来访问files数组成员 */
+
     ngx_connection_t **files; //sizeof(ngx_connection_t *) * cycle->files_n  见ngx_event_process_init  ngx_get_connection
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连
     接池数组的首部,而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作
     为next指针串联成一个单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指
     向下一个空闲连接.而归还连接时只需把该连接插入到free_connections链表表头即可.*/
+
     //见ngx_event_process_init, ngx_connection_t空间和它当中的读写ngx_event_t存储空间都在该函数一次性分配好
     ngx_connection_t *free_connections; //可用连接池,与free_connection_n配合使用
     ngx_uint_t free_connection_n; //可用连接池中连接的总数
@@ -79,6 +86,7 @@ struct ngx_cycle_s {
     ngx_uint_t modules_n;
     ngx_uint_t modules_used;    /* unsigned  modules_used:1; */
     //ngx_connection_s中的queue添加到该链表上
+
     /*通过读操作可以判断连接是否正常,如果不正常的话,就会把该ngx_close_connection->ngx_free_connection释放出来,这样
     如果之前free_connections上没有空余ngx_connection_t,c = ngx_cycle->free_connections;就可以获取到刚才释放出来的ngx_connection_t
     见ngx_drain_connections*/
@@ -97,36 +105,45 @@ struct ngx_cycle_s {
     ngx_array_t config_dump; //该数组在ngx_init_cycle中预分配空间
     ngx_rbtree_t config_dump_rbtree;
     ngx_rbtree_node_t config_dump_sentinel;
+
     /*单链表容器,元素类型是ngx_open_file_t 结构体,它表示nginx已经打开的所有文件.
       事实上,nginx框架不会向open_files链表中添加文件.
       而是由对此感兴趣的模块向其中添加文件路径名,nginx框架会在ngx_init_cycle 方法中打开这些文件 ,先通过ngx_conf_open_file设置好数组文件,然后
       在ngx_init_cycle真正创建文件*/
+
     //access_log error_log配置的文件信息都通过ngx_conf_open_file加入到open_files链表中
     //该链表中所包含的文件的打开在ngx_init_cycle中打开
     ngx_list_t open_files; //如nginx.conf配置文件中的access_log参数的文件就保存在该链表中,参考ngx_conf_open_file
+
     //真正的共享内存空间创建ngx_shm_zone_t在ngx_init_cycle,需要创建哪些共享内存,由配置文件指定,然后调用
     //ngx_shared_memory_add把这些信息保存到shared_memory链表,ngx_init_cycle解析完配置文件后进行共享内存真正的统一分配
     ngx_list_t shared_memory; // 单链表容器,元素类型是ngx_shm_zone_t结构体,每个元素表示一块共享内存
+
     //最开始free_connection_n=connection_n,见ngx_event_process_init
     ngx_uint_t connection_n; // 当前进程中所有链接对象的总数,与成员配合使用
     ngx_uint_t files_n; //每个进程能够打开的最多文件数  赋值见ngx_event_process_init
+
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连接池数组的首部,
     而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作为next指针串联成一个
     单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指向下一个空闲连
     接.而归还连接时只需把该连接插入到free_connections链表表头即可.
     在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,
     相同序号下这3个数组中的元素是配合使用的*/
+
     //子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应
     ngx_connection_t *connections; // 指向当前进程中的所有连接对象,与connection_n配合使用
+
     /*事件是不需要创建的,因为Nginx在启动时已经在ngx_cycle_t的read_events成员中预分配了所有的读事件,并在write_events成员中预分配了所有的写事件
    在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,相同序号下这
    3个数组中的元素是配合使用的.图9-1中还显示了事件池,Nginx认为每一个连接一定至少需要一个读事件和一个写事件,有多少连接就分配多少个读、
    写事件.怎样把连接池中的任一个连接与读事件、写事件对应起来呢?很简单.由于读事件、写事件、连接池是由3个大小相同的数组组成,所以根据数组
    序号就可将每一个连接、读事件、写事件对应起来,这个对应关系在ngx_event_core_module模块的初始化过程中就已经决定了(参见9.5节).这3个数组
    的大小都是由cycle->connection_n决定.*/
-    //预分配的读写事件空间,类型ngx_event_t  //子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应
+
+    //预分配的读写事件空间,类型ngx_event_t,子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应
     ngx_event_t *read_events; // 指向当前进程中的所有读事件对象,connection_n同时表示所有读事件的总数,因为每个连接分别有一个读写事件
     ngx_event_t *write_events; // 指向当前进程中的所有写事件对象,connection_n同时表示所有写事件的总数,因为每个连接分别有一个读写事件
+
     /*旧的ngx_cycle_t 对象用于引用上一个ngx_cycle_t 对象中的成员.例如ngx_init_cycle 方法,在启动初期,
     需要建立一个临时的ngx_cycle_t对象保存一些变量,
     再调用ngx_init_cycle 方法时就可以把旧的ngx_cycle_t 对象传进去,而这时old_cycle对象就会保存这个前期的ngx_cycle_t对象*/

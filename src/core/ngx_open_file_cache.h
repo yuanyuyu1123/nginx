@@ -26,8 +26,8 @@ typedef struct {
     //默认NGX_OPEN_FILE_DIRECTIO_OFF是个超级大的值,相当于不使能
     off_t irectio; //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
     size_t read_ahead;  /* read_ahead配置,默认0 */
-    /*
-   在ngx_file_info_wrapper中获取文件stat属性信息的时候,如果文件不存在或者open失败,或者stat失败,都会把错误放入这两个字段
+
+    /*在ngx_file_info_wrapper中获取文件stat属性信息的时候,如果文件不存在或者open失败,或者stat失败,都会把错误放入这两个字段
    of->err = ngx_errno;
    of->failed = ngx_fd_info_n;
     */
@@ -49,12 +49,12 @@ typedef struct {
 
     unsigned test_dir: 1;
     /*
-Ngx_http_core_module.c (src\http):        of.test_only = 1;
-Ngx_http_index_module.c (src\http\modules):        of.test_only = 1;
-Ngx_http_index_module.c (src\http\modules):    of.test_only = 1;
-Ngx_http_log_module.c (src\http\modules):        of.test_only = 1;
-Ngx_http_script.c (src\http):    of.test_only = 1;
-*/
+        Ngx_http_core_module.c (src\http):        of.test_only = 1;
+        Ngx_http_index_module.c (src\http\modules):        of.test_only = 1;
+        Ngx_http_index_module.c (src\http\modules):    of.test_only = 1;
+        Ngx_http_log_module.c (src\http\modules):        of.test_only = 1;
+        Ngx_http_script.c (src\http):    of.test_only = 1;
+        */
     unsigned test_only: 1;
     unsigned log: 1;
     unsigned errors: 1;
@@ -72,10 +72,11 @@ Ngx_http_script.c (src\http):    of.test_only = 1;
 
 typedef struct ngx_cached_open_file_s ngx_cached_open_file_t;
 //ngx_cached_open_file_s是ngx_open_file_cache_t->rbtree(expire_queue)的成员
-/*
-缓存文件stat状态信息ngx_cached_open_file_s(ngx_open_file_cache_t->rbtree(expire_queue)的成员   )在ngx_expire_old_cached_files进行失效判断,
-缓存文件内容信息(实实在在的文件信息)ngx_http_file_cache_node_t(ngx_http_file_cache_s->sh中的成员)在ngx_http_file_cache_expire进行失效判断.
-*/ //为什么需要内存中保存文件stat信息节点?因为这里面可以保存文件的fd已经文件大小等信息,就不用每次重复打开文件并且获取文件大小信息,可以直接读fd,这样可以提高效率
+
+/*缓存文件stat状态信息ngx_cached_open_file_s(ngx_open_file_cache_t->rbtree(expire_queue)的成员   )在ngx_expire_old_cached_files进行失效判断,
+缓存文件内容信息(实实在在的文件信息)ngx_http_file_cache_node_t(ngx_http_file_cache_s->sh中的成员)在ngx_http_file_cache_expire进行失效判断.*/
+
+//为什么需要内存中保存文件stat信息节点?因为这里面可以保存文件的fd已经文件大小等信息,就不用每次重复打开文件并且获取文件大小信息,可以直接读fd,这样可以提高效率
 struct ngx_cached_open_file_s { //ngx_open_cached_file中创建节点   主要存储的是文件的fstat信息,见ngx_open_and_stat_file
     //node.key是文件名做的 hash = ngx_crc32_long(name->data, name->len);//文件名做hash添加到ngx_open_file_cache_t->rbtree红黑树中
     ngx_rbtree_node_t node;
@@ -113,17 +114,13 @@ struct ngx_cached_open_file_s { //ngx_open_cached_file中创建节点   主要�
     ngx_event_t *event; //ngx_open_cached_file中创建节点结构的时候默认置NULL
 };
 
-/*
-缓存文件stat状态信息ngx_cached_open_file_s(ngx_open_file_cache_t->rbtree(expire_queue)的成员   )在ngx_expire_old_cached_files进行失效判断,
-缓存文件内容信息(实实在在的文件信息)ngx_http_file_cache_node_t(ngx_http_file_cache_s->sh中的成员)在ngx_http_file_cache_expire进行失效判断.
-*/
+/*缓存文件stat状态信息ngx_cached_open_file_s(ngx_open_file_cache_t->rbtree(expire_queue)的成员   )在ngx_expire_old_cached_files进行失效判断,
+缓存文件内容信息(实实在在的文件信息)ngx_http_file_cache_node_t(ngx_http_file_cache_s->sh中的成员)在ngx_http_file_cache_expire进行失效判断.*/
 
-/*
-nginx有两个指令是管理缓存文件描述符的:一个就是本文中说到的ngx_http_log_module模块的open_file_log_cache配置;存储在ngx_http_log_loc_conf_t->open_file_cache
+/*nginx有两个指令是管理缓存文件描述符的:一个就是本文中说到的ngx_http_log_module模块的open_file_log_cache配置;存储在ngx_http_log_loc_conf_t->open_file_cache
 另一个是ngx_http_core_module模块的 open_file_cache配置,存储在ngx_http_core_loc_conf_t->open_file_cache;前者是只用来管理access变量日志文件.
 后者用来管理的就多了,包括:static,index,tryfiles,gzip,mp4,flv,都是静态文件哦!
-这两个指令的handler都调用了函数 ngx_open_file_cache_init ,这就是用来管理缓存文件描述符的第一步:初始化
-*/
+这两个指令的handler都调用了函数 ngx_open_file_cache_init ,这就是用来管理缓存文件描述符的第一步:初始化*/
 
 
 //为什么需要内存中保存文件stat信息节点?因为这里面可以保存文件的fd已经文件大小等信息,就不用每次重复打开文件并且获取文件大小信息,可以直接读fd,这样可以提高效率
@@ -131,12 +128,14 @@ typedef struct { //ngx_open_file_cache_init中创建空间和赋值,在ngx_open_
     //该红黑树和expire_queue队列的节点成员是ngx_cached_open_file_s
     ngx_rbtree_t rbtree; //rbtree红黑树和expire_queue队列中包含的是同样的元素
     ngx_rbtree_node_t sentinel;
+
     //这个是用于过期快速判断用的,一般最尾部的最新过期,前面的红黑树rbtree一般是用于遍历查找的
     ngx_queue_t expire_queue; //队列用于获取第一个插入队列的元素和最后一个擦人队列的元素,前面的rbtree红黑树用于遍历查找
+
     //初始化为0,在ngx_open_cached_file中创建新节点后+1,在ngx_expire_old_cached_files或者ngx_open_file_cache_remove中减1
     ngx_uint_t current;  //红黑树和expire_queue队列中成员node个数,
-    /*
-   在ngx_open_cached_file中创建新节点后,做如下判断
+
+    /*在ngx_open_cached_file中创建新节点后,做如下判断
    if (cache->current >= cache->max) { //红黑树中节点个数超限了,删除最老的node节点
        ngx_expire_old_cached_files(cache, 0, pool->log);
    }

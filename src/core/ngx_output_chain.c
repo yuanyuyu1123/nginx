@@ -43,13 +43,13 @@ static ngx_int_t ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx);
 
 
 
-/*
-函数目的是发送 in 中的数据,ctx 用来保存发送的上下文,因为发送通常情况下,不能一次完成.nginx 因为使用了 ET 模式,
+/*函数目的是发送 in 中的数据,ctx 用来保存发送的上下文,因为发送通常情况下,不能一次完成.nginx 因为使用了 ET 模式,
 在网络编程事件管理上简单了,但是编程中处理事件复杂了,需要不停的循环做处理;事件的函数回掉,次数也不确定,因此需
-要使用 context 上下文对象来保存发送到什么环节了.
-*/
+要使用 context 上下文对象来保存发送到什么环节了*/
+
 //结合ngx_http_xxx_create_request(ngx_http_fastcgi_create_request)阅读,ctx->in中的数据实际上是从ngx_http_xxx_create_request组成ngx_chain_t来的,数据来源在ngx_http_xxx_create_request
 //向后端发送请求的调用过程ngx_http_upstream_send_request_body->ngx_output_chain->ngx_chain_writer
+
 /*
 如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数几乎一样,只是aio标记取值会变化,日志如下:
 2016/01/07 18:47:27[ ngx_event_pipe_write_to_downstream,   604]  [debug] 20923#20923: *1 pipe write downstream, write ready: 1
@@ -359,8 +359,7 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
     }
 }
 
-/*
-该函数返回1,则表示数据可以直接发送出去;如果返回0,则表示数据还在磁盘文件内,需要利用directio读取或明确要求不能使用sendfile直接发送、
+/*该函数返回1,则表示数据可以直接发送出去;如果返回0,则表示数据还在磁盘文件内,需要利用directio读取或明确要求不能使用sendfile直接发送、
 明确要求读到内存缓存等情况;注意:buf->file->directio由of.is_directio与配置项directio最终关联起来
     函数ngx_output_chain_as_is()返回1的情况就不管了,原本该干嘛干嘛,走ngx_http_write_filter() -> ngx_linux_sendfile_chain()流程到最后,
 内存数据通过writev()发送,磁盘文件内数据通过sendfile()发送.
@@ -370,18 +369,16 @@ ngx_output_chain_copy_buf() -> ngx_file_aio_read()
 static ngx_inline ngx_int_t
 ngx_output_chain_as_is(ngx_output_chain_ctx_t *ctx, ngx_buf_t *buf) { //ngx_output_chain_as_is是aio还是sendfile的分支点
     //看看这个节点是否可以拷贝.检测content是否在文件中.判断是否需要复制buf.
-//返回1表示上层不需要拷贝buf,否则需要重新alloc一个节点,拷贝实际内存到另外一个节点.
+    //返回1表示上层不需要拷贝buf,否则需要重新alloc一个节点,拷贝实际内存到另外一个节点.
 
-/* 如果返回0,表示需要在ngx_output_chain从新开辟空间,如果之前是in_file的,则会从新读取缓存文件内容到内存中,就变为内存型chain buf了 */
+    /*如果返回0,表示需要在ngx_output_chain从新开辟空间,如果之前是in_file的,则会从新读取缓存文件内容到内存中,就变为内存型chain buf了 */
 
-/*
-    一般开启sendfile on的时候返回1,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.然后通过
-ngx_linux_sendfile_chain中的ngx_linux_sendfile直接通过sendfile发送出去,而无需读取缓存文件内容到内存,然后从内存中发送.
-    一般不开启缓存功能的时候,该函数也会返回1,这时候后端数据不会缓存到文件,而是接收到内存中然后发送,在ngx_linux_sendfile_chain中
-直接调用ngx_writev发送,而不是sendfile发送
-    如果返回0,则会在ngx_http_copy_filter->ngx_output_chain->ngx_output_chain_align_file_buf开辟新内存,然后从ngx_output_chain_copy_buf中从新
-读取缓存文件内容到新的内存中,然后把新内存数据发送出去,在ngx_linux_sendfile_chain中直接调用ngx_writev发送,而不是sendfile发送
- */
+    /*一般开启sendfile on的时候返回1,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.然后通过
+    ngx_linux_sendfile_chain中的ngx_linux_sendfile直接通过sendfile发送出去,而无需读取缓存文件内容到内存,然后从内存中发送.
+        一般不开启缓存功能的时候,该函数也会返回1,这时候后端数据不会缓存到文件,而是接收到内存中然后发送,在ngx_linux_sendfile_chain中
+    直接调用ngx_writev发送,而不是sendfile发送
+        如果返回0,则会在ngx_http_copy_filter->ngx_output_chain->ngx_output_chain_align_file_buf开辟新内存,然后从ngx_output_chain_copy_buf中从新
+    读取缓存文件内容到新的内存中,然后把新内存数据发送出去,在ngx_linux_sendfile_chain中直接调用ngx_writev发送,而不是sendfile发送*/
     ngx_uint_t sendfile;
 
     if (ngx_buf_special(buf)) {
@@ -414,16 +411,15 @@ ngx_linux_sendfile_chain中的ngx_linux_sendfile直接通过sendfile发送出去
      * With DIRECTIO, disable sendfile() unless sendfile(SF_NOCACHE)
      * is available.
      */
-    /*
-     Ngx_http_echo_subrequest.c (src\echo-nginx-module-master\src):        b->file->directio = of.is_directio;
+
+    /*Ngx_http_echo_subrequest.c (src\echo-nginx-module-master\src):        b->file->directio = of.is_directio;
      Ngx_http_flv_module.c (src\http\modules):    b->file->directio = of.is_directio;
      Ngx_http_gzip_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
      Ngx_http_mp4_module.c (src\http\modules):    b->file->directio = of.is_directio;
      Ngx_http_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
     只会在上面这几个模块中置1,从这里返回,也就是说如果有配置这几个模块命令,在同时配置sendfile on; aio on;directio xxx;的前提下,
     会从这里返回出去,然后从新获取空间
-    但是如果不是上面的这些模块,在同时配置sendfile on; aio on;directio xxx;的情况下还是会返回1,也就是还是采用sendfile方式
-     */
+    但是如果不是上面的这些模块,在同时配置sendfile on; aio on;directio xxx;的情况下还是会返回1,也就是还是采用sendfile方式*/
 
     if (buf->in_file && buf->file->directio) {
         sendfile = 0; //如果buf在文件中,使用了directio,需要拷贝buf

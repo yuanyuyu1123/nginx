@@ -26,8 +26,7 @@ static void ngx_http_upstream_empty_save_session(ngx_peer_connection_t *pc,
 
 #endif
 
-/*
-Load-blance模块中4个关键回调函数:
+/*Load-blance模块中4个关键回调函数:
 回调指针                  函数功能                          round_robin模块                     IP_hash模块
 
 uscf->peer.init_upstream (默认为ngx_http_upstream_init_round_robin 在ngx_http_upstream_init_main_conf中执行)

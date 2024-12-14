@@ -283,11 +283,9 @@ main(int argc, char *const *argv) {
     ngx_pid = ngx_getpid();
     ngx_parent = ngx_getppid();
 
-    /*
- 主进程启动的时候,此时还没有读取配置文件,即没有指定日志打印在哪里.nginx这时候虽然可以将一些出错内容或者结果输到标准输出,但是如果要记录一些系统初始化情况,
-socket监听状况,还是需要写到日志文件中去的.在nginx的main函数中,首先会调用ngx_log_init 函数,默认日志文件为:安装路径/logs/error.log,如果这个文件没有权限访问的话,
-会直接报错退出.在main函数结尾处,在ngx_master_process_cycle函数调用之前,会close掉这个日志文件.
-  */
+    /*主进程启动的时候,此时还没有读取配置文件,即没有指定日志打印在哪里.nginx这时候虽然可以将一些出错内容或者结果输到标准输出,但是如果要记录一些系统初始化情况,
+    socket监听状况,还是需要写到日志文件中去的.在nginx的main函数中,首先会调用ngx_log_init 函数,默认日志文件为:安装路径/logs/error.log,如果这个文件没有权限访问的话,
+    会直接报错退出.在main函数结尾处,在ngx_master_process_cycle函数调用之前,会close掉这个日志文件.*/
     log = ngx_log_init(ngx_prefix, ngx_error_log);
     if (log == NULL) {
         return 1;

@@ -4,7 +4,7 @@
 
 环境搭建:
 
-1.进入nginx目录,分别执行(请将path改成自己的目录:/home/yuan/code/cgit):
+1.进入nginx目录,分别执行:
 
 ```shell
 ./auto/configure --add-module=src/ext/http_mytest_module 
@@ -35,7 +35,12 @@ make
 
 6.运行
 
-Ubuntu24:
+注意:请将path改成自己的目录,例如:
+```text
+/home/yuan/code/cgit
+```
+
+Ubuntu24添加依赖:
 ```shell
 sudo apt install libaio-dev libaio1t64
 ```

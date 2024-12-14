@@ -393,9 +393,12 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         }
 
         /*根据已经按照location字符串排序过的双向链表,快速地构建静态的二叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的*/
+
         /*下面的ngx_http_init_static_location_trees函数就会将那些普通的location(就是ngx_http_init_locations中name noname regex以外的location(exact/inclusive)),
         即staticlocation,进行树化(一种三叉树)处理,之所以要做这样的处理,是为了在处理http请求时能高效的搜索的匹配的location配置.*/
+
         /*根据已经按照location字符串排序过的双向链表,快速地构建静态的三叉查找树.与ngx_http_init_locations方法类似,速个操作也是递归进行的*/
+
         //clcf中现在只有普通staticlocation
         if (ngx_http_init_static_location_trees(cf, clcf) != NGX_OK) {
             return NGX_CONF_ERROR;
@@ -2168,6 +2171,7 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
 
 /*ngx_http_add_addrs函数用于初始化ls->servers,这个属性主要是存放该监听socket对应的虚拟主机的信息,在处理请求时根据请求行的host匹配,
 选择对应的一个server块的ngx_http_core_srv_conf_t结构,这个结构里存放了刚请求处理的全局配置信息*/
+
 //该函数主要把listen对应的server_name配置信息存放在hport->addrs[]中
 static ngx_int_t
 ngx_http_add_addrs(ngx_conf_t *cf, ngx_http_port_t *hport,

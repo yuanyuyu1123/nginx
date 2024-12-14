@@ -574,8 +574,7 @@ ngx_http_variable_value_t ngx_http_variable_true_value =
 static ngx_uint_t ngx_http_variable_depth = 100;
 
 
-/*
-其中name是变量的名称
+/*其中name是变量的名称
 flags是变量的标志:
 NGX_HTTP_VAR_CHANGEABLE:允许重复定义;
 NGX_HTTP_VAR_NOCACHEABLE:变量值不可以被缓存,每次使用必须计算;
@@ -589,14 +588,12 @@ NGX_HTTP_VAR_NOHASH:配置解析完以后,变量名不进hash索引,处理请求
 get_handler体现的是lazy_handle的策略,只有使用到变量,才会计算变量值;
 set_handler体现的是active_handle的策略,每执行一个请求,都会计算变量值.
 同时设置get_handler和set_handler回调函数是没有意义的,必须根据变量的使用特点,确定使用其中某一种回调函数.一般来说,get_handler更通用一些.
-而这里设置的data将会作为将来调用get_handler或者set_handler的参数.
-*/
+而这里设置的data将会作为将来调用get_handler或者set_handler的参数*/
 
-/*
-模块内自己的变量在preconfiguration的时候一般会调用ngx_http_add_variable加入到variables_keys, 例如变量ngx_http_fastcgi_vars ngx_http_browsers
+/*模块内自己的变量在preconfiguration的时候一般会调用ngx_http_add_variable加入到variables_keys, 例如变量ngx_http_fastcgi_vars ngx_http_browsers
 配置文件中set配置的变量也会通过ngx_http_add_variable创建
-//注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建
-*/
+
+//注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建*/
 
 //遍历variables_keys hash表,如果表中已经存在name,则直接返回hash中对应的ngx_http_variable_t信息,否则创建ngx_http_variable_t hash节点
 //注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建
@@ -730,15 +727,12 @@ ngx_http_add_prefix_variable(ngx_conf_t *cf, ngx_str_t *name, ngx_uint_t flags) 
 }
 
 
-/*
-那可能有读者可能会有疑问了.如果某个变量设置了NGX_HTTP_VAR_NOHASH的标志,不能使用变量名访问,那应该怎么访问呢?
+/*那可能有读者可能会有疑问了.如果某个变量设置了NGX_HTTP_VAR_NOHASH的标志,不能使用变量名访问,那应该怎么访问呢?
 ngx_http_get_variable_index会把变量加入一个array并返回变量在array中的下标,这样模块保存变量的下标,并通过
-ngx_http_get_indexed_variable直接得到变量值
-*/
+ngx_http_get_indexed_variable直接得到变量值*/
 
 /*在解析配置文件中的时候,遇到set配置变量的时候,会把对应的变量添加到variables数组,但是在解析配置文件过程中或者解析配置文件前,并没有把模块
-中自带的变量加入variables数组,而variables_keys中则存储了模块中自定义的以及set等在配置文件中解析到的变量
-*/
+中自带的变量加入variables数组,而variables_keys中则存储了模块中自定义的以及set等在配置文件中解析到的变量*/
 ngx_int_t //在cmcf->variables中查找是否有对应的name,并获取在variables数组中的下标
 ngx_http_get_variable_index(ngx_conf_t *cf, ngx_str_t *name) {
     ngx_uint_t i;
@@ -795,10 +789,8 @@ ngx_http_get_variable_index(ngx_conf_t *cf, ngx_str_t *name) {
     return v->index; //返回数组中的下标  ngx_http_variable_t->index
 }
 
-/*
-ngx_http_get_variable_index会把变量加入一个array并返回变量在array中的下标,这样模块保存变量的下标,并通过
-ngx_http_get_indexed_variable直接得到变量值
-*/
+/*ngx_http_get_variable_index会把变量加入一个array并返回变量在array中的下标,这样模块保存变量的下标,并通过
+ngx_http_get_indexed_variable直接得到变量值*/
 ngx_http_variable_value_t *
 ngx_http_get_indexed_variable(ngx_http_request_t *r, ngx_uint_t index) {
     ngx_http_variable_t *v;
@@ -865,9 +857,7 @@ ngx_http_get_flushed_variable(ngx_http_request_t *r, ngx_uint_t index) {
     return ngx_http_get_indexed_variable(r, index);
 }
 
-/*
-NGX HTTP_VAR_INDEXED、NGXHTTP_VARNOHASH、变量cmcf->variables_hash以及取值函数ngx_http_get_variable等,它们都是为SSI模块实现而设计的
-*/
+/*NGX HTTP_VAR_INDEXED、NGXHTTP_VARNOHASH、变量cmcf->variables_hash以及取值函数ngx_http_get_variable等,它们都是为SSI模块实现而设计的*/
 ngx_http_variable_value_t *
 ngx_http_get_variable(ngx_http_request_t *r, ngx_str_t *name, ngx_uint_t key) {
     size_t len;
@@ -2864,8 +2854,8 @@ ngx_http_variables_init_vars(ngx_conf_t *cf) {
 
         len = 0;
         av = NULL;
-        /*
-         ngx_http_variables_init_vars会检测variables中的变量是否在variables_keys中,如果不在,说明这个使用到的变量有可能是没有定义过的,
+
+        /*ngx_http_variables_init_vars会检测variables中的变量是否在variables_keys中,如果不在,说明这个使用到的变量有可能是没有定义过的,
          这样是不能使用的.为什么是有可能?看for循环下面的那几个if条件判断,如果不在variables_keys中的变量在下面的if判断中就说明这个
          变量是合法的,否则不合法
            有一部分变量虽然没有包含在cmcf->variables_key内,但是它们却合法.这部分变量是以"http_"、"sent_http_"、"upstream http"、"cookie_"、
@@ -2873,8 +2863,9 @@ ngx_http_variables_init_vars(ngx_conf_t *cf) {
        据客户端请求URI时附带的参数不同而不同,一个类似于"http:// 192.168. 164.2/?pageid=2"这样的请求会自动生成变量$argpageid.因此还需判断
        用户在配置文件里使用的变量是否在这五类变量里,具体来说就是检测用户使用的变量名前面几个字符是否与它们一致(这也间接说明,用户自定义变量时
        最好不要以这些字符开头).当然,如果用户在配置文件里使用了变量$argpageid,而客户端请求时却并没有带上pageid参数,此时变量$arg_pageid值为空,
-       但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)
-         */ //在variables中,但是不在variables_keys中的变量如果不是以下面的字符串开头,则是非法的
+       但它总还算是合法的,但如果提示类似如下这样的错误,请需检查配置文件内变量名是否书写正确.(unknown "XXX" variable)*/
+
+        //在variables中,但是不在variables_keys中的变量如果不是以下面的字符串开头,则是非法的
 
         //如果set 设置的变量名不是以以下字符串开头,则在ngx_http_rewrite_set的时候其实已经设置好了get_hendler和data
         for (n = 0; n < cmcf->prefix_variables.nelts; n++) {

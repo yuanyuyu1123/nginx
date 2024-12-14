@@ -269,13 +269,13 @@ static ngx_command_t ngx_http_core_commands[] = {
          &ngx_http_core_pool_size_p},
 
         /*
-语法:request_pool_size size;
-默认:request_pool_size 4k;
-配置块:http、server
-Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,size配置项将指定这个内存池的初始大小(即ngx_http_request_t结构体中的pool内存池初始大小,
-11.3节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.TCP连接关闭时会销毁connection_pool_size指定的连接内存池,HTTP请求结束
-时会销毁request_pool_size指定的HTTP请求内存池,但它们的创建、销毁时间并不一致,因为一个TCP连接可能被复用于多个HTTP请求.
-*/
+        语法:request_pool_size size;
+        默认:request_pool_size 4k;
+        配置块:http、server
+        Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,size配置项将指定这个内存池的初始大小(即ngx_http_request_t结构体中的pool内存池初始大小,
+        11.3节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.TCP连接关闭时会销毁connection_pool_size指定的连接内存池,HTTP请求结束
+        时会销毁request_pool_size指定的HTTP请求内存池,但它们的创建、销毁时间并不一致,因为一个TCP连接可能被复用于多个HTTP请求.
+        */
         {ngx_string("request_pool_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
@@ -283,13 +283,13 @@ Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,siz
          offsetof(ngx_http_core_srv_conf_t, request_pool_size),
          &ngx_http_core_pool_size_p},
         /*
-    读取HTTP头部的超时时间
-    语法:client_header_timeout time(默认单位:秒);
-    默认:client_header_timeout 60;
-    配置块:http、server、location
-    客户端与服务器建立连接后将开始接收HTTP头部,在这个过程中,如果在一个时间间隔(超时时间)内没有读取到客户端发来的字节,则认为超时,
-    并向客户端返回408 ("Request timed out")响应.
-    */
+            读取HTTP头部的超时时间
+            语法:client_header_timeout time(默认单位:秒);
+            默认:client_header_timeout 60;
+            配置块:http、server、location
+            客户端与服务器建立连接后将开始接收HTTP头部,在这个过程中,如果在一个时间间隔(超时时间)内没有读取到客户端发来的字节,则认为超时,
+            并向客户端返回408 ("Request timed out")响应.
+            */
         {ngx_string("client_header_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -297,13 +297,13 @@ Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,siz
          offsetof(ngx_http_core_srv_conf_t, client_header_timeout),
          NULL},
         /*
-语法:  client_header_buffer_size size;
-默认值:  client_header_buffer_size 1k;
-上下文:  http, server
-设置读取客户端请求头部的缓冲容量. 对于大多数请求,1K的缓冲足矣. 但如果请求中含有的cookie很长,或者请求来自WAP的客户端,可能
-请求头不能放在1K的缓冲中. 如果从请求行,或者某个请求头开始不能完整的放在这块空间中,那么nginx将按照 large_client_header_buffers
-指令的配置分配更多更大的缓冲来存放.
-*/
+        语法:  client_header_buffer_size size;
+        默认值:  client_header_buffer_size 1k;
+        上下文:  http, server
+        设置读取客户端请求头部的缓冲容量. 对于大多数请求,1K的缓冲足矣. 但如果请求中含有的cookie很长,或者请求来自WAP的客户端,可能
+        请求头不能放在1K的缓冲中. 如果从请求行,或者某个请求头开始不能完整的放在这块空间中,那么nginx将按照 large_client_header_buffers
+        指令的配置分配更多更大的缓冲来存放.
+        */
         {ngx_string("client_header_buffer_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
@@ -311,17 +311,19 @@ Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,siz
          offsetof(ngx_http_core_srv_conf_t, client_header_buffer_size),
          NULL},
         /*
-存储超大HTTP头部的内存buffer大小
-语法:large_client_header_buffers number size;
-默认:large_client_header_buffers 4 8k;
-配置块:http、server
-large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的buffer个数和每个buffer的大小.如果HTTP请求行(如GET /index HTTP/1.1)
-的大小超过上面的单个buffer,则返回"Request URI too large" (414).请求中一般会有许多header,每一个header的大小也不能超过单个buffer的大小,
-否则会返回"Bad request" (400).当然,请求行和请求头部的总和也不可以超过buffer个数*buffer大小.
-设置读取客户端请求超大请求的缓冲最大number(数量)和每块缓冲的size(容量). HTTP请求行的长度不能超过一块缓冲的容量,否则nginx返回错误414
-(Request-URI Too Large)到客户端. 每个请求头的长度也不能超过一块缓冲的容量,否则nginx返回错误400 (Bad Request)到客户端. 缓冲仅在必需
-是才分配,默认每块的容量是8K字节. 即使nginx处理完请求后与客户端保持入长连接,nginx也会释放这些缓冲.
-*/ //当client_header_buffer_size不够存储头部行的时候,用large_client_header_buffers再次分配空间存储
+        存储超大HTTP头部的内存buffer大小
+        语法:large_client_header_buffers number size;
+        默认:large_client_header_buffers 4 8k;
+        配置块:http、server
+        large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的buffer个数和每个buffer的大小.如果HTTP请求行(如GET /index HTTP/1.1)
+        的大小超过上面的单个buffer,则返回"Request URI too large" (414).请求中一般会有许多header,每一个header的大小也不能超过单个buffer的大小,
+        否则会返回"Bad request" (400).当然,请求行和请求头部的总和也不可以超过buffer个数*buffer大小.
+        设置读取客户端请求超大请求的缓冲最大number(数量)和每块缓冲的size(容量). HTTP请求行的长度不能超过一块缓冲的容量,否则nginx返回错误414
+        (Request-URI Too Large)到客户端. 每个请求头的长度也不能超过一块缓冲的容量,否则nginx返回错误400 (Bad Request)到客户端. 缓冲仅在必需
+        是才分配,默认每块的容量是8K字节. 即使nginx处理完请求后与客户端保持入长连接,nginx也会释放这些缓冲.
+        */
+
+        //当client_header_buffer_size不够存储头部行的时候,用large_client_header_buffers再次分配空间存储
         {ngx_string("large_client_header_buffers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE2,
          ngx_conf_set_bufs_slot,
@@ -329,12 +331,12 @@ large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的bu
          offsetof(ngx_http_core_srv_conf_t, large_client_header_buffers),
          NULL},
         /*
-忽略不合法的HTTP头部
-语法:ignore_invalid_headers on | off;
-默认:ignore_invalid_headers on;
-配置块:http、server
-如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400(Bad Request)错误.如果将其设置为on,则会忽略此HTTP头部.
-*/
+        忽略不合法的HTTP头部
+        语法:ignore_invalid_headers on | off;
+        默认:ignore_invalid_headers on;
+        配置块:http、server
+        如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400(Bad Request)错误.如果将其设置为on,则会忽略此HTTP头部.
+        */
         {ngx_string("ignore_invalid_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -342,12 +344,12 @@ large_client_header_buffers定义了Nginx接收一个超大HTTP头部请求的bu
          offsetof(ngx_http_core_srv_conf_t, ignore_invalid_headers),
          NULL},
         /*
-merge_slashes
-语法:merge_slashes on | off;
-默认:merge_slashes on;
-配置块:http、server、location
-此配置项表示是否合并相邻的"/",例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt;如果配置为off,则不会匹配,URI将仍然是//test///a.txt.
-*/
+        merge_slashes
+        语法:merge_slashes on | off;
+        默认:merge_slashes on;
+        配置块:http、server、location
+        此配置项表示是否合并相邻的"/",例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt;如果配置为off,则不会匹配,URI将仍然是//test///a.txt.
+        */
         {ngx_string("merge_slashes"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -355,12 +357,12 @@ merge_slashes
          offsetof(ngx_http_core_srv_conf_t, merge_slashes),
          NULL},
         /*
-HTTP头部是否允许下画线
-语法:underscores_in_headers on | off;
-默认:underscores_in_headers off;
-配置块:http、server
-默认为off,表示HTTP头部的名称中不允许带"_"(下画线).
-*/
+        HTTP头部是否允许下画线
+        语法:underscores_in_headers on | off;
+        默认:underscores_in_headers off;
+        配置块:http、server
+        默认为off,表示HTTP头部的名称中不允许带"_"(下画线).
+        */
         {ngx_string("underscores_in_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -391,7 +393,9 @@ HTTP头部是否允许下画线
               # /可以匹配所有请求.
           }
        完全匹配 > 前缀匹配 > 正则表达式 > /
-  */ //location {}配置查找可以参考ngx_http_core_find_config_phase->ngx_http_core_find_location
+  */
+
+        //location {}配置查找可以参考ngx_http_core_find_config_phase->ngx_http_core_find_location
         {ngx_string("location"),
          NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_BLOCK | NGX_CONF_TAKE12,
          ngx_http_core_location,
@@ -420,7 +424,7 @@ HTTP头部是否允许下画线
     该参数默认为server_name ""
     server_name_in_redirect on | off 该配置需要配合server_name使用.在使用on打开后,表示在重定向请求时会使用
     server_name里的第一个主机名代替原先请求中的Host头部,而使用off关闭时,表示在重定向请求时使用请求本身的HOST头部
-    */ //官方详细文档参考http://nginx.org/en/docs/http/server_names.html
+    */
         {ngx_string("server_name"),
          NGX_HTTP_SRV_CONF | NGX_CONF_1MORE,
          ngx_http_core_server_name,
@@ -428,12 +432,12 @@ HTTP头部是否允许下画线
          0,
          NULL},
         /*
-types_hash_max_size
-语法:types_hash_max_size size;
-默认:types_hash_max_size 1024;
-配置块:http、server、location
-types_hash_max_size影响散列表的冲突率.types_hash_max_size越大,就会消耗更多的内存,但散列key的冲突率会降低,检索速度就更快.types_hash_max_size越小,消耗的内存就越小,但散列key的冲突率可能上升.
-*/
+        types_hash_max_size
+        语法:types_hash_max_size size;
+        默认:types_hash_max_size 1024;
+        配置块:http、server、location
+        types_hash_max_size影响散列表的冲突率.types_hash_max_size越大,就会消耗更多的内存,但散列key的冲突率会降低,检索速度就更快.types_hash_max_size越小,消耗的内存就越小,但散列key的冲突率可能上升.
+        */
         {ngx_string("types_hash_max_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
@@ -441,12 +445,12 @@ types_hash_max_size影响散列表的冲突率.types_hash_max_size越大,就会�
          offsetof(ngx_http_core_loc_conf_t, types_hash_max_size),
          NULL},
         /*
-types_hash_bucket_size
-语法:types_hash_bucket_size size;
-默认:types_hash_bucket_size 32|64|128;
-配置块:http、server、location
-为了快速寻找到相应MIME type,Nginx使用散列表来存储MIME type与文件扩展名.types_hash_bucket_size 设置了每个散列桶占用的内存大小.
-*/
+        types_hash_bucket_size
+        语法:types_hash_bucket_size size;
+        默认:types_hash_bucket_size 32|64|128;
+        配置块:http、server、location
+        为了快速寻找到相应MIME type,Nginx使用散列表来存储MIME type与文件扩展名.types_hash_bucket_size 设置了每个散列桶占用的内存大小.
+        */
         {ngx_string("types_hash_bucket_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
@@ -465,8 +469,9 @@ types_hash_bucket_size
      image/gif    gif;
      image/jpeg   jpg;
     }
-    */ //types和default_type对应
-//types {}配置ngx_http_core_type首先存在与该数组中,然后在ngx_http_core_merge_loc_conf存入types_hash中,真正生效见ngx_http_set_content_type
+    */
+        //types和default_type对应
+        //types {}配置ngx_http_core_type首先存在与该数组中,然后在ngx_http_core_merge_loc_conf存入types_hash中,真正生效见ngx_http_set_content_type
         {ngx_string("types"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF
          | NGX_CONF_BLOCK | NGX_CONF_NOARGS,
@@ -475,12 +480,13 @@ types_hash_bucket_size
          0,
          NULL},
         /*
-默认MIME type
-语法:default_type MIME-type;
-默认:default_type text/plain;
-配置块:http、server、location
-当找不到相应的MIME type与文件扩展名之间的映射时,使用默认的MIME type作为HTTP header中的Content-Type.
-*/ //types和default_type对应
+        默认MIME type
+        语法:default_type MIME-type;
+        默认:default_type text/plain;
+        配置块:http、server、location
+        当找不到相应的MIME type与文件扩展名之间的映射时,使用默认的MIME type作为HTTP header中的Content-Type.
+        */
+        //types和default_type对应
         {ngx_string("default_type"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_str_slot,
@@ -561,36 +567,35 @@ types_hash_bucket_size
 
     这样,请求在访问/test/nginx.conf时,Nginx会返回/usr/local/nginx/conf/nginx.conf文件中的内容.
     nginx指定文件路径有两种方式root和alias,这两者的用法区别,使用方法总结了下,方便大家在应用过程中,快速响应.root与alias主要区别在于nginx如何解释location后面的uri,这会使两者分别以不同的方式将请求映射到服务器文件上.
-[root]
-语法:root path
-默认值:root html
-配置段:http、server、location、if
-[alias]
-语法:alias path
-配置段:location
-实例:
-location ~ ^/weblogs/ {
- root /data/weblogs/www.ttlsa.com;
- autoindex on;
- auth_basic            "Restricted";
- auth_basic_user_file  passwd/weblogs;
-}
-如果一个请求的URI是/weblogs/httplogs/www.ttlsa.com-access.log时,web服务器将会返回服务器上的/data/weblogs/www.ttlsa.com/weblogs/httplogs/www.ttlsa.com-access.log的文件.
-[info]root会根据完整的URI请求来映射,也就是/path/uri.[/info]
-因此,前面的请求映射为path/weblogs/httplogs/www.ttlsa.com-access.log.
-location ^~ /binapp/ {
- limit_conn limit 4;
- limit_rate 200k;
- internal;
- alias /data/statics/bin/apps/;
-}
-alias会把location后面配置的路径丢弃掉,把当前匹配到的目录指向到指定的目录.如果一个请求的URI是/binapp/a.ttlsa.com/favicon时,web服务器将会返回服务器上的/data/statics/bin/apps/a.ttlsa.com/favicon.jgp的文件.
-[warning]1. 使用alias时,目录名后面一定要加"/".
-2. alias可以指定任何名称.
-3. alias在使用正则匹配时,必须捕捉要匹配的内容并在指定的内容处使用.
-4. alias只能位于location块中.[/warning]
-如需转载请注明出处:  http://www.ttlsa.com/html/2907.html
-    */
+    [root]
+    语法:root path
+    默认值:root html
+    配置段:http、server、location、if
+    [alias]
+    语法:alias path
+    配置段:location
+    实例:
+    location ~ ^/weblogs/ {
+     root /data/weblogs/www.ttlsa.com;
+     autoindex on;
+     auth_basic            "Restricted";
+     auth_basic_user_file  passwd/weblogs;
+    }
+    如果一个请求的URI是/weblogs/httplogs/www.ttlsa.com-access.log时,web服务器将会返回服务器上的/data/weblogs/www.ttlsa.com/weblogs/httplogs/www.ttlsa.com-access.log的文件.
+    [info]root会根据完整的URI请求来映射,也就是/path/uri.[/info]
+    因此,前面的请求映射为path/weblogs/httplogs/www.ttlsa.com-access.log.
+    location ^~ /binapp/ {
+     limit_conn limit 4;
+     limit_rate 200k;
+     internal;
+     alias /data/statics/bin/apps/;
+    }
+    alias会把location后面配置的路径丢弃掉,把当前匹配到的目录指向到指定的目录.如果一个请求的URI是/binapp/a.ttlsa.com/favicon时,web服务器将会返回服务器上的/data/statics/bin/apps/a.ttlsa.com/favicon.jgp的文件.
+    [warning]1. 使用alias时,目录名后面一定要加"/".
+    2. alias可以指定任何名称.
+    3. alias在使用正则匹配时,必须捕捉要匹配的内容并在指定的内容处使用.
+    4. alias只能位于location块中.[/warning]
+        */
         {ngx_string("alias"),
          NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_http_core_root,
@@ -598,21 +603,20 @@ alias会把location后面配置的路径丢弃掉,把当前匹配到的目录指
          0,
          NULL},
         /*
-按HTTP方法名限制用户请求
-语法:  limit_except method ... { ... }
-默认值:  —
-上下文:  location
+        按HTTP方法名限制用户请求
+        语法:  limit_except method ... { ... }
+        默认值:  —
+        上下文:  location
 
-允许按请求的HTTP方法限制对某路径的请求.method用于指定不由这些限制条件进行过滤的HTTP方法,可选值有 GET、 HEAD、 POST、 PUT、
-DELETE、 MKCOL、 COPY、 MOVE、 OPTIONS、 PROPFIND、 PROPPATCH、 LOCK、 UNLOCK 或者 PATCH. 指定method为GET方法的同时,
-nginx会自动添加HEAD方法. 那么其他HTTP方法的请求就会由指令引导的配置块中的ngx_http_access_module 模块和ngx_http_auth_basic_module
-模块的指令来限制访问.如:
-limit_except GET {
-   allow 192.168.1.0/32;
-   deny  all;
-}
-请留意上面的例子将对除GET和HEAD方法以外的所有HTTP方法的请求进行访问限制.
-   */
+        允许按请求的HTTP方法限制对某路径的请求.method用于指定不由这些限制条件进行过滤的HTTP方法,可选值有 GET、 HEAD、 POST、 PUT、
+        DELETE、 MKCOL、 COPY、 MOVE、 OPTIONS、 PROPFIND、 PROPPATCH、 LOCK、 UNLOCK 或者 PATCH. 指定method为GET方法的同时,
+        nginx会自动添加HEAD方法. 那么其他HTTP方法的请求就会由指令引导的配置块中的ngx_http_access_module 模块和ngx_http_auth_basic_module
+        模块的指令来限制访问.如:
+        limit_except GET {
+           allow 192.168.1.0/32;
+           deny  all;
+        }
+        请留意上面的例子将对除GET和HEAD方法以外的所有HTTP方法的请求进行访问限制.*/
         {ngx_string("limit_except"),
          NGX_HTTP_LOC_CONF | NGX_CONF_BLOCK | NGX_CONF_1MORE,
          ngx_http_core_limit_except,
@@ -620,14 +624,14 @@ limit_except GET {
          0,
          NULL},
         /*
-HTTP请求包体的最大值
-语法:client_max_body_size size;
-默认:client_max_body_size 1m;
-配置块:http、server、location
-浏览器在发送含有较大HTTP包体的请求时,其头部会有一个Content-Length字段,client_max_body_size是用来限制Content-Length所示值的大小的.因此,
-这个限制包体的配置非常有用处,因为不用等Nginx接收完所有的HTTP包体—这有可能消耗很长时间—就可以告诉用户请求过大不被接受.例如,用户试图
-上传一个10GB的文件,Nginx在收完包头后,发现Content-Length超过client_max_body_size定义的值,就直接发送413 ("Request Entity Too Large")响应给客户端.
-*/
+        HTTP请求包体的最大值
+        语法:client_max_body_size size;
+        默认:client_max_body_size 1m;
+        配置块:http、server、location
+        浏览器在发送含有较大HTTP包体的请求时,其头部会有一个Content-Length字段,client_max_body_size是用来限制Content-Length所示值的大小的.因此,
+        这个限制包体的配置非常有用处,因为不用等Nginx接收完所有的HTTP包体—这有可能消耗很长时间—就可以告诉用户请求过大不被接受.例如,用户试图
+        上传一个10GB的文件,Nginx在收完包头后,发现Content-Length超过client_max_body_size定义的值,就直接发送413 ("Request Entity Too Large")响应给客户端.
+        */
         {ngx_string("client_max_body_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_off_slot,
@@ -635,13 +639,13 @@ HTTP请求包体的最大值
          offsetof(ngx_http_core_loc_conf_t, client_max_body_size),
          NULL},
         /*
-存储HTTP头部的内存buffer大小
-语法:client_header_buffer_size size;
-默认:client_header_buffer_size 1k;
-配置块:http、server
-上面配置项定义了正常情况下Nginx接收用户请求中HTTP header部分(包括HTTP行和HTTP头部)时分配的内存buffer大小.有时,
-请求中的HTTP header部分可能会超过这个大小,这时large_client_header_buffers定义的buffer将会生效.
-*/
+        存储HTTP头部的内存buffer大小
+        语法:client_header_buffer_size size;
+        默认:client_header_buffer_size 1k;
+        配置块:http、server
+        上面配置项定义了正常情况下Nginx接收用户请求中HTTP header部分(包括HTTP行和HTTP头部)时分配的内存buffer大小.有时,
+        请求中的HTTP header部分可能会超过这个大小,这时large_client_header_buffers定义的buffer将会生效.
+        */
         {ngx_string("client_body_buffer_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
@@ -649,12 +653,12 @@ HTTP请求包体的最大值
          offsetof(ngx_http_core_loc_conf_t, client_body_buffer_size),
          NULL},
         /*
-  读取HTTP包体的超时时间
-  语法:client_body_timeout time(默认单位:秒);
-  默认:client_body_timeout 60;
-  配置块:http、server、location
-  此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效.
-  */
+          读取HTTP包体的超时时间
+          语法:client_body_timeout time(默认单位:秒);
+          默认:client_body_timeout 60;
+          配置块:http、server、location
+          此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效.
+          */
         {ngx_string("client_body_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -662,17 +666,17 @@ HTTP请求包体的最大值
          offsetof(ngx_http_core_loc_conf_t, client_body_timeout),
          NULL},
         /*
-HTTP包体的临时存放目录
-语法:client_body_temp_path dir-path [ level1 [ level2 [ level3 ]]]
-默认:client_body_temp_path client_body_temp;
-配置块:http、server、location
-上面配置项定义HTTP包体存放的临时目录.在接收HTTP包体时,如果包体的大小大于client_body_buffer_size,则会以一个递增的整数命名并存放到
-client_body_temp_path指定的目录中.后面跟着的level1、level2、level3,是为了防止一个目录下的文件数量太多,从而导致性能下降,
-因此使用了level参数,这样可以按照临时文件名最多再加三层目录.例如:
-client_body_temp_path  /opt/nginx/client_temp 1 2;
-如果新上传的HTTP 包体使用00000123456作为临时文件名,就会被存放在这个目录中.
-/opt/nginx/client_temp/6/45/00000123456
-*/
+        HTTP包体的临时存放目录
+        语法:client_body_temp_path dir-path [ level1 [ level2 [ level3 ]]]
+        默认:client_body_temp_path client_body_temp;
+        配置块:http、server、location
+        上面配置项定义HTTP包体存放的临时目录.在接收HTTP包体时,如果包体的大小大于client_body_buffer_size,则会以一个递增的整数命名并存放到
+        client_body_temp_path指定的目录中.后面跟着的level1、level2、level3,是为了防止一个目录下的文件数量太多,从而导致性能下降,
+        因此使用了level参数,这样可以按照临时文件名最多再加三层目录.例如:
+        client_body_temp_path  /opt/nginx/client_temp 1 2;
+        如果新上传的HTTP 包体使用00000123456作为临时文件名,就会被存放在这个目录中.
+        /opt/nginx/client_temp/6/45/00000123456
+        */
         {ngx_string("client_body_temp_path"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1234,
          ngx_conf_set_path_slot,
@@ -680,13 +684,13 @@ client_body_temp_path  /opt/nginx/client_temp 1 2;
          offsetof(ngx_http_core_loc_conf_t, client_body_temp_path),
          NULL},
         /*
-  HTTP包体只存储到磁盘文件中
-  语法:client_body_in_file_only on | clean | off;
-  默认:client_body_in_file_only off;
-  配置块:http、server、location
-  当值为非off时,用户请求中的HTTP包体一律存储到磁盘文件中,即使只有0字节也会存储为文件.当请求结束时,如果配置为on,则这个文件不会
-  被删除(该配置一般用于调试、定位问题),但如果配置为clean,则会删除该文件.
- */
+          HTTP包体只存储到磁盘文件中
+          语法:client_body_in_file_only on | clean | off;
+          默认:client_body_in_file_only off;
+          配置块:http、server、location
+          当值为非off时,用户请求中的HTTP包体一律存储到磁盘文件中,即使只有0字节也会存储为文件.当请求结束时,如果配置为on,则这个文件不会
+          被删除(该配置一般用于调试、定位问题),但如果配置为clean,则会删除该文件.
+         */
         {ngx_string("client_body_in_file_only"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
@@ -694,12 +698,12 @@ client_body_temp_path  /opt/nginx/client_temp 1 2;
          offsetof(ngx_http_core_loc_conf_t, client_body_in_file_only),
          &ngx_http_core_request_body_in_file},
         /*
-HTTP包体尽量写入到一个内存buffer中
-语法:client_body_in_single_buffer on | off;
-默认:client_body_in_single_buffer off;
-配置块:http、server、location
-用户请求中的HTTP包体一律存储到内存唯一同一个buffer中.当然,如果HTTP包体的大小超过了下面client_body_buffer_size设置的值,包体还是会写入到磁盘文件中.
-*/
+        HTTP包体尽量写入到一个内存buffer中
+        语法:client_body_in_single_buffer on | off;
+        默认:client_body_in_single_buffer off;
+        配置块:http、server、location
+        用户请求中的HTTP包体一律存储到内存唯一同一个buffer中.当然,如果HTTP包体的大小超过了下面client_body_buffer_size设置的值,包体还是会写入到磁盘文件中.
+        */
         {ngx_string("client_body_in_single_buffer"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -707,13 +711,13 @@ HTTP包体尽量写入到一个内存buffer中
          offsetof(ngx_http_core_loc_conf_t, client_body_in_single_buffer),
          NULL},
         /*
-sendfile系统调用
-语法:sendfile on | off;
-默认:sendfile off;
-配置块:http、server、location
-可以启用Linux上的sendfile系统调用来发送文件,它减少了内核态与用户态之间的两次内存复制,这样就会从磁盘中读取文件后直接在内核态发送到网卡设备,
-提高了发送文件的效率.
-*/
+        sendfile系统调用
+        语法:sendfile on | off;
+        默认:sendfile off;
+        配置块:http、server、location
+        可以启用Linux上的sendfile系统调用来发送文件,它减少了内核态与用户态之间的两次内存复制,这样就会从磁盘中读取文件后直接在内核态发送到网卡设备,
+        提高了发送文件的效率.
+        */
         /*
         When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
         directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
@@ -745,63 +749,65 @@ sendfile系统调用
          offsetof(ngx_http_core_loc_conf_t, subrequest_output_buffer_size),
          NULL},
 
-        /*
-AIO系统调用
-语法:aio on | off;
-默认:aio off;
-配置块:http、server、location
-此配置项表示是否在FreeBSD或Linux系统上启用内核级别的异步文件I/O功能.注意,它与sendfile功能是互斥的.
-Syntax:  aio on | off | threads[=pool];
+            /*
+    AIO系统调用
+    语法:aio on | off;
+    默认:aio off;
+    配置块:http、server、location
+    此配置项表示是否在FreeBSD或Linux系统上启用内核级别的异步文件I/O功能.注意,它与sendfile功能是互斥的.
+    Syntax:  aio on | off | threads[=pool];
 
-Default:  aio off;
-Context:  http, server, location
+    Default:  aio off;
+    Context:  http, server, location
 
-Enables or disables the use of asynchronous file I/O (AIO) on FreeBSD and Linux:
-location /video/ {
-    aio            on;
-    output_buffers 1 64k;
-}
-On FreeBSD, AIO can be used starting from FreeBSD 4.3. AIO can either be linked statically into a kernel:
-options VFS_AIO
-or loaded dynamically as a kernel loadable module:
-kldload aio
-On Linux, AIO can be used starting from kernel version 2.6.22. Also, it is necessary to enable directio, or otherwise reading will be blocking:
-location /video/ {
-    aio            on;
-    directio       512;
-    output_buffers 1 128k;
-}
-On Linux, directio can only be used for reading blocks that are aligned on 512-byte boundaries (or 4K for XFS). File’s unaligned end is
-read in blocking mode. The same holds true for byte range requests and for FLV requests not from the beginning of a file: reading of
-unaligned data at the beginning and end of a file will be blocking.
-When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the directio
-directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-location /video/ {
-    sendfile       on;
-    aio            on;
-    directio       8m;
-}
-Finally, files can be read and sent using multi-threading (1.7.11), without blocking a worker process:
-location /video/ {
-    sendfile       on;
-    aio            threads;
-}
-Read and send file operations are offloaded to threads of the specified pool. If the pool name is omitted, the pool with the name "default"
-is used. The pool name can also be set with variables:
-aio threads=pool$disk;
-By default, multi-threading is disabled, it should be enabled with the --with-threads configuration parameter. Currently, multi-threading is
-compatible only with the epoll, kqueue, and eventport methods. Multi-threaded sending of files is only supported on Linux.
-*/
-/*
-When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
-directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
-则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
-生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
-不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
-*/ //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点  ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
+    Enables or disables the use of asynchronous file I/O (AIO) on FreeBSD and Linux:
+    location /video/ {
+        aio            on;
+        output_buffers 1 64k;
+    }
+    On FreeBSD, AIO can be used starting from FreeBSD 4.3. AIO can either be linked statically into a kernel:
+    options VFS_AIO
+    or loaded dynamically as a kernel loadable module:
+    kldload aio
+    On Linux, AIO can be used starting from kernel version 2.6.22. Also, it is necessary to enable directio, or otherwise reading will be blocking:
+    location /video/ {
+        aio            on;
+        directio       512;
+        output_buffers 1 128k;
+    }
+    On Linux, directio can only be used for reading blocks that are aligned on 512-byte boundaries (or 4K for XFS). File’s unaligned end is
+    read in blocking mode. The same holds true for byte range requests and for FLV requests not from the beginning of a file: reading of
+    unaligned data at the beginning and end of a file will be blocking.
+    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the directio
+    directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+    location /video/ {
+        sendfile       on;
+        aio            on;
+        directio       8m;
+    }
+    Finally, files can be read and sent using multi-threading (1.7.11), without blocking a worker process:
+    location /video/ {
+        sendfile       on;
+        aio            threads;
+    }
+    Read and send file operations are offloaded to threads of the specified pool. If the pool name is omitted, the pool with the name "default"
+    is used. The pool name can also be set with variables:
+    aio threads=pool$disk;
+    By default, multi-threading is disabled, it should be enabled with the --with-threads configuration parameter. Currently, multi-threading is
+    compatible only with the epoll, kqueue, and eventport methods. Multi-threaded sending of files is only supported on Linux.
+    */
+    /*
+    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
+    directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+    如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
+    则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
+    生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
+    不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
+    */
+    //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
+    // ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
         { ngx_string("aio"),
-//一般大缓存文件用aio发送,小文件用sendfile,因为aio是异步的,不影响其他流程,但是sendfile是同步的,太大的话可能需要多次sendfile才能发送完,有种阻塞感觉
+        //一般大缓存文件用aio发送,小文件用sendfile,因为aio是异步的,不影响其他流程,但是sendfile是同步的,太大的话可能需要多次sendfile才能发送完,有种阻塞感觉
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_http_core_set_aio,
          NGX_HTTP_LOC_CONF_OFFSET,
@@ -822,81 +828,53 @@ directio directive, while sendfile is used for files of smaller sizes or when di
          offsetof(ngx_http_core_loc_conf_t, read_ahead),
          NULL},
 
-        /*
-语法:directio size | off;
-默认:directio off;
-配置块:http、server、location
-当文件大小大于该值的时候,可以此配置项在FreeBSD和Linux系统上使用O_DIRECT选项去读取文件,通常对大文件的读取速度有优化作用.注意,它与sendfile功能是互斥的.
-*/
-/*
-When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
-directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
-则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
-生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
-不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
-当读入长度大于等于指定size的文件时,开启DirectIO功能.具体的做法是,在FreeBSD或Linux系统开启使用O_DIRECT标志,在MacOS X系统开启
-使用F_NOCACHE标志,在Solaris系统开启使用directio()功能.这条指令自动关闭sendfile(0.7.15版).它在处理大文件时
-*/ //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点  ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
-        //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
+            /*
+    语法:directio size | off;
+    默认:directio off;
+    配置块:http、server、location
+    当文件大小大于该值的时候,可以此配置项在FreeBSD和Linux系统上使用O_DIRECT选项去读取文件,通常对大文件的读取速度有优化作用.注意,它与sendfile功能是互斥的.
+    */
+    /*
+    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
+    directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+    如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
+    则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
+    生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
+    不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
+    当读入长度大于等于指定size的文件时,开启DirectIO功能.具体的做法是,在FreeBSD或Linux系统开启使用O_DIRECT标志,在MacOS X系统开启
+    使用F_NOCACHE标志,在Solaris系统开启使用directio()功能.这条指令自动关闭sendfile(0.7.15版).它在处理大文件时
+    */
+
+    //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
+    // ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
+
+    //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
 
         /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
             并且文件大小大于directio xxx中的大小才才会生效,见ngx_output_chain_align_file_buf  ngx_output_chain_as_is */
         { ngx_string("directio"), //在获取缓存文件内容的时候,只有文件大小大与等于directio的时候才会生效ngx_directio_on
-//一般大缓存文件用aio发送,小文件用sendfile,因为aio是异步的,不影响其他流程,太大的话可能需要多次sendfile才能发送完,有种阻塞感觉
+        //一般大缓存文件用aio发送,小文件用sendfile,因为aio是异步的,不影响其他流程,太大的话可能需要多次sendfile才能发送完,有种阻塞感觉
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_http_core_directio,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
         /*
-directio_alignment
-语法:directio_alignment size;
-默认:directio_alignment 512;  它与directio配合使用,指定以directio方式读取文件时的对齐方式
-配置块:http、server、location
-它与directio配合使用,指定以directio方式读取文件时的对齐方式.一般情况下,512B已经足够了,但针对一些高性能文件系统,如Linux下的XFS文件系统,
-可能需要设置到4KB作为对齐方式.
-*/ // 默认512   在ngx_output_chain_get_buf生效,表示分配内存空间的时候,空间起始地址需要按照这个值对齐
+    directio_alignment
+    语法:directio_alignment size;
+    默认:directio_alignment 512;  它与directio配合使用,指定以directio方式读取文件时的对齐方式
+    配置块:http、server、location
+    它与directio配合使用,指定以directio方式读取文件时的对齐方式.一般情况下,512B已经足够了,但针对一些高性能文件系统,如Linux下的XFS文件系统,
+    可能需要设置到4KB作为对齐方式.
+    */
+        // 默认512   在ngx_output_chain_get_buf生效,表示分配内存空间的时候,空间起始地址需要按照这个值对齐
         {ngx_string("directio_alignment"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_off_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, directio_alignment),
          NULL},
-        /*
-tcp_nopush
-官方:
-tcp_nopush
-Syntax: tcp_nopush on | off
-Default: off
-Context: http
-server
-location
-Reference: tcp_nopush
-This directive permits or forbids the use of thesocket options TCP_NOPUSH on FreeBSD or TCP_CORK on Linux. This option is
-onlyavailable when using sendfile.
-Setting this option causes nginx to attempt to sendit’s HTTP response headers in one packet on Linux and FreeBSD 4.x
-You can read more about the TCP_NOPUSH and TCP_CORKsocket options here.
 
-linux 下是tcp_cork,上面的意思就是说,当使用sendfile函数时,tcp_nopush才起作用,它和指令tcp_nodelay是互斥的.tcp_cork是linux下
-tcp/ip传输的一个标准了,这个标准的大概的意思是,一般情况下,在tcp交互的过程中,当应用程序接收到数据包后马上传送出去,不等待,
-而tcp_cork选项是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,这样有助于解决网络堵塞,已经是默认了.
-也就是说tcp_nopush = on 会设置调用tcp_cork方法,这个也是默认的,结果就是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,
-这样有助于解决网络堵塞.
-以快递投递举例说明一下(以下是我的理解,也许是不正确的),当快递东西时,快递员收到一个包裹,马上投递,这样保证了即时性,但是会
-耗费大量的人力物力,在网络上表现就是会引起网络堵塞,而当快递收到一个包裹,把包裹放到集散地,等一定数量后统一投递,这样就是tcp_cork的
-选项干的事情,这样的话,会最大化的利用网络资源,虽然有一点点延迟.
-对于nginx配置文件中的tcp_nopush,默认就是tcp_nopush,不需要特别指定,这个选项对于www,ftp等大文件很有帮助
-tcp_nodelay
-        TCP_NODELAY和TCP_CORK基本上控制了包的"Nagle化",Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly window syndrome,中文称"愚蠢窗口症候群",具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有一个字节的数据载荷以及40个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
-       现在让我们假设某个应用程序发出了一个请求,希望发送小块数据.我们可以选择立即发送数据或者等待产生更多的数据然后再一次发送两种策略.如果我们马上发送数据,那么交互性的以及客户/服务器型的应用程序将极大地受益.如果请求立即发出那么响应时间也会快一些.以上操作可以通过设置套接字的TCP_NODELAY = on 选项来完成,这样就禁用了Nagle 算法.
-       另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.应用 Nagle算法在这种情况下就会产生问题.但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反(TCP_CORK和 TCP_NODELAY是互相排斥的).
-tcp_nopush
-语法:tcp_nopush on | off;
-默认:tcp_nopush off;
-配置块:http、server、location
-在打开sendfile选项时,确定是否开启FreeBSD系统上的TCP_NOPUSH或Linux系统上的TCP_CORK功能.打开tcp_nopush后,将会在发送响应时把整个响应包头放到一个TCP包中发送.
-*/ // tcp_nopush on | off;只有开启sendfile,nopush才生效,通过设置TCP_CORK实现
         {ngx_string("tcp_nopush"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -990,10 +968,8 @@ tcp_nopush
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, send_lowat),
          &ngx_http_core_lowat_post},
-        /*
-clcf->postpone_output:由于处理postpone_output指令,用于设置延时输出的阈值.比如指令"postpone s",当输出内容的size小于s, 默认1460
-并且不是最后一个buffer,也不需要flush,那么就延时输出.见ngx_http_write_filter
-*/
+        /*clcf->postpone_output:由于处理postpone_output指令,用于设置延时输出的阈值.比如指令"postpone s",当输出内容的size小于s, 默认1460
+        并且不是最后一个buffer,也不需要flush,那么就延时输出.见ngx_http_write_filter*/
         {ngx_string("postpone_output"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,

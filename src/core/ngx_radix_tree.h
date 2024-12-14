@@ -16,7 +16,7 @@
 #define NGX_RADIX_NO_VALUE   (uintptr_t) -1
 
 typedef struct ngx_radix_node_s ngx_radix_node_t;
-//参考<深入理解nginx> 图7-9
+
 struct ngx_radix_node_s {
     ngx_radix_node_t  *right; //指向右子树,如果没有右子树,则值为null空指针
     ngx_radix_node_t  *left; //指向左子树,如果没有左子树,则值为null空指针
@@ -24,11 +24,9 @@ struct ngx_radix_node_s {
     uintptr_t          value; //value存储的是指针的值,它指向用户定义的数据结构.如果这个节点还未使用,value的值将是NGX_RADIX_NO_VALUE
 };
 
-/*
-每次删除1个节点时,ngx_radix_treej基数树并不会释放这个节点占用的内存,而是把它添加到free单链表中.这样,在添加新的节点时,会首
+/*每次删除1个节点时,ngx_radix_treej基数树并不会释放这个节点占用的内存,而是把它添加到free单链表中.这样,在添加新的节点时,会首
 先查看free中是否还有节点,如果free中有未使用的节点,则会优先使用,如果没有,就会再从pool内存池中分配新内存存储节点.
-对于ngx_radix_tree-t结构体来说,仅从使用的角度来看,我们不需要了解pool、free、start、size这些成员的意义,仅了解如何使用root根节点即可.
-*/
+对于ngx_radix_tree-t结构体来说,仅从使用的角度来看,我们不需要了解pool、free、start、size这些成员的意义,仅了解如何使用root根节点即可.*/
 typedef struct {
     ngx_radix_node_t  *root;  //指向根节点
     ngx_pool_t        *pool;  //内存池,它负责给基数树的节点分配内存

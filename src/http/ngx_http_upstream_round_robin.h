@@ -28,8 +28,8 @@ typedef struct ngx_http_upstream_rr_peer_s ngx_http_upstream_rr_peer_t;
 ·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
 ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
 ·down - 标记服务器处于离线状态,通常和ip_hash一起使用.
-·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).
-*/
+·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).*/
+
 //ngx_http_upstream_rr_peers_s中包含多个后端服务器信息,最终是存到ngx_http_upstream_srv_conf_t->peer.data,见ngx_http_upstream_init_round_robin
 struct ngx_http_upstream_rr_peer_s {
     struct sockaddr                *sockaddr; //初始赋值见ngx_http_upstream_init_round_robin

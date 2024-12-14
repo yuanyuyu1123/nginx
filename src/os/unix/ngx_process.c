@@ -94,6 +94,7 @@ ngx_signal_t signals[] = {
 并且会从ngx_processes数组中选择一个还未使用的ngx_process_t元素存储这个子进程的相关信息.如果所有1024个数纽元素中已经没有空
 余的元素,也就是说,子进程个数超过了最大值1024,那么将会返回NGX_INVALID_PID.
  因此,ngx_processes数组中元素的初始化将在ngx_spawn_process方法中进行.*/
+
 //第一个参数是全局的配置,第二个参数是子进程需要执行的函数,第三个参数是proc的参数.第四个类型.  name是子进程的名称
 ngx_pid_t
 ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
@@ -124,8 +125,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
     if (respawn != NGX_PROCESS_DETACHED) {  //不是分离的子进程      /* 不是热代码替换 */
 
         /* Solaris 9 still has no AF_LOCAL */
-        /*
-          这里相当于Master进程调用socketpair()为新的worker进程创建一对全双工的socket
+        /*这里相当于Master进程调用socketpair()为新的worker进程创建一对全双工的socket
 
           实际上socketpair 函数跟pipe 函数是类似的,也只能在同个主机上具有亲缘关系的进程间通信,但pipe 创建的匿名管道是半双工的,
           而socketpair 可以认为是创建一个全双工的管道.
@@ -137,8 +137,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
           同样,向sv[l]套接字写入数据,也可以从sv[0]中读取到写入的数据.通常,在父、子进程通信前,会先调用socketpair方法创建这样一组
           套接字,在调用fork方法创建出子进程后,将会在父进程中关闭sv[l]套接字,仅使用sv[0]套接字用于向子进程发送数据以及接收子进程发
           送来的数据:而在子进程中则关闭sv[0]套接字,仅使用sv[l]套接字既可以接收父进程发来的数据,也可以向父进程发送数据.
-          注意socketpair的协议族为AF_UNIX UNXI域
-          */
+          注意socketpair的协议族为AF_UNIX UNXI域*/
         if (socketpair(AF_UNIX, SOCK_STREAM, 0, ngx_processes[s].channel) == -1) { //在ngx_worker_process_init中添加到事件集
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                           "socketpair() failed while spawning \"%s\"", name);
@@ -179,8 +178,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
         /* F_SETOWN:用于指定接收SIGIO和SIGURG信号的socket属主(进程ID或进程组ID)
          * 这里意思是指定Master进程接收SIGIO和SIGURG信号
          * SIGIO信号必须是在socket设置为信号驱动异步I/O才能产生,即上一步操作
-         * SIGURG信号是在新的带外数据到达socket时产生的
-        */
+         * SIGURG信号是在新的带外数据到达socket时产生的*/
         if (fcntl(ngx_processes[s].channel[0], F_SETOWN, ngx_pid) == -1) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                           "fcntl(F_SETOWN) failed while spawning \"%s\"", name);
@@ -327,7 +325,6 @@ ngx_execute_proc(ngx_cycle_t *cycle, void *data) {
 信号来源
 信号事件的发生有两个来源:硬件来源(比如我们按下了键盘或者其它硬件故障);软件来源,最常用发送信号的系统函数是kill, raise, alarm和setitimer以及sigqueue函数,软件来源还包括一些非法运算等操作.
 --------------------------------------------------------------------------------
-回页首
 二、信号的种类
 可以从两个不同的分类角度对信号进行分类:(1)可靠性方面:可靠信号与不可靠信号;(2)与时间的关系上:实时信号与非实时信号.在《Linux环境进程间通信(一):管道及有名管道》的附1中列出了系统所支持的所有信号.
 1、可靠信号与不可靠信号
@@ -345,12 +342,10 @@ Linux信号机制基本上是从Unix系统中继承过来的.早期Unix系统中
 早期Unix系统只定义了32种信号,Ret hat7.2支持64种信号,编号0-63(SIGRTMIN=31,SIGRTMAX=63),将来可能进一步增加,这需要得到内核的支持.前32种信号已经有了预定义值,每个信号有了确定的用途及含义,并且每种信号都有各自的缺省动作.如按键盘的CTRL ^C时,会产生SIGINT信号,对该信号的默认反应就是进程终止.后32个信号表示实时信号,等同于前面阐述的可靠信号.这保证了发送的多个实时信号都被接收.实时信号是POSIX标准的一部分,可用于应用进程.
 非实时信号都不支持排队,都是不可靠信号;实时信号都支持排队,都是可靠信号.
 --------------------------------------------------------------------------------
-回页首
 三、进程对信号的响应
 进程可以通过三种方式来响应一个信号:(1）忽略信号,即对信号不做任何处理,其中,有两个信号不能忽略:SIGKILL及SIGSTOP;(2）捕捉信号.定义信号处理函数,当信号发生时,执行相应的处理函数;(3）执行缺省操作,Linux对每种信号都规定了默认操作,详细情况请参考[2]以及其它资料.注意,进程对实时信号的缺省反应是进程终止.
 Linux究竟采用上述三种方式的哪一个来响应信号,取决于传递给相应API函数的参数.
 --------------------------------------------------------------------------------
-回页首
 四、信号的发送
 发送信号的主要函数有:kill()、raise()、 sigqueue()、alarm()、setitimer()以及abort().
 1、kill()
@@ -400,7 +395,6 @@ Setitimer()调用成功返回0,否则返回-1.
 void abort(void);
 向进程发送SIGABORT信号,默认情况下进程会异常退出,当然可定义自己的信号处理函数.即使SIGABORT被进程设置为阻塞信号,调用abort()后,SIGABORT仍然能被进程接收.该函数无返回值.
 --------------------------------------------------------------------------------
-回页首
 五、信号的安装(设置信号关联动作）
 如果进程要处理某一信号,那么就要在进程中安装该信号.安装信号主要用来确定信号值及进程针对该信号值的动作之间的映射关系,即进程将要处理哪个信号;该信号被传递给进程时,将执行何种操作.
 linux主要有两个函数实现信号的安装:signal()、sigaction().其中signal()在可靠信号系统调用的基础上实现, 是库函数.它只有两个参数,不支持信号传递信息,主要是用于前32种非实时信号的安装;而sigaction()是较新的函数(由两个系统调用实现:sys_signal以及sys_rt_sigaction）,有三个参数,支持信号传递信息,主要用来与 sigqueue() 系统调用配合使用,当然,sigaction()同样支持非实时信号的安装.sigaction()优于signal()主要体现在支持信号带有参数.
@@ -467,7 +461,6 @@ siginfo_t结构中的联合数据成员确保该结构适应所有的信号,比�
 4、sa_flags中包含了许多标志位,包括刚刚提到的SA_NODEFER及SA_NOMASK标志位.另一个比较重要的标志位是SA_SIGINFO,当设定了该标志位时,表示信号附带的参数可以被传递到信号处理函数中,因此,应该为sigaction结构中的sa_sigaction指定处理函数,而不应该为sa_handler指定信号处理函数,否则,设置该标志变得毫无意义.即使为sa_sigaction指定了信号处理函数,如果不设置SA_SIGINFO,信号处理函数同样不能得到信号传递过来的数据,在信号处理函数中对这些信息的访问都将导致段错误(Segmentation fault）.
 注:很多文献在阐述该标志位时都认为,如果设置了该标志位,就必须定义三参数信号处理函数.实际不是这样的,验证方法很简单:自己实现一个单一参数信号处理函数,并在程序中设置该标志位,可以察看程序的运行结果.实际上,可以把该标志位看成信号是否传递参数的开关,如果设置该位,则传递参数;否则,不传递参数.
 --------------------------------------------------------------------------------
-回页首
 六、信号集及信号集操作函数:
 信号集被定义为一种数据类型:
 	typedef struct {
@@ -485,7 +478,6 @@ sigaddset(sigset_t *set, int signum)在set指向的信号集中加入signum信�
 sigdelset(sigset_t *set, int signum)在set指向的信号集中删除signum信号;
 sigismember(const sigset_t *set, int signum)判定信号signum是否在set指向的信号集中.
 --------------------------------------------------------------------------------
-回页首
 七、信号阻塞与信号未决:
 每个进程都有一个用来描述哪些信号递送到进程时将被阻塞的信号集,该信号集中的所有信号在递送到进程后都将被阻塞.下面是与信号阻塞相关的几个函数:
 #include <signal.h>
@@ -523,7 +515,9 @@ void *   si_addr;    触发fault的内存地址,对SIGILL,SIGFPE,SIGSEGV,SIGBUS 
 int      si_band;   SIGPOLL信号有意义
 int      si_fd;     SIGPOLL信号有意义
 }实际上,除了前三个元素外,其他元素组织在一个联合结构中,在联合数据结构中,又根据不同的信号组织成不同的结构.注释中提到的对某种信号有意义指的是,在该信号的处理函数中可以访问这些域来获得与信号相关的有意义的信息,只不过特定信号只对特定信息感兴趣而已.
-*/ //信号处理在ngx_signal_handler
+*/
+
+//信号处理在ngx_signal_handler
 ngx_int_t
 ngx_init_signals(ngx_log_t *log) {
     ngx_signal_t *sig;
@@ -641,6 +635,7 @@ kill -s SIGUSR2 <nginx master pid>
 (14）显示命令行帮助
 使用-h或者-?参数会显示支持的所有命令行参数.
 */
+
 //注册新号在ngx_init_signals
 static void
 ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext) {
@@ -949,11 +944,9 @@ ngx_debug_point(void) { //让自己停止,通知父进程
     }
 }
 
-/*
-ngx_os_signal_process()函数处理
+/*ngx_os_signal_process()函数处理
 遍历signals数组,根据给定信号name,找到对应signo;
-调用kill向该pid发送signo号信号;
-*/
+调用kill向该pid发送signo号信号;*/
 ngx_int_t
 ngx_os_signal_process(ngx_cycle_t *cycle, char *name, ngx_pid_t pid) {
     ngx_signal_t *sig;

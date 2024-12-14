@@ -168,18 +168,17 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
 
     /* ngx_conf_parse 这个函数来完成对配置文件的解析,其实这个函数不仅仅解析文件,还可以用来解析参数和块 */
     /*当执行到ngx_conf_parse函数内时,配置的解析可能处于三种状态:
-    第一种,刚开始解析一个配置文件,即此时的参数filename指向一个配置文件路径字符串,需要函数ngx_conf_parse打开该文件并获取相关
-    的文件信息以便下面代码读取文件内容并进行解析,除了在上面介绍的nginx启动时开始主配置文件解析时属于这种情况,还有当遇到include
-    指令时也将以这种状态调用ngx_conf_parse函数,因为include指令表示一个新的配置文件要开始解析.状态标记为type = parse_file;.
+        1.刚开始解析一个配置文件,即此时的参数filename指向一个配置文件路径字符串,需要函数ngx_conf_parse打开该文件并获取相关
+        的文件信息以便下面代码读取文件内容并进行解析,除了在上面介绍的nginx启动时开始主配置文件解析时属于这种情况,还有当遇到include
+        指令时也将以这种状态调用ngx_conf_parse函数,因为include指令表示一个新的配置文件要开始解析.状态标记为type = parse_file;.
 
-    第二种,开始解析一个配置块,即此时配置文件已经打开并且也已经对文件部分进行了解析,当遇到复杂配置项比如events、http等时,
-    这些复杂配置项的处理函数又会递归的调用ngx_conf_parse函数,此时解析的内容还是来自当前的配置文件,因此无需再次打开它,状态标记为type = parse_block;.
+        2.开始解析一个配置块,即此时配置文件已经打开并且也已经对文件部分进行了解析,当遇到复杂配置项比如events、http等时,
+        这些复杂配置项的处理函数又会递归的调用ngx_conf_parse函数,此时解析的内容还是来自当前的配置文件,因此无需再次打开它,状态标记为type = parse_block;.
 
-    第三种,开始解析配置项,这在对用户通过命令行-g参数输入的配置信息进行解析时处于这种状态,如:
-    nginx -g ‘daemon on;’
-    nginx在调用ngx_conf_parse函数对配置信息’daemon on;’进行解析时就是这种状态,状态标记为type = parse_param;.
-    前面说过,nginx配置是由标记组成的,在区分好了解析状态之后,接下来就要读取配置内容,而函数ngx_conf_read_token就是做这个事情的:
-    */
+        3.开始解析配置项,这在对用户通过命令行-g参数输入的配置信息进行解析时处于这种状态,如:
+        nginx -g ‘daemon on;’
+        nginx在调用ngx_conf_parse函数对配置信息’daemon on;’进行解析时就是这种状态,状态标记为type = parse_param;.
+        前面说过,nginx配置是由标记组成的,在区分好了解析状态之后,接下来就要读取配置内容,而函数ngx_conf_read_token就是做这个事情的*/
     enum {
         parse_file = 0,
         parse_block,
@@ -216,11 +215,9 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
 
         cf->conf_file->buffer = &buf;
 
-        /*
-   函数ngx_conf_read_token对配置文件内容逐个字符扫描并解析为单个的token,当然,该函数并不会频繁的去读取配置文件,它每次从
-   文件内读取足够多的内容以填满一个大小为NGX_CONF_BUFFER的缓存区(除了最后一次,即配置文件剩余内容本来就不够了),这个缓存
-   区在函数 ngx_conf_parse内申请并保存引用到变量cf->conf_file->buffer内,函数 ngx_conf_read_token反复使用该缓存区
-   */
+        /*函数ngx_conf_read_token对配置文件内容逐个字符扫描并解析为单个的token,当然,该函数并不会频繁的去读取配置文件,它每次从
+           文件内读取足够多的内容以填满一个大小为NGX_CONF_BUFFER的缓存区(除了最后一次,即配置文件剩余内容本来就不够了),这个缓存
+           区在函数 ngx_conf_parse内申请并保存引用到变量cf->conf_file->buffer内,函数 ngx_conf_read_token反复使用该缓存区*/
         buf.start = ngx_alloc(NGX_CONF_BUFFER, cf->log);
         if (buf.start == NULL) {
             goto failed;
@@ -374,14 +371,12 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
     return NGX_CONF_OK;
 }
 
-/*
-    这个功能是在函数ngx_conf_handle中实现的,整个过程中需要遍历所有模块中的所有指令,如果找到一个,就直接调用指令的set 函数,
+/*这个功能是在函数ngx_conf_handle中实现的,整个过程中需要遍历所有模块中的所有指令,如果找到一个,就直接调用指令的set 函数,
     完成对模块的配置信息的设置. 这里主要的过程就是判断是否是找到,需要判断下面一些条件:
   a  名字一致.配置文件中指令的名字和模块指令中的名字需要一致
   b  模块类型一致.配置文件指令处理的模块类型和当前模块一致
   c  指令类型一致. 配置文件指令类型和当前模块指令一致
-  d  参数个数一致.配置文件中参数的个数和当前模块的当前指令参数一致.
-*/
+  d  参数个数一致.配置文件中参数的个数和当前模块的当前指令参数一致*/
 static ngx_int_t
 ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
     char *rv;
@@ -496,7 +491,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
                   可以确定出该命令行的地址对应在ngx_http_conf_ctx_t中的地址空间头部指针位置, 就是确定出该命令为ngx_http_conf_ctx的成员main srv loc中的那一个*/
                 confp = *(void **) ((char *) cf->ctx + cmd->conf); //如果是http{}内部的行,则cf->ctx已经在ngx_http_block中被重新赋值为新的ngx_http_conf_ctx_t空间
                 //这里的cf->ctx为二级或者三级里面分配的空间了,而不是ngx_cycle_s->conf_ctx,例如为存储http{}内部配置项的空间,见ngx_http_block分配的空间
-                if (confp) { //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
+                if (confp) {
                     conf = confp[cf->cycle->modules[i]->ctx_index]; //上一行是确定在ngx_http_conf_ctx_t中main srv loc中的那个成员头,这个则是对应头部下面的数组指针中的具体那一个
                 }
             }
@@ -539,8 +534,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
     return NGX_ERROR;
 }
 
-/*
-函数ngx_conf_read_token在读取了合适数量的标记token之后就开始下一步骤即对这些标记进行实际的处理.
+/*函数ngx_conf_read_token在读取了合适数量的标记token之后就开始下一步骤即对这些标记进行实际的处理.
 那多少才算是读取了合适数量的标记呢?区别对待,对于简单配置项则是读取其全部的标记,也就是遇到结束标记分号;为止,
 此时一条简单配置项的所有标记都被读取并存放在 cf->args数组内,因此可以调用其对应的回调函数进行实际的处理;
 对于复杂配置项则是读完其配置块前的所有标记,即遇到大括号{为止,此时复杂配置项处理函数所需要的标记都已读取到,
@@ -553,8 +547,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
 结构体之后还需进行一些有效性验证,因为ngx_command_s结构体内包含有配置项的相关信息,因此有效性验证是可以进行的,比如配置项的类型、
 位置、带参数的个数等等.只有经过了严格有效性验证的配置项才调用其对应的回调函数:
 rv = cmd->set(cf, cmd, conf);
-进行处理,这也就是第三件事情.在处理函数内,根据实际的需要又可能再次调用函数ngx_conf_parse,如此反复直至所有配置信息都被处理完.
-*/
+进行处理,这也就是第三件事情.在处理函数内,根据实际的需要又可能再次调用函数ngx_conf_parse,如此反复直至所有配置信息都被处理完*/
 
 /*首先明确,什么是一个token:token是处在两个相邻空格,换行符,双引号,单引号等之间的字符串.*/
 
@@ -564,7 +557,7 @@ rv = cmd->set(cf, cmd, conf);
 3.返回后调用ngx_conf_parse函数会调用*cf->handler和ngx_conf_handler(cf, rc)函数处理.
 3.如果是复杂配置项,会调用上次执行的状态继续解析配置文件.*/
 static ngx_int_t
-ngx_conf_read_token(ngx_conf_t *cf) { //参考http://blog.chinaunix.net/uid-26335251-id-3483044.html
+ngx_conf_read_token(ngx_conf_t *cf) {
     u_char *start, ch, *src, *dst;
     off_t file_size;
     size_t len;
@@ -666,7 +659,7 @@ ngx_conf_read_token(ngx_conf_t *cf) { //参考http://blog.chinaunix.net/uid-2633
                                    n, size);
                 return NGX_ERROR;
             }
-            //重置pos,last,start   //参考http://blog.chinaunix.net/uid-26335251-id-3483044.html
+            //重置pos,last,start
             b->pos = b->start + len; //指向新读取空间的头,这里的len为上一个4096中末尾空间为满足一个stoken部分的空间大小
             b->last = b->pos + n; //指向新读取空间的尾
             start = b->start;
@@ -689,10 +682,7 @@ ngx_conf_read_token(ngx_conf_t *cf) { //参考http://blog.chinaunix.net/uid-2633
         if (sharp_comment) { //如果该行为注释行,则不再对字符判断,继续读取字符执行
             continue;
         }
-        /*
-       如果为反引号,则设置反引号标识,并且不对该字符进行解析
-       继续扫描下一个字符
-       */
+        /*如果为反引号,则设置反引号标识,并且不对该字符进行解析继续扫描下一个字符*/
         if (quoted) {
             quoted = 0;
             continue;
@@ -1237,8 +1227,7 @@ ngx_conf_set_str_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 }
 
 
-/*
-test_str_array配置项也只能出现在location{．．．}块内.如果有以下配置:
+/* test_str_array配置项也只能出现在location{．．．}块内.如果有以下配置:
     location ... {
         test_str_array      Content-Length ;
         test_str_array      Content-Encoding ;

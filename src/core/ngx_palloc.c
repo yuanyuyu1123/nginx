@@ -16,13 +16,11 @@ static void *ngx_palloc_block(ngx_pool_t *pool, size_t size);
 
 static void *ngx_palloc_large(ngx_pool_t *pool, size_t size);
 
-/*
-ngx_create_pool:创建pool
+/*ngx_create_pool:创建pool
 ngx_destory_pool:销毁 pool
 ngx_reset_pool:重置pool中的部分数据
 ngx_palloc/ngx_pnalloc:从pool中分配一块内存
-ngx_pool_cleanup_add:为pool添加cleanup数据
-*/
+ngx_pool_cleanup_add:为pool添加cleanup数据*/
 ngx_pool_t *
 ngx_create_pool(size_t size, ngx_log_t *log) {
     ngx_pool_t *p;

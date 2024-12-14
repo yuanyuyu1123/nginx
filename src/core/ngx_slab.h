@@ -14,7 +14,7 @@
 
 
 typedef struct ngx_slab_page_s ngx_slab_page_t;
-//图形化理解参考:http://blog.csdn.net/u013009575/article/details/17743261
+
 struct ngx_slab_page_s { //初始化赋值在ngx_slab_init
     //多种情况,多个用途
     //当需要分配新的页的时候,分配N个页ngx_slab_page_s结构中第一个页的slab表示这次一共分配了多少个页 //标记这是连续分配多个page,并且我不是首page,例如一次分配3个page,分配的page为[1-3],则page[1].slab=3  page[2].slab=page[3].slab=NGX_SLAB_PAGE_BUSY记录
@@ -57,17 +57,14 @@ m_page[2]对应page[2]页面
 m_page[k]对应page[k]页面
 另外可能有的m_page[]没有相应页面与他相对应.
 */
-//图形化理解参考:http://blog.csdn.net/u013009575/article/details/17743261
 typedef struct { //初始化赋值在ngx_slab_init  slab结构是配合共享内存使用的  可以以limit req模块为例,参考ngx_http_limit_req_module
     ngx_shmtx_sh_t lock;  //mutex的锁
 
     size_t min_size; //内存缓存obj最小的大小,一般是1个byte   //最小分配的空间是8byte 见ngx_slab_init
     //slab pool以shift来比较和计算所需分配的obj大小、每个缓存页能够容纳obj个数以及所分配的页在缓存空间的位置
     size_t min_shift;  //ngx_init_zone_pool中默认为3
-    /*
-共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize(这是实际的数据部分,
-每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)
-*/
+    /*共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize(这是实际的数据部分,
+        每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)*/
     //指向ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t) + pages * sizeof(ngx_slab_page_t) +pages*ngx_pagesize(这是实际的数据部分)中的pages * sizeof(ngx_slab_page_t)开头处
     ngx_slab_page_t *pages;  //slab page空间的开头   初始指向pages * sizeof(ngx_slab_page_t)首地址
     ngx_slab_page_t *last; // 也就是指向实际的数据页pages*ngx_pagesize,指向最后一个pages页

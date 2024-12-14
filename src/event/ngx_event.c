@@ -64,12 +64,8 @@ ngx_atomic_t *ngx_connection_counter = &connection_counter;
 ngx_atomic_t *ngx_accept_mutex_ptr; //指向共享的内存空间,见ngx_event_module_init
 //ngx_accept_mutex为共享内存互斥锁  //获取到该锁的进程才会接受客户端的accept请求
 ngx_shmtx_t ngx_accept_mutex; //共享内存的空间  在建连接的时候,为了避免惊群,在accept的时候,只有获取到该原子锁,才把accept添加到epoll事件中,见ngx_trylock_accept_mutex
-/*
-注意:上面的ngx_accept_mutex_ptr和下面的其他全局变量ngx_use_accept_mutex等的区别?
-ngx_accept_mutex_ptr是共享内存空间,所有进程共享,而下面的ngx_use_accept_mutex等全局变量是本进程可见的,其他进程不能使用该空间,不可见.
-*/
-
-
+/*注意:上面的ngx_accept_mutex_ptr和下面的其他全局变量ngx_use_accept_mutex等的区别?
+ngx_accept_mutex_ptr是共享内存空间,所有进程共享,而下面的ngx_use_accept_mutex等全局变量是本进程可见的,其他进程不能使用该空间,不可见.*/
 
 //ngx_use_accept_mutex表示是否需要通过对accept加锁来解决惊群问题.当nginx worker进程数>1时且配置文件中打开accept_mutex时,这个标志置为1
 //具体实现:在创建子线程的时候,在执行ngx_event_process_init时并没有添加到epoll读事件中,worker抢到accept互斥体后,再放入epoll
@@ -83,15 +79,12 @@ ngx_uint_t            ngx_accept_mutex_held; //1表示当前获取了ngx_accept_
 //默认0.5s,可以由accept_mutex_delay进行配置
 ngx_msec_t            ngx_accept_mutex_delay; //如果没获取到mutex锁,则延迟这么多毫秒重新获取.accept_mutex_delay配置,单位500ms
 
-/*
-ngx_accept_disabled表示此时满负荷,没必要再处理新连接了,我们在nginx.conf曾经配置了每一个nginx worker进程能够处理的最大连接数,
-当达到最大数的7/8时,ngx_accept_disabled为正,说明本nginx worker进程非常繁忙,将不再去处理新连接,这也是个简单的负载均衡
-*/
+/*ngx_accept_disabled表示此时满负荷,没必要再处理新连接了,我们在nginx.conf曾经配置了每一个nginx worker进程能够处理的最大连接数,
+当达到最大数的7/8时,ngx_accept_disabled为正,说明本nginx worker进程非常繁忙,将不再去处理新连接,这也是个简单的负载均衡*/
 ngx_int_t             ngx_accept_disabled; //赋值地方在ngx_event_accept
 ngx_uint_t ngx_use_exclusive_accept;
 
-/*
-   作为Web服务器,Nginx具有统计整个服务器中HTTP连接状况的功能(不是某一个Nginx worker进程的状况,而是所有worker进程连接状况的总和).
+/*作为Web服务器,Nginx具有统计整个服务器中HTTP连接状况的功能(不是某一个Nginx worker进程的状况,而是所有worker进程连接状况的总和).
 例如,可以用于统计某一时刻下Nginx巳经处理过的连接状况.下面定义的6个原子变量就是用于统计ngx_http_stub_status_module模块连接状况的,如下所示.
 NGX_STAT_STUB选项通过下面的编译过程使能:
 该模块在 auto/options文件中,通过下面的config选项把模块编译到nginx
@@ -126,11 +119,10 @@ ngx_atomic_t         *ngx_stat_waiting = &ngx_stat_waiting0;
 
 #endif
 
-/*
-可以看到,ngx_events_module_ctx实现的接口只是定义了模块名字而已,ngx_core_module_t接口中定义的create_onf方法没有实现(NULL空指针即为不实现),
+/*可以看到,ngx_events_module_ctx实现的接口只是定义了模块名字而已,ngx_core_module_t接口中定义的create_onf方法没有实现(NULL空指针即为不实现),
 为什么呢?这是因为ngx_events_module模块并不会解析配置项的参数,只是在出现events配置项后会调用各事件模块去解析eventso()块内的配置项,
-自然就不需要实现create_conf方法来创建存储配置项参数的结构体.
-*/
+自然就不需要实现create_conf方法来创建存储配置项参数的结构体.*/
+
 //一旦在nginx.conf配置文件中找到ngx_events_module感兴趣的"events{},ngx_events_module模块就开始工作了
 //除了对events配置项的解析外,该模块没有做其他任何事情
 static ngx_command_t ngx_events_commands[] = {
@@ -237,11 +229,9 @@ static ngx_event_module_t ngx_event_core_module_ctx = {
         {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
-/*
-Nginx定义了一系列(目前为9个)运行在不同操作系统、不同内核版本上的事件驱动模块,包括:ngx_epoll_module、ngx_kqueue_module、
+/*Nginx定义了一系列(目前为9个)运行在不同操作系统、不同内核版本上的事件驱动模块,包括:ngx_epoll_module、ngx_kqueue_module、
 ngx_poll_module、ngx_select_module、ngx_devpoll_module、ngx_eventport_module、ngx_aio_module、ngx_rtsig_module
-和基于Windows的ngx_select_module模块.在ngx_event_core_module模块的初始化过程中,将会从以上9个模块中选取1个作为Nginx进程的事件驱动模块.
-*/
+和基于Windows的ngx_select_module模块.在ngx_event_core_module模块的初始化过程中,将会从以上9个模块中选取1个作为Nginx进程的事件驱动模块.*/
 ngx_module_t ngx_event_core_module = {
         NGX_MODULE_V1,
         &ngx_event_core_module_ctx,            /* module context */
@@ -260,13 +250,11 @@ ngx_module_t ngx_event_core_module = {
 //当一次处理客户端请求结束后,会把ngx_http_process_request_line添加到定时器中,如果等client_header_timeout还没有信的请求数据过来,
 //则会走到ngx_http_read_request_header中的ngx_http_finalize_request(r, NGX_HTTP_BAD_REQUEST);从而关闭连接
 
-/*
-在说nginx前,先来看看什么是"惊群"？简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
+/*在说nginx前,先来看看什么是"惊群"？简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
 这些线程/进程被同时唤醒,就是惊群.可以想见,效率很低下,许多进程被内核重新调度唤醒,同时去响应这一个事件,当然只有一个进程能处理
 事件成功,其他的进程在处理该事件失败后重新休眠(也有其他选择).这种性能浪费现象就是惊群.
 nginx就是这样,master进程监听端口号(例如80),所有的nginx worker进程开始用epoll_wait来处理新事件(linux下),如果不加任何保护,一个
-新连接来临时,会有多个worker进程在epoll_wait后被唤醒,然后发现自己accept失败.现在,我们可以看看nginx是怎么处理这个惊群问题了.
-*/
+新连接来临时,会有多个worker进程在epoll_wait后被唤醒,然后发现自己accept失败.现在,我们可以看看nginx是怎么处理这个惊群问题了*/
 void
 ngx_process_events_and_timers(ngx_cycle_t *cycle) {
     ngx_uint_t flags;
@@ -299,44 +287,36 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle) {
     }
     //ngx_use_accept_mutex表示是否需要通过对accept加锁来解决惊群问题.当nginx worker进程数>1时且配置文件中打开accept_mutex时,这个标志置为1
     if (ngx_use_accept_mutex) {
-        /*
-             ngx_accept_disabled表示此时满负荷,没必要再处理新连接了,我们在nginx.conf曾经配置了每一个nginx worker进程能够处理的最大连接数,
+        /*ngx_accept_disabled表示此时满负荷,没必要再处理新连接了,我们在nginx.conf曾经配置了每一个nginx worker进程能够处理的最大连接数,
          当达到最大数的7/8时,ngx_accept_disabled为正,说明本nginx worker进程非常繁忙,将不再去处理新连接,这也是个简单的负载均衡
              在当前使用的连接到达总连接数的7/8时,就不会再处理新连接了,同时,在每次调用process_events时都会将ngx_accept_disabled减1,
-         直到ngx_accept_disabled降到总连接数的7/8以下时,才会调用ngx_trylock_accept_mutex试图去处理新连接事件.
-         */
+         直到ngx_accept_disabled降到总连接数的7/8以下时,才会调用ngx_trylock_accept_mutex试图去处理新连接事件.*/
         if (ngx_accept_disabled > 0) { //为正说明可用连接用了超过八分之七,则让其他的进程在下面的else中来accept
             ngx_accept_disabled--;
-            /*
-                     如果ngx_trylock_accept_mutex方法没有获取到锁,接下来调用事件驱动模块的process_events方法时只能处理已有的连接上的事件;
-                     如果获取到了锁,调用process_events方法时就会既处理已有连接上的事件,也处理新连接的事件.
+            /*如果ngx_trylock_accept_mutex方法没有获取到锁,接下来调用事件驱动模块的process_events方法时只能处理已有的连接上的事件;
+              如果获取到了锁,调用process_events方法时就会既处理已有连接上的事件,也处理新连接的事件.
 
-                    如何用锁来避免惊群?
-                       尝试锁accept mutex,只有成功获取锁的进程,才会将listen
-                       套接字放入epoll中.因此,这就保证了只有一个进程拥有
-                       监听套接口,故所有进程阻塞在epoll_wait时,不会出现惊群现象.
-                       这里的ngx_trylock_accept_mutex函数中,如果顺利的获取了锁,那么它会将监听端口注册到当前worker进程的epoll当中
-                   获得accept锁,多个worker仅有一个可以得到这把锁.获得锁不是阻塞过程,都是立刻返回,获取成功的话ngx_accept_mutex_held被置为1.
-                   拿到锁,意味着监听句柄被放到本进程的epoll中了,如果没有拿到锁,则监听句柄会被从epoll中取出.
-                  */
-            /*
-               如果ngx_use_accept_mutex为0也就是未开启accept_mutex锁,则在ngx_worker_process_init->ngx_event_process_init 中把accept连接读事件统计到epoll中
-               否则在ngx_process_events_and_timers->ngx_process_events_and_timers->ngx_trylock_accept_mutex中把accept连接读事件统计到epoll中
-               */
+            如何用锁来避免惊群?
+               尝试锁accept mutex,只有成功获取锁的进程,才会将listen
+               套接字放入epoll中.因此,这就保证了只有一个进程拥有
+               监听套接口,故所有进程阻塞在epoll_wait时,不会出现惊群现象.
+               这里的ngx_trylock_accept_mutex函数中,如果顺利的获取了锁,那么它会将监听端口注册到当前worker进程的epoll当中
+           获得accept锁,多个worker仅有一个可以得到这把锁.获得锁不是阻塞过程,都是立刻返回,获取成功的话ngx_accept_mutex_held被置为1.
+           拿到锁,意味着监听句柄被放到本进程的epoll中了,如果没有拿到锁,则监听句柄会被从epoll中取出*/
+
+            /*如果ngx_use_accept_mutex为0也就是未开启accept_mutex锁,则在ngx_worker_process_init->ngx_event_process_init 中把accept连接读事件统计到epoll中
+               否则在ngx_process_events_and_timers->ngx_process_events_and_timers->ngx_trylock_accept_mutex中把accept连接读事件统计到epoll中*/
         } else {
             if (ngx_trylock_accept_mutex(cycle) == NGX_ERROR) { //不管是获取到锁还是没获取到锁都是返回NGX_OK
                 return;
             }
-            /*
-               拿到锁的话,置flag为NGX_POST_EVENTS,这意味着ngx_process_events函数中,任何事件都将延后处理,会把accept事件都放到
-               ngx_posted_accept_events链表中,epollin|epollout事件都放到ngx_posted_events链表中
-              */
+            /*拿到锁的话,置flag为NGX_POST_EVENTS,这意味着ngx_process_events函数中,任何事件都将延后处理,会把accept事件都放到
+               ngx_posted_accept_events链表中,epollin|epollout事件都放到ngx_posted_events链表中*/
             if (ngx_accept_mutex_held) {
                 flags |= NGX_POST_EVENTS;
 
             } else {
-                /*
-                   拿不到锁,也就不会处理监听的句柄,这个timer实际是传给epoll_wait的超时时间,修改为最大ngx_accept_mutex_delay意味
+                /*拿不到锁,也就不会处理监听的句柄,这个timer实际是传给epoll_wait的超时时间,修改为最大ngx_accept_mutex_delay意味
                    着epoll_wait更短的超时返回,以免新连接长时间没有得到处理*/
                 if (timer == NGX_TIMER_INFINITE
                     || timer > ngx_accept_mutex_delay) {
@@ -353,20 +333,17 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle) {
     }
 
     delta = ngx_current_msec;
-    /*
-1.如果进程获的锁,并获取到锁,则该进程在epoll事件发生后会触发返回,然后得到对应的事件handler,加入延迟队列中,然后释放锁,然
-后在执行对应handler,同时更新时间,判断该进程对应的红黑树中是否有定时器超时,
-2.如果没有获取到锁,则默认传给epoll_wait的超时时间是0.5s,表示过0.5s继续获取锁,0.5s超时后,会跟新当前时间,同时判断是否有过期的
-  定时器,有则指向对应的定时器函数
-*/
+    /*1.如果进程获的锁,并获取到锁,则该进程在epoll事件发生后会触发返回,然后得到对应的事件handler,加入延迟队列中,然后释放锁,然
+        后在执行对应handler,同时更新时间,判断该进程对应的红黑树中是否有定时器超时,
+      2.如果没有获取到锁,则默认传给epoll_wait的超时时间是0.5s,表示过0.5s继续获取锁,0.5s超时后,会跟新当前时间,同时判断是否有过期的
+          定时器,有则指向对应的定时器函数*/
 
-/*
-1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event),通过读写事件触发
-2.也可以是普通定时器事件(参考ngx_cache_manager_process_handler->ngx_add_timer(ngx_event_add_timer)),通过ngx_process_events_and_timers中的
-epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取到共享锁,从而等待0.5s返回重新获取锁来跟新事件并执行超时事件来跟新事件并且判断定
-时器链表中的超时事件,超时则执行从而指向event的handler,然后进一步指向对应r或者u的->write_event_handler  read_event_handler
-3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2,只是在handler中不会执行write_event_handler  read_event_handler
-*/
+    /*1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event),通过读写事件触发
+        2.也可以是普通定时器事件(参考ngx_cache_manager_process_handler->ngx_add_timer(ngx_event_add_timer)),通过ngx_process_events_and_timers中的
+        epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取到共享锁,从而等待0.5s返回重新获取锁来跟新事件并执行超时事件来跟新事件并且判断定
+        时器链表中的超时事件,超时则执行从而指向event的handler,然后进一步指向对应r或者u的->write_event_handler  read_event_handler
+        3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2,
+            只是在handler中不会执行write_event_handler  read_event_handler*/
 
     //linux下,普通网络套接字调用ngx_epoll_process_events函数开始处理,异步文件i/o设置事件的回调方法为ngx_epoll_eventfd_handler
     (void) ngx_process_events(cycle, timer, flags);
@@ -383,10 +360,8 @@ epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取�
     }
 
     ngx_event_expire_timers(); //处理红黑树队列中的超时事件handler
-    /*
-     然后再处理正常的数据读写请求.因为这些请求耗时久,所以在ngx_process_events里NGX_POST_EVENTS标志将事件都放入ngx_posted_events
-     链表中,延迟到锁释放了再处理.
-     */
+    /*然后再处理正常的数据读写请求.因为这些请求耗时久,所以在ngx_process_events里NGX_POST_EVENTS标志将事件都放入ngx_posted_events
+     链表中,延迟到锁释放了再处理*/
     ngx_event_process_posted(cycle, &ngx_posted_events); //普通读写事件放在释放ngx_accept_mutex锁后执行,提高客户端accept性能
 }
 
@@ -802,7 +777,7 @@ ngx_timer_signal_handler(int signo) {
 
 #endif
 
-//在创建子进程的里面执行  ngx_worker_process_init,
+//在创建子进程的里面执行 ngx_worker_process_init,
 static ngx_int_t
 ngx_event_process_init(ngx_cycle_t *cycle) {
     ngx_uint_t m, i;
@@ -815,12 +790,10 @@ ngx_event_process_init(ngx_cycle_t *cycle) {
 
     ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
     ecf = ngx_event_get_conf(cycle->conf_ctx, ngx_event_core_module);
-    /*
-         当打开accept_mutex负载均衡锁,同时使用了master模式并且worker迸程数量大于1时,才正式确定了进程将使用accept_mutex负载均衡锁.
+    /*当打开accept_mutex负载均衡锁,同时使用了master模式并且worker迸程数量大于1时,才正式确定了进程将使用accept_mutex负载均衡锁.
      因此,即使我们在配置文件中指定打开accept_mutex锁,如果没有使用master模式或者worker进程数量等于1,进程在运行时还是不会使用
      负载均衡锁(既然不存在多个进程去抢一个监听端口上的连接的情况,那么自然不需要均衡多个worker进程的负载).
-         这时会将ngx_use_accept_mutex全局变量置为1,ngx_accept_mutex_held标志设为0,ngx_accept_mutex_delay则设为在配置文件中指定的最大延迟时间.
-     */
+    这时会将ngx_use_accept_mutex全局变量置为1,ngx_accept_mutex_held标志设为0,ngx_accept_mutex_delay则设为在配置文件中指定的最大延迟时间*/
     if (ccf->master && ccf->worker_processes > 1 && ecf->accept_mutex) {
         ngx_use_accept_mutex = 1;
         ngx_accept_mutex_held = 0;
@@ -871,18 +844,14 @@ ngx_event_process_init(ngx_cycle_t *cycle) {
     }
 
 #if !(NGX_WIN32)
-    /*
-      如果nginx.conf配置文件中设置了timer_resolution酡置项,即表明需要控制时间精度,这时会调用setitimer方法,设置时间间隔
-      为timer_resolution毫秒来回调ngx_timer_signal_handler方法
-       */
+    /*如果nginx.conf配置文件中设置了timer_resolution酡置项,即表明需要控制时间精度,这时会调用setitimer方法,设置时间间隔
+      为timer_resolution毫秒来回调ngx_timer_signal_handler方法*/
     if (ngx_timer_resolution && !(ngx_event_flags & NGX_USE_TIMER_EVENT)) {
         struct sigaction sa;
         struct itimerval itv;
         //设置定时器
-        /*
-            在ngx_event_ actions t的process_events方法中,每一个事件驱动模块都需要在ngx_event_timer_alarm为1时调
-            用ngx_time_update方法()更新系统时间,在更新系统结束后需要将ngx_event_timer_alarm设为0.
-          */
+        /*在ngx_event_ actions t的process_events方法中,每一个事件驱动模块都需要在ngx_event_timer_alarm为1时调
+            用ngx_time_update方法()更新系统时间,在更新系统结束后需要将ngx_event_timer_alarm设为0.*/
         ngx_memzero(&sa, sizeof(struct sigaction));  //每隔ngx_timer_resolution ms会超时执行handle
         sa.sa_handler = ngx_timer_signal_handler;
         sigemptyset(&sa.sa_mask);
@@ -903,9 +872,7 @@ ngx_event_process_init(ngx_cycle_t *cycle) {
                           "setitimer() failed");
         }
     }
-    /*
-    如果使用了epoll事件驱动模式,那么会为ngx_cycle_t结构体中的files成员预分配旬柄.
-    */
+    /*如果使用了epoll事件驱动模式,那么会为ngx_cycle_t结构体中的files成员预分配旬柄.*/
     if (ngx_event_flags & NGX_USE_FD_EVENT) {
         struct rlimit rlmt;
 
@@ -968,9 +935,8 @@ ngx_event_process_init(ngx_cycle_t *cycle) {
 
     i = cycle->connection_n;
     next = NULL;
-    /*
-   接照序号,将上述3个数组相应的读/写事件设置到每一个ngx_connection_t连接对象中,同时把这些连接以ngx_connection_t中的data成员
-   作为next指针串联成链表,为下一步设置空闲连接链表做好准备*/
+    /*接照序号,将上述3个数组相应的读/写事件设置到每一个ngx_connection_t连接对象中,同时把这些连接以ngx_connection_t中的data成员
+    作为next指针串联成链表,为下一步设置空闲连接链表做好准备*/
     do {
         i--;
 
@@ -981,15 +947,13 @@ ngx_event_process_init(ngx_cycle_t *cycle) {
 
         next = &c[i];
     } while (i);
-    /*
-    将ngx_cycle_t结构体中的空闲连接链表free_connections指向connections数组的最后1个元素,也就是第10步所有ngx_connection_t连
+    /*将ngx_cycle_t结构体中的空闲连接链表free_connections指向connections数组的最后1个元素,也就是第10步所有ngx_connection_t连
     接通过data成员组成的单链表的首部*/
     cycle->free_connections = next;
     cycle->free_connection_n = cycle->connection_n;
 
     /* for each listening socket */
-    /*
-     在刚刚建立好的连接池中,为所有ngx_listening_t监听对象中的connection成员分配连接,同时对监听端口的读事件设置处理方法
+    /*在刚刚建立好的连接池中,为所有ngx_listening_t监听对象中的connection成员分配连接,同时对监听端口的读事件设置处理方法
      为ngx_event_accept,也就是说,有新连接事件时将调用ngx_event_accept方法建立新连接()*/
     ls = cycle->listening.elts;
     for (i = 0; i < cycle->listening.nelts; i++) {

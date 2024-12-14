@@ -45,91 +45,6 @@ ngx_uint_t    ngx_process;//不赋初值,默认0,也就是NGX_PROCESS_SINGLE
 ngx_uint_t    ngx_worker;
 ngx_pid_t     ngx_pid;//ngx_pid = ngx_getpid(); 在子进程中为子进程pid,在master中为master的pid
 ngx_pid_t ngx_parent;
-/*
-在Linux中,需要使用命令行来控制Nginx服务器的启动与停止、重载配置文件、回滚日志文件、平滑升级等行为.默认情况下,Nginx被安装在目录
-/usr/local/nginx/中,其二进制文件路径为/usr/local/nginc/sbin/nginx,配置文件路径为/usr/local/nginx/conf/nginx.conf.当然,
-在configure执行时是可以指定把它们安装在不同目录的.为了简单起见,本节只说明默认安装情况下的命令行的使用情况,如果读者安装的
-目录发生了变化,那么替换一下即可.
-(1)默认方式启动
-直接执行Nginx二进制程序.例如:
-/usr/local/nginx/sbin/nginx
-这时,会读取默认路径下的配置文件:/usr/local/nginx/conf/nginx.conf.
-实际上,在没有显式指定nginx.conf配置文件路径时,将打开在configure命令执行时使用--conf-path=PATH指定的nginx.conf文件(参见1.5.1节).
-(2)另行指定配置文件的启动方式
-使用-c参数指定配置文件.例如:
-/usr/local/nginx/sbin/nginx -c /tmp/nginx.conf
-这时,会读取-c参数后指定的nginx.conf配置文件来启动Nginx.
-(3)另行指定安装目录的启动方式
-使用-p参数指定Nginx的安装目录.例如:
-/usr/local/nginx/sbin/nginx -p /usr/local/nginx/
-(4)另行指定全局配置项的启动方式
-可以通过-g参数临时指定一些全局配置项,以使新的配置项生效.例如:
-/usr/local/nginx/sbin/nginx -g "pid /var/nginx/test.pid;"
-上面这行命令意味着会把pid文件写到/var/nginx/test.pid中.
--g参数的约束条件是指定的配置项不能与默认路径下的nginx.conf中的配置项相冲突,否则无法启动.就像上例那样,类似这样的配置项:pid logs/nginx.pid,
-是不能存在于默认的nginx.conf中的.
-另一个约束条件是,以-g方式启动的Nginx服务执行其他命令行时,需要把-g参数也带上,否则可能出现配置项不匹配的情形.例如,如果要停止Nginx服务,
-那么需要执行下面代码:
-/usr/local/nginx/sbin/nginx -g "pid /var/nginx/test.pid;" -s stop
-如果不带上-g "pid /var/nginx/test.pid;",那么找不到pid文件,也会出现无法停止服务的情况.
-(5)测试配置信息是否有错误
-在不启动Nginx的情况下,使用-t参数仅测试配置文件是否有错误.例如:
-/usr/local/nginx/sbin/nginx -t
-执行结果中显示配置是否正确.
-(6)在测试配置阶段不输出信息
-测试配置选项时,使用-q参数可以不把error级别以下的信息输出到屏幕.例如:
-/usr/local/nginx/sbin/nginx -t -q
-(7)显示版本信息
-使用-v参数显示Nginx的版本信息.例如:
-/usr/local/nginx/sbin/nginx -v
-(8)显示编译阶段的参数
-使用-V参数除了可以显示Nginx的版本信息外,还可以显示配置编译阶段的信息,如GCC编译器的版本、操作系统的版本、执行configure时的参数等.例如:
-/usr/local/nginx/sbin/nginx -V
-(9)快速地停止服务
-使用-s stop可以强制停止Nginx服务.-s参数其实是告诉Nginx程序向正在运行的Nginx服务发送信号量,Nginx程序通过nginx.pid文件中得到master进程的进程ID,
-再向运行中的master进程发送TERM信号来快速地关闭Nginx服务.例如:
-/usr/local/nginx/sbin/nginx -s stop
-实际上,如果通过kill命令直接向nginx master进程发送TERM或者INT信号,效果是一样的.例如,先通过ps命令来查看nginx master的进程ID:
-:ahf5wapi001:root > ps -ef | grep nginx
-root     10800     1  0 02:27 ?        00:00:00 nginx: master process ./nginx
-root     10801 10800  0 02:27 ?        00:00:00 nginx: worker process
-接下来直接通过kill命令来发送信号:
-kill -s SIGTERM 10800
-或者:
-kill -s SIGINT 10800
-上述两条命令的效果与执行/usr/local/nginx/sbin/nginx -s stop是完全一样的.
-(10)"优雅"地停止服务
-如果希望Nginx服务可以正常地处理完当前所有请求再停止服务,那么可以使用-s quit参数来停止服务.例如:
-/usr/local/nginx/sbin/nginx -s quit
-该命令与快速停止Nginx服务是有区别的.当快速停止服务时,worker进程与master进程在收到信号后会立刻跳出循环,退出进程.而"优雅"地停止服务时,
-首先会关闭监听端口,停止接收新的连接,然后把当前正在处理的连接全部处理完,最后再退出进程.
-与快速停止服务相似,可以直接发送QUIT信号给master进程来停止服务,其效果与执行-s quit命令是一样的.例如:
-kill -s SIGQUIT <nginx master pid>
-如果希望"优雅"地停止某个worker进程,那么可以通过向该进程发送WINCH信号来停止服务.例如:
-kill -s SIGWINCH <nginx worker pid>
-(11)使运行中的Nginx重读配置项并生效
-使用-s reload参数可以使运行中的Nginx服务重新加载nginx.conf文件.例如:
-/usr/local/nginx/sbin/nginx -s reload
-事实上,Nginx会先检查新的配置项是否有误,如果全部正确就以"优雅"的方式关闭,再重新启动Nginx来实现这个目的.类似的,-s是发送信号,
-仍然可以用kill命令发送HUP信号来达到相同的效果.
-kill -s SIGHUP <nginx master pid>
-(12)日志文件回滚
-使用-s reopen参数可以重新打开日志文件,这样可以先把当前日志文件改名或转移到其他目录中进行备份,再重新打开时就会生成新的日志文件.
-这个功能使得日志文件不至于过大.例如:
-/usr/local/nginx/sbin/nginx -s reopen
-当然,这与使用kill命令发送USR1信号效果相同.
-kill -s SIGUSR1 <nginx master pid>
-(13)平滑升级Nginx
-当Nginx服务升级到新的版本时,必须要将旧的二进制文件Nginx替换掉,通常情况下这是需要重启服务的,但Nginx支持不重启服务来完成新版本的平滑升级.
-升级时包括以下步骤:
-1)通知正在运行的旧版本Nginx准备升级.通过向master进程发送USR2信号可达到目的.例如:
-kill -s SIGUSR2 <nginx master pid>
-这时,运行中的Nginx会将pid文件重命名,如将/usr/local/nginx/logs/nginx.pid重命名为/usr/local/nginx/logs/nginx.pid.oldbin,这样新的Nginx才有可能启动成功.
-2)启动新版本的Nginx,可以使用以上介绍过的任意一种启动方法.这时通过ps命令可以发现新旧版本的Nginx在同时运行.
-3)通过kill命令向旧版本的master进程发送SIGQUIT信号,以"优雅"的方式关闭旧版本的Nginx.随后将只有新版本的Nginx服务运行,此时平滑升级完毕.
-(14)显示命令行帮助
-使用-h或者-?参数会显示支持的所有命令行参数.
-*/
 sig_atomic_t ngx_reap;
 sig_atomic_t ngx_sigio;
 sig_atomic_t ngx_sigalrm;
@@ -175,16 +90,13 @@ static ngx_cycle_t ngx_exit_cycle;
 static ngx_log_t ngx_exit_log;
 static ngx_open_file_t ngx_exit_log_file;
 
-/*
-ngx_master_process_cycle 调 用 ngx_start_worker_processes生成多个工作子进程,ngx_start_worker_processes 调 用 ngx_worker_process_cycle
+/*ngx_master_process_cycle 调 用 ngx_start_worker_processes生成多个工作子进程,ngx_start_worker_processes 调 用 ngx_worker_process_cycle
 创建工作内容,如果进程有多个子线程,这里也会初始化线程和创建线程工作内容,初始化完成之后,ngx_worker_process_cycle
 会进入处理循环,调用 ngx_process_events_and_timers , 该 函 数 调 用 ngx_process_events监听事件,
-并把事件投递到事件队列ngx_posted_events 中 , 最 终 会 在 ngx_event_thread_process_posted中处理事件.
-*/
-/*
-master进程不需要处理网络事件,它不负责业务的执行,只会通过管理worker等子进
-程来实现重启服务、平滑升级、更换日志文件、配置文件实时生效等功能
-*/
+并把事件投递到事件队列ngx_posted_events 中 , 最 终 会 在 ngx_event_thread_process_posted中处理事件.*/
+
+/*master进程不需要处理网络事件,它不负责业务的执行,只会通过管理worker等子进
+程来实现重启服务、平滑升级、更换日志文件、配置文件实时生效等功能*/
 
 //如果是多进程方式启动,就会调用ngx_master_process_cycle完成最后的启动动作
 void
@@ -211,8 +123,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle) {
     sigaddset(&set, ngx_signal_value(NGX_TERMINATE_SIGNAL));
     sigaddset(&set, ngx_signal_value(NGX_SHUTDOWN_SIGNAL));
     sigaddset(&set, ngx_signal_value(NGX_CHANGEBIN_SIGNAL));
-    /*
-    每个进程有一个信号掩码(signal mask).简单地说,信号掩码是一个"位图",其中每一位都对应着一种信号
+    /*每个进程有一个信号掩码(signal mask).简单地说,信号掩码是一个"位图",其中每一位都对应着一种信号
     如果位图中的某一位为1,就表示在执行当前信号的处理程序期间相应的信号暂时被“屏蔽",使得在执行的过程中不会嵌套地响应那种信号.
 
     为什么对某一信号进行屏蔽呢?我们来看一下对CTRL_C的处理.大家知道,当一个程序正在运行时,在键盘上按一下CTRL_C,内核就会向相应的进程
@@ -222,9 +133,10 @@ ngx_master_process_cycle(ngx_cycle_t *cycle) {
     的处理程序根本没有执行完.为了避免这种情况的出现,就在执行一个信号处理程序的过程中将该种信号自动屏蔽掉.所谓“屏蔽",与将信号忽略
     是不同的,它只是将信号暂时“遮盖"一下,一旦屏蔽去掉,已到达的信号又继续得到处理.
 
-    所谓屏蔽, 并不是禁止递送信号, 而是暂时阻塞信号的递送,
-    解除屏蔽后, 信号将被递送, 不会丢失
-    */ // 设置这些信号都阻塞,等我们sigpending调用才告诉我有这些事件
+    所谓屏蔽,并不是禁止递送信号,而是暂时阻塞信号的递送,
+    解除屏蔽后,信号将被递送,不会丢失*/
+
+    // 设置这些信号都阻塞,等我们sigpending调用才告诉我有这些事件
     if (sigprocmask(SIG_BLOCK, &set, NULL) == -1) { //参考下面的sigsuspend
         //父子进程的继承关系可以参考:http://blog.chinaunix.net/uid-20011314-id-1987626.html
         ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
@@ -292,8 +204,7 @@ ngx_reconfigure. ngx_reopen. ngx_change_binary. ngx_noaccept这些标志位,见�
     表8-4列出了master工作流程中的7个全局标志位变量.除此之外,还有一个标志位也
 会用到,它仅仅是在master工作流程中作为标志位使用的,与信号无关.
 实际上,根据以下8个标志位:ngx_reap、ngx_terminate、ngx_quit、ngx_reconfigure、ngx_restart、ngx_reopen、ngx_change_binary、
-ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一个循环执行完毕后进程会被挂起,直到有新的信号才会激活继续执行).
-*/
+ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一个循环执行完毕后进程会被挂起,直到有新的信号才会激活继续执行)*/
     for (;;) {
         /*delay用来等待子进程退出的时间,由于我们接受到SIGINT信号后,我们需要先发送信号给子进程,而子进程的退出需要一定的时间,
         超时时如果子进程已退出,我们父进程就直接退出,否则发送sigkill信号给子进程(强制退出),然后再退出.*/
@@ -339,7 +250,6 @@ ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一�
         从上面的(2)步骤可以看出在处理函数中执行信号中断函数的嘿嘿,由于这时候已经恢复了原来的mask(也就是上面sigprocmask设置的掩码集)
         所以在信号处理函数中不会再次引起接收信号,只能在该while()循环再次走到sigsuspend的时候引起信号中断,从而避免了同一时刻多次中断同一信号*/
 
-        //nginx sigsuspend分析,参考http://weakyon.com/2015/05/14/learning-of-sigsuspend.html
         sigsuspend(&set); //等待定时器超时,通过ngx_init_signals执行ngx_signal_handler中的SIGALRM信号,信号处理函数返回后,继续该函数后面的操作
 
         ngx_time_update();
@@ -389,6 +299,7 @@ ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一�
             continue;
         }
         //收到需要reconfig的信号
+
         /*如果ngx_reconfigure标志位为0,则跳到第13步检查ngx_restart标志位.如果ngx_reconfigure为l,则表示需要重新读取配置文件.
          Nginx不会再让原先的worker等子进程再重新读取配置文件,它的策略是重新初始化ngx_cycle_t结构体,用它来读取新的配置文件,
          再拉起新的worker进程,销毁旧的worker进程.本步中将会调用ngx_init_cycle方法重新初始化ngx_cycle_t结构体.*/
@@ -439,7 +350,7 @@ ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一�
             live = 1;
         }
         /*使用-s reopen参数可以重新打开日志文件,这样可以先把当前日志文件改名或转移到其他目录中进行备份,再重新打开时就会生成新的日志文件.
-    这个功能使得日志文件不至于过大.当然,这与使用kill命令发送USR1信号效果相同.*/
+        这个功能使得日志文件不至于过大.当然,这与使用kill命令发送USR1信号效果相同.*/
         if (ngx_reopen) {
             /*如果ngx_reopen为1,则调用ngx_reopen_files穷法重新打开所有文件,同时将ngx_reopen标志位置为0.
                 向所有子进程发送USRI信号,要求子进程都得重新打开所有文件.*/
@@ -450,13 +361,14 @@ ngx_noaccept,决定执行不同的分支流程,并循环执行(注意,每次一�
                                         ngx_signal_value(NGX_REOPEN_SIGNAL));
         }
         /*检查ngx_change_binary标志位,如果ngx_change_binary为1,则表示需要平滑升级Nginx,这时将调用ngx_exec_new_binary方法用新的子
-      进程启动新版本的Nginx程序, 同时将ngx_change_binary标志位置为0. */
+        进程启动新版本的Nginx程序, 同时将ngx_change_binary标志位置为0. */
         if (ngx_change_binary) { //平滑升级到新版本的Nginx程序
             ngx_change_binary = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "changing binary");
             ngx_new_binary = ngx_exec_new_binary(cycle, ngx_argv); //进行热代码替换,这里是调用execve来执行新的代码.
         }
-        //接受到停止accept连接,其实也就是worker退出(有区别的是,这里master不需要退出)..
+        //接受到停止accept连接,其实也就是worker退出(有区别的是,这里master不需要退出)
+
         /*检查ngx_noaccept标志位,如果ngx_noaccept为0,则继续第1步进行下一个循环:如果ngx_noacicept为1,则向所有的子进程发送QUIT信号,
           要求它们优雅地关闭服务,同时将ngx_noaccept置为0,并将ngx_noaccepting置为1,表示正在停止接受新的连接.*/
         if (ngx_noaccept) { //所有子进程不再接受处理新的连接,实际相当于对所有的予进程发送QUIT信号量
@@ -575,7 +487,7 @@ ngx_start_cache_manager_processes(ngx_cycle_t *cycle, ngx_uint_t respawn) {
         }
     }
     /*在这一步骤中,由master进程根据之前各模块的初始化情况来决定是否启动cachemanage子进程,也就是根据ngx_cycle_t中存储路径的动态数组
-pathes申是否有某个路径的manage标志位打开来决定是否启动cache manage子进程.如果有任何1个路径的manage标志位为1,则启动cache manage子进程.*/
+    pathes申是否有某个路径的manage标志位打开来决定是否启动cache manage子进程.如果有任何1个路径的manage标志位为1,则启动cache manage子进程.*/
     if (manager == 0) { //只有在配置了缓存信息才会置1,所以如果没有配置缓存不会启动cache manage和load进程
         return;
     }
@@ -606,6 +518,7 @@ pathes申是否有某个路径的manage标志位打开来决定是否启动cache
 /*子进程创建的时候,父进程的东西都会被子进程继承,所以后面创建的子进程能够得到前面创建的子进程的channel信息,直接可以和他们通信,
 那么前面创建的进程如何知道后面的进程信息呢? 很简单,既然前面创建的进程能够接受消息,那么我就发个信息告诉他后面的进程
 的channel,并把信息保存在channel[0]中,这样就可以相互通信了.*/
+
 /*
                                  |----------(ngx_worker_process_cycle->ngx_worker_process_init)
     ngx_start_worker_processes---| ngx_processes[]相关的操作赋值流程

@@ -3555,10 +3555,8 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
         ngx_pool_run_cleanup_file(r->pool, r->cache->file.fd);
         r->cache->file.fd = NGX_INVALID_FILE;
     }
-    /*
-    fastcgi_no_cache 配置指令可以使 upstream 模块不再缓存满足既定条件的请求得
-    到的响应.由上面 ngx_http_test_predicates 函数及相关代码完成.
-    */
+    /*fastcgi_no_cache 配置指令可以使 upstream 模块不再缓存满足既定条件的请求得
+    到的响应.由上面 ngx_http_test_predicates 函数及相关代码完成*/
     switch (ngx_http_test_predicates(r, u->conf->no_cache)) {
 
         case NGX_ERROR:
@@ -3574,9 +3572,7 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
             if (u->cache_status == NGX_HTTP_CACHE_BYPASS) { //说明是因为配置了xxx_cache_bypass功能,从而直接从后端取数据
 
                 /* create cache if previously bypassed */
-                /*
-               fastcgi_cache_bypass 配置指令可以使满足既定条件的请求绕过缓存数据,但是这些请求的响应数据依然可以被 upstream 模块缓存.
-               */
+                /*fastcgi_cache_bypass 配置指令可以使满足既定条件的请求绕过缓存数据,但是这些请求的响应数据依然可以被 upstream 模块缓存*/
                 if (ngx_http_file_cache_create(r) != NGX_OK) {
                     ngx_http_upstream_finalize_request(r, u, NGX_ERROR);
                     return;
@@ -3585,16 +3581,12 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
             break;
     }
-    /*
-     u->cacheable 用于控制是否对响应进行缓存操作.其默认值为 1,在缓存读取过程中 可因某些条件将其设置为 0,即不在缓存该请求的响应数据.
-     */
+    /*u->cacheable 用于控制是否对响应进行缓存操作.其默认值为 1,在缓存读取过程中 可因某些条件将其设置为 0,即不在缓存该请求的响应数据*/
     if (u->cacheable) {
         time_t now, valid;
 
         now = ngx_time();
-        /*
-          缓存内容的有效时间由 fastcgi_cache_valid  proxy_cache_valid配置指令设置,并且未经该指令设置的响应数据是不会被 upstream 模块缓存的.
-         */
+        /*缓存内容的有效时间由 fastcgi_cache_valid  proxy_cache_valid配置指令设置,并且未经该指令设置的响应数据是不会被 upstream 模块缓存的*/
         valid = r->cache->valid_sec;
 
         if (valid == 0) { //赋值proxy_cache_valid xxx 4m;中的4m
@@ -3626,12 +3618,9 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
                 r->cache->last_modified = -1;
                 ngx_str_null(&r->cache->etag);
             }
-            /*
-               注意这时候还是在读取第一个头部行的过程中(可能会携带部分或者全部包体数据在里面)
-
-               upstream 模块在申请 u->buffer 空间时,已经预先为缓存文件包头分配了空间,所以可以直接调用 ngx_http_file_cache_set_header
-               在此空间中初始化缓存文件包头:
-               */
+            /*注意这时候还是在读取第一个头部行的过程中(可能会携带部分或者全部包体数据在里面)
+            upstream 模块在申请 u->buffer 空间时,已经预先为缓存文件包头分配了空间,所以可以直接调用 ngx_http_file_cache_set_header
+             在此空间中初始化缓存文件包头:*/
             if (ngx_http_file_cache_set_header(r, u->buffer.start) != NGX_OK) {
                 ngx_http_upstream_finalize_request(r, u, NGX_ERROR);
                 return;
@@ -3732,6 +3721,7 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
             return;
         }
         //指向的是为获取后端头部行的时候分配的第一个缓冲区,buf大小由xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)指定
+
         /*这里面只存储了头部行buffer中头部行的内容部分,因为后面写临时文件的时候,需要把后端头部行也写进来,由于前面读取头部行后指针已经指向了数据部分
             因此需要临时用buf_to_file->start指向头部行部分开始,pos指向数据部分开始,也就是头部行部分结尾*/
         p->buf_to_file->start = u->buffer.start;
@@ -4110,11 +4100,9 @@ ngx_http_upstream_process_non_buffered_upstream(ngx_http_request_t *r,
     ngx_http_upstream_process_non_buffered_request(r, 0);
 }
 
-/*
-调用过滤模块,将数据发送出去,do_write为是否要给客户端发送数据.
+/*调用过滤模块,将数据发送出去,do_write为是否要给客户端发送数据.
 1.如果要发送,就调用ngx_http_output_filter将数据发送出去.
-2.然后ngx_unix_recv读取数据,放入out_bufs里面去.如此循环
-*/
+2.然后ngx_unix_recv读取数据,放入out_bufs里面去.如此循环*/
 static void
 ngx_http_upstream_process_non_buffered_request(ngx_http_request_t *r,
                                                ngx_uint_t do_write) {
@@ -4256,10 +4244,10 @@ ngx_http_upstream_non_buffered_filter_init(void *data) {
     return NGX_OK;
 }
 
-/*
-将u->buffer.last - u->buffer.pos之间的数据放到u->out_bufs发送缓冲去链表里面.这样可写的时候就会发送给客户端.
-ngx_http_upstream_process_non_buffered_request函数会读取out_bufs里面的数据,然后调用输出过滤链接进行发送的.
-*/ //buffering方式,为ngx_http_fastcgi_input_filter  非buffering方式为ngx_http_upstream_non_buffered_filter
+/*将u->buffer.last - u->buffer.pos之间的数据放到u->out_bufs发送缓冲去链表里面.这样可写的时候就会发送给客户端.
+ngx_http_upstream_process_non_buffered_request函数会读取out_bufs里面的数据,然后调用输出过滤链接进行发送的*/
+
+//buffering方式,为ngx_http_fastcgi_input_filter  非buffering方式为ngx_http_upstream_non_buffered_filter
 ngx_int_t
 ngx_http_upstream_non_buffered_filter(void *data, ssize_t bytes) {
     ngx_http_request_t *r = data;
@@ -4605,9 +4593,9 @@ ngx_http_upstream_process_request(ngx_http_request_t *r,
         }
 
 #if (NGX_HTTP_CACHE)
-        /*
-         在Nginx收到后端服务器的响应之后,会把这个响应发回给用户.而如果缓存功能启用的话,Nginx就会把响应存入磁盘里.
-         */ //后端应答数据在ngx_http_upstream_process_request->ngx_http_file_cache_update中进行缓存
+        /*在Nginx收到后端服务器的响应之后,会把这个响应发回给用户.而如果缓存功能启用的话,Nginx就会把响应存入磁盘里*/
+
+        //后端应答数据在ngx_http_upstream_process_request->ngx_http_file_cache_update中进行缓存
         if (u->cacheable) { //是否要缓存,即proxy_no_cache指令
 
             if (p->upstream_done) { //后端数据已经读取完毕,写入缓存

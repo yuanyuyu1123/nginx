@@ -608,8 +608,8 @@ ngx_init_cycle(ngx_cycle_t *old_cycle) {
 
     /* handle the listening sockets */
     /*所有的模块都已经解析出自己需要监听的端口,如HTTP模块已经在解析http{．．．}配置项时得到它要监听的端口,并添加到
-listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口(实际上,这一步骤的主要工作就是调
-用表8-2中的ngx_open_listening_sockets方法)*/
+        listening数组中了.这一步骤就是按照listening数组中的每一个ngx_listening_t元素设置socket句柄并监听端口(实际上,这一步骤的主要工作就是调
+        用表8-2中的ngx_open_listening_sockets方法)*/
     if (old_cycle->listening.nelts) {
         ls = old_cycle->listening.elts; //旧的listen,如热启动继承过来的sock,见ngx_add_inherited_sockets
         for (i = 0; i < old_cycle->listening.nelts; i++) {
@@ -1174,13 +1174,11 @@ ngx_delete_pidfile(ngx_cycle_t *cycle) {
     }
 }
 
-/*
-该函数作用:
+/*该函数作用:
 读取ngx_core_module模块的配置结构ngx_core_conf_t;
 根据配置结构找到其工作进程文件,如"/usr/local/nginx/logs/nginx.pid"(该文件保存nginx进程ID,即pid);
 打开该文件,读取pid;
-调用ngx_os_signal_process()发送信号;
-*/
+调用ngx_os_signal_process()发送信号; */
 ngx_int_t
 ngx_signal_process(ngx_cycle_t *cycle, char *sig) {
     ssize_t n;

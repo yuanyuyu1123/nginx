@@ -21,11 +21,11 @@ static ngx_inline void ngx_event_pipe_remove_shadow_links(ngx_buf_t *buf);
 
 static ngx_int_t ngx_event_pipe_drain_chains(ngx_event_pipe_t *p);
 
-/*
-在有buffering的时候,使用event_pipe进行数据的转发,调用ngx_event_pipe_write_to_downstream函数读取数据,或者发送数据给客户端.
+/*在有buffering的时候,使用event_pipe进行数据的转发,调用ngx_event_pipe_write_to_downstream函数读取数据,或者发送数据给客户端.
 ngx_event_pipe将upstream响应发送回客户端.do_write代表是否要往客户端发送,写数据.
-如果设置了,那么会先发给客户端,再读upstream数据,当然,如果读取了数据,也会调用这里的.
-*/ //ngx_event_pipe->ngx_event_pipe_write_to_downstream
+如果设置了,那么会先发给客户端,再读upstream数据,当然,如果读取了数据,也会调用这里的*/
+
+//ngx_event_pipe->ngx_event_pipe_write_to_downstream
 ngx_int_t
 ngx_event_pipe(ngx_event_pipe_t *p, ngx_int_t do_write) {//注意走到这里的时候,后端发送的头部行信息已经在前面的ngx_http_upstream_send_response->ngx_http_send_header已经把头部行部分发送给客户端了
 //该函数处理的只是后端放回过来的网页包体部分
@@ -81,10 +81,8 @@ ngx_event_pipe(ngx_event_pipe_t *p, ngx_int_t do_write) {//注意走到这里的
                 ngx_add_timer(rev, p->read_timeout); //本轮读取后端数据完毕,添加超时定时器,继续读,如果时间到还没数据,表示超时
 
             } else if (rev->timer_set) {
-                /*
-             这里删除的定时器是发送数据到后端后,需要等待后端应答,在
-             ngx_http_upstream_send_request->ngx_add_timer(c->read, u->conf->read_timeout, NGX_FUNC_LINE); 中添加的定时器
-             */
+                /*这里删除的定时器是发送数据到后端后,需要等待后端应答,在
+                ngx_http_upstream_send_request->ngx_add_timer(c->read, u->conf->read_timeout, NGX_FUNC_LINE); 中添加的定时器*/
                 ngx_del_timer(rev);
             }
         }
@@ -110,20 +108,17 @@ ngx_event_pipe(ngx_event_pipe_t *p, ngx_int_t do_write) {//注意走到这里的
     return NGX_OK;
 }
 
-/*
-1.从preread_bufs,free_raw_bufs或者ngx_create_temp_buf寻找一块空闲的或部分空闲的内存;
+/*1.从preread_bufs,free_raw_bufs或者ngx_create_temp_buf寻找一块空闲的或部分空闲的内存;
 2.调用p->upstream->recv_chain==ngx_readv_chain,用writev的方式读取FCGI的数据,填充chain.
 3.对于整块buf都满了的chain节点调用input_filter(ngx_http_fastcgi_input_filter)进行upstream协议解析,比如FCGI协议,解析后的结果放入p->in里面;
 4.对于没有填充满的buffer节点,放入free_raw_bufs以待下次进入时从后面进行追加.
-5.当然了,如果对端发送完数据FIN了,那就直接调用input_filter处理free_raw_bufs这块数据.
-*/
-/*
-    buffering方式,读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
+5.当然了,如果对端发送完数据FIN了,那就直接调用input_filter处理free_raw_bufs这块数据.*/
+
+/* buffering方式,读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
 然后在读取数据到in链表的时候,在ngx_http_fastcgi_input_filter会重新创建一个ngx_buf_t(buf1),这里面设置buf1->shadow=buf2->shadow
 buf2->shadow=buf1->shadow.同时把buf2添加到p->in中.当通过ngx_http_write_filter发送数据的时候会把p->in中的数据添加到ngx_http_request_t->out,然后发送,
 如果一次没有发送完成,则属于的数据会留在ngx_http_request_t->out中,由写事件触发再次发送.当数据通过p->output_filter(p->output_ctx, out)发送后,buf2
-会被添加到p->free中,buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream
-*/
+会被添加到p->free中,buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream  */
 static ngx_int_t //ngx_event_pipe调用这里读取后端的数据.
 ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_downstream写数据到客户端,ngx_event_pipe_read_upstream从后端读取数据
     off_t limit;
@@ -259,10 +254,8 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
             } else if (p->allocated < p->bufs.num) {
 
                 /* allocate a new buf if it's still allowed */
-                /*
-                    如果没有超过fastcgi_buffers等指令的限制,那么申请一块内存吧.因为现在没有空闲内存了.
-                    allocate a new buf if it's still allowed申请一个ngx_buf_t以及size大小的数据.用来存储从FCGI读取的数据.
-                    */
+                /*如果没有超过fastcgi_buffers等指令的限制,那么申请一块内存吧.因为现在没有空闲内存了.
+                    allocate a new buf if it's still allowed申请一个ngx_buf_t以及size大小的数据.用来存储从FCGI读取的数据.*/
                 b = ngx_create_temp_buf(p->pool, p->bufs.size);
                 if (b == NULL) {
                     return NGX_ABORT;
@@ -298,8 +291,10 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
 
             } else if (p->cacheable
                        || p->temp_file->offset < p->max_temp_file_size) {  //如果后端内容超过了max_temp_file_size,则不缓存
+
                 /* 当前fastcgi_buffers 和fastcgi_buffer_size配置的空间都已经用完了,则需要把读取到(就是fastcgi_buffers 和
                 fastcgi_buffer_size指定的空间中保存的读取数据)的数据写道临时文件中去 */
+
                 //必须缓存,而且当前的缓存文件的位移,其大小小于可允许的大小,那good,可以写入文件了.
                 //这里可以看出,在开启cache的时候,只有前面的fastcgi_buffers  5 3K都已经用完了,才会写入临时文件中去//下面将r->in的数据写到临时文件
                 /*
@@ -370,7 +365,7 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
                 break; //跳出循环
             }
         } //从上面for循环刚开始的if (p->preread_bufs) {到这里,都在寻找一个空闲的缓冲区,然后读取数据填充chain.够长的.
-//读取了数据,下面要进行FCGI协议解析,保存了.
+        //读取了数据,下面要进行FCGI协议解析,保存了.
 
         delay = p->limit_rate ? (ngx_msec_t) n * 1000 / p->limit_rate : 0;
 
@@ -404,11 +399,9 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
 
             } else { //说明本次读到的n字节数据不能装满一个buf,则移动last指针,同时返回出去继续读
                 //如果这个节点的空闲内存数目大于剩下要处理的,就将剩下的存放在这里. 通过后面的if (p->free_raw_bufs && p->length != -1){}执行p->input_filter(p, cl->buf)
-                /*
-                    啥意思,不用调用input_filter了吗,不是.是这样的,如果剩下的这块数据还不够塞满当前这个cl的缓存大小,
+                /*啥意思,不用调用input_filter了吗,不是.是这样的,如果剩下的这块数据还不够塞满当前这个cl的缓存大小,
                     那就先存起来,怎么存呢: 别释放cl了,只是移动其大小,然后n=0使循环退出.然后在下面几行的if (cl) {里面可以检测到这种情况
-                    于是在下面的if里面会将这个ln处的数据放入free_raw_bufs的头部.不过这里会有多个连接吗? 可能有的.
-                    */
+                    于是在下面的if里面会将这个ln处的数据放入free_raw_bufs的头部.不过这里会有多个连接吗? 可能有的*/
                 cl->buf->last += n;
                 n = 0;
             }
@@ -552,13 +545,12 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
     return NGX_OK;
 }
 
-/*
-    buffering方式,读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
+/*buffering方式,读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
 然后在读取数据到in链表的时候,在ngx_http_fastcgi_input_filter会重新创建一个ngx_buf_t(buf1),这里面设置buf1->shadow=buf2->shadow
 buf2->shadow=buf1->shadow.同时把buf2添加到p->in中.当通过ngx_http_write_filter发送数据的时候会把p->in中的数据添加到ngx_http_request_t->out,然后发送,
 如果一次没有发送完成,则属于的数据会留在ngx_http_request_t->out中,由写事件触发再次发送.当数据通过p->output_filter(p->output_ctx, out)发送后,buf2
-会被添加到p->free中,buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream
-*/
+会被添加到p->free中,buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream  */
+
 //ngx_event_pipe_write_to_downstream写数据到客户端,ngx_event_pipe_read_upstream从后端读取数据
 static ngx_int_t
 ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用这里进行数据发送给客户端,数据已经准备在p->out,p->in里面了.
@@ -601,19 +593,19 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
             for (cl = p->busy; cl; cl = cl->next) {
                 cl->buf->recycled = 0; //不需要回收重复利用了,因为upstream_done了,不会再给我发送数据了.
             }
-/*
-发送缓存文件中内容到客户端过程:
- ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容,并获取整个
- 文件stat信息,例如文件大小等.
- 头部部分在ngx_http_cache_send->ngx_http_send_header发送,
- 缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
- 接收后端数据并转发到客户端触发数据发送过程:
- ngx_event_pipe_write_to_downstream中的
- if (p->upstream_eof || p->upstream_error || p->upstream_done) {
-    遍历p->in 或者遍历p->out,然后执行输出
-    p->output_filter(p->output_ctx, p->out);
- }
- */
+            /*发送缓存文件中内容到客户端过程:
+             ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容,并获取整个
+             文件stat信息,例如文件大小等.
+             头部部分在ngx_http_cache_send->ngx_http_send_header发送,
+             缓存文件后面的包体部分在ngx_http_cache_send后半部代码中触发在filter模块中发送
+             接收后端数据并转发到客户端触发数据发送过程:
+             ngx_event_pipe_write_to_downstream中的
+             if (p->upstream_eof || p->upstream_error || p->upstream_done) {
+                遍历p->in 或者遍历p->out,然后执行输出
+                p->output_filter(p->output_ctx, p->out);
+             }
+             */
+
             //如果没有开启缓存,数据不会写入临时文件中,p->out = NULL
             if (p->out) { //和临时文件相关,如果换成存在与临时文件中,走这里
                 ngx_log_debug0(NGX_LOG_DEBUG_EVENT, p->log, 0,
@@ -775,17 +767,16 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
         }
 
         rc = p->output_filter(p->output_ctx, out); //简单调用ngx_http_output_filter进入各个filter发送过程中.
-        /*
-    读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
-然后在读取数据到in链表的时候,在ngx_http_fastcgi_input_filter会重新创建一个ngx_buf_t(buf1),这里面设置buf1->shadow=buf2->shadow
-buf2->shadow=buf1->shadow.同时把buf2添加到p->in中.当通过ngx_http_write_filter发送数据的时候会把p->in中的数据添加到ngx_http_request_t->out,然后发送,
-如果一次没有发送完成,则剩余的数据会留在p->out中.当数据通过p->output_filter(p->output_ctx, out)发送后,buf2会被添加到p->free中,
-buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream
-*/
+        /*读数据前首先开辟一块大空间,在ngx_event_pipe_read_upstream->ngx_readv_chain中开辟一个ngx_buf_t(buf1)结构指向读到的数据,
+            然后在读取数据到in链表的时候,在ngx_http_fastcgi_input_filter会重新创建一个ngx_buf_t(buf1),这里面设置buf1->shadow=buf2->shadow
+            buf2->shadow=buf1->shadow.同时把buf2添加到p->in中.当通过ngx_http_write_filter发送数据的时候会把p->in中的数据添加到ngx_http_request_t->out,然后发送,
+            如果一次没有发送完成,则剩余的数据会留在p->out中.当数据通过p->output_filter(p->output_ctx, out)发送后,buf2会被添加到p->free中,
+            buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream  */
+
         //将没有全部发送的buf(last != end)加入到busy,已经全部处理了的buf(end = last)放入free中
         //实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,见ngx_http_write_filter
         /*实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,这部分数据始终在r->out的最前面,后面在读到数据后在
-    ngx_http_write_filter中会把新来的数据加到r->out后面,也就是未发送的数据在r->out前面新数据在链后面,所以实际write是之前未发送的先发送出去*/
+            ngx_http_write_filter中会把新来的数据加到r->out后面,也就是未发送的数据在r->out前面新数据在链后面,所以实际write是之前未发送的先发送出去*/
         ngx_chain_update_chains(p->pool, &p->free, &p->busy, &out, p->tag);
 
         if (rc == NGX_ERROR) {
@@ -950,21 +941,18 @@ X-Powered-By: PHP/5.2.13
 2015/12/16 04:25:19[           ngx_epoll_process_events,  1710]  [debug] 19348#19348: epoll: fd:14 EPOLLIN EPOLLOUT  (ev:0005) d:B2695159
 */
 
-/*
-如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了,则会把缓存中的数据写入临时文件,然后继续读,读到ngx_event_pipe_write_chain_to_temp_file
+/*如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了,则会把缓存中的数据写入临时文件,然后继续读,读到ngx_event_pipe_write_chain_to_temp_file
 后写入临时文件,直到read返回NGX_AGAIN,然后在ngx_event_pipe_write_to_downstream->ngx_output_chain->ngx_output_chain_copy_buf中读取临时文件内容
-发送到后端,当数据继续到来,通过epoll read继续循环该流程
-*/
+发送到后端,当数据继续到来,通过epoll read继续循环该流程 */
 
 /*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
 中创建临时文件,然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件,最后在
 ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
-的cache目录下面
-*/
+的cache目录下面 */
+
 /*后端数据读取完毕,并且全部写入临时文件后才会执行rename过程,为什么需要临时文件的原因是:例如之前的缓存过期了,现在有个请求正在从后端
 获取数据写入临时文件,如果是直接写入缓存文件,则在获取后端数据过程中,如果在来一个客户端请求,如果允许proxy_cache_use_stale updating,则
-后面的请求可以直接获取之前老旧的过期缓存,从而可以避免冲突(前面的请求写文件,后面的请求获取文件内容)
-*/
+后面的请求可以直接获取之前老旧的过期缓存,从而可以避免冲突(前面的请求写文件,后面的请求获取文件内容) */
 static ngx_int_t
 ngx_event_pipe_write_chain_to_temp_file(ngx_event_pipe_t *p) {
     ssize_t size, bsize, n;
@@ -1251,11 +1239,9 @@ ngx_event_pipe_copy_input_filter(ngx_event_pipe_t *p, ngx_buf_t *buf) {
     return NGX_OK;
 }
 
-/*
-//删除数据的shadow,以及recycled设置为0,表示不需要循环利用,这里实现了buffering功能
-//因为ngx_http_write_filter函数里面判断如果有recycled标志,就会立即将数据发送出去,
-//因此这里将这些标志清空,到ngx_http_write_filter那里就会尽量缓存的.
-*/
+/*删除数据的shadow,以及recycled设置为0,表示不需要循环利用,这里实现了buffering功能
+因为ngx_http_write_filter函数里面判断如果有recycled标志,就会立即将数据发送出去,
+因此这里将这些标志清空,到ngx_http_write_filter那里就会尽量缓存的*/
 static ngx_inline void
 ngx_event_pipe_remove_shadow_links(ngx_buf_t *buf) {
     ngx_buf_t *b, *next;
@@ -1314,11 +1300,11 @@ ngx_event_pipe_add_free_buf(ngx_event_pipe_t *p, ngx_buf_t *b) {  //将参数的
 
         return NGX_OK;
     }
-    //看下面的注释,意思是,如果最前面的free_raw_bufs中没有数据,那就吧当前这块数据放入头部就行.
-    //否则如果当前free_raw_bufs有数据,那就得放到其后面了.为什么会有数据呢?比如,读取一些数据后,还剩下一个尾巴存放在free_raw_bufs,然后开始往客户端写数据
-    //写完后,自然要把没用的buffer放入到这里面来.这个是在ngx_event_pipe_write_to_downstream里面做的.或者干脆在ngx_event_pipe_drain_chains里面做.
-    //因为这个函数在inpupt_filter里面调用是从数据块开始处理,然后到后面的,
-    //并且在调用input_filter之前是会将free_raw_bufs置空的.应该是其他地方也有调用.
+    /*看下面的注释,意思是,如果最前面的free_raw_bufs中没有数据,那就吧当前这块数据放入头部就行.
+    否则如果当前free_raw_bufs有数据,那就得放到其后面了.为什么会有数据呢?比如,读取一些数据后,还剩下一个尾巴存放在free_raw_bufs,然后开始往客户端写数据
+    写完后,自然要把没用的buffer放入到这里面来.这个是在ngx_event_pipe_write_to_downstream里面做的.或者干脆在ngx_event_pipe_drain_chains里面做.
+    因为这个函数在inpupt_filter里面调用是从数据块开始处理,然后到后面的,
+    并且在调用input_filter之前是会将free_raw_bufs置空的.应该是其他地方也有调用.*/
     if (p->free_raw_bufs->buf->pos == p->free_raw_bufs->buf->last) {
         //头部buf没有数据  参考函数ngx_event_pipe_read_upstream,因为读取后端数据未填满一个buf指向的缓冲区,则会加入free表头
         /* add the free buf to the list start */
@@ -1337,9 +1323,7 @@ ngx_event_pipe_add_free_buf(ngx_event_pipe_t *p, ngx_buf_t *b) {  //将参数的
     return NGX_OK;
 }
 
-/*
-遍历p->in/out/busy,将其链表所属的fastcgi数据块释放,放入到free_raw_bufs中间去.也就是,清空upstream发过来的,解析过格式后的HTML PHP等数据.
-*/
+/*遍历p->in/out/busy,将其链表所属的fastcgi数据块释放,放入到free_raw_bufs中间去.也就是,清空upstream发过来的,解析过格式后的HTML PHP等数据*/
 static ngx_int_t
 ngx_event_pipe_drain_chains(ngx_event_pipe_t *p) {
     ngx_chain_t *cl, *tl;
@@ -1362,11 +1346,11 @@ ngx_event_pipe_drain_chains(ngx_event_pipe_t *p) {
         }
 
         while (cl) { /*要知道,这里cl里面,比如p->in里面的这些ngx_buf_t结构所指向的数据内存实际上是在
-        ngx_event_pipe_read_upstream里面的input_filter进行协议解析的时候设置为跟从客户端读取数据时的buf公用的,也就是所谓的影子.
-		然后,虽然p->in指向的链表里面有很多很多个节点,每个节点代表一块HTML PHP等代码,但是他们并不是独占一块内存的,而是可能共享的,
-		比如一块大的buffer,里面有3个FCGI的STDOUT数据包,都有data部分,那么将存在3个b的节点链接到p->in的末尾,他们的shadow成员
-		分别指向下一个节点,最后一个节点就指向其所属的大内存结构.具体在ngx_http_fastcgi_input_filter实现.
-        */
+ *
+            ngx_event_pipe_read_upstream里面的input_filter进行协议解析的时候设置为跟从客户端读取数据时的buf公用的,也就是所谓的影子.
+            然后,虽然p->in指向的链表里面有很多很多个节点,每个节点代表一块HTML PHP等代码,但是他们并不是独占一块内存的,而是可能共享的,
+            比如一块大的buffer,里面有3个FCGI的STDOUT数据包,都有data部分,那么将存在3个b的节点链接到p->in的末尾,他们的shadow成员
+            分别指向下一个节点,最后一个节点就指向其所属的大内存结构.具体在ngx_http_fastcgi_input_filter实现*/
             if (cl->buf->last_shadow) { //碰到了某个大FCGI数据块的最后一个节点,释放只,然后进入下一个大块里面的某个小html 数据块.
                 if (ngx_event_pipe_add_free_buf(p, cl->buf->shadow) != NGX_OK) {
                     return NGX_ABORT;

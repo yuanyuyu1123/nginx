@@ -200,17 +200,20 @@ typedef struct { //upstream配置包括proxy fastcgi wcgi等都用该结构
     ngx_msec_t next_upstream_timeout;
 
     size_t                           send_lowat; //TCP的SO_SNDLOWAT选项,表示发送缓冲区的下限 fastcgi_send_lowat proxy_send_lowat
-    //定义了接收头部的缓冲区分配的内存大小(ngx_http_upstream_t中的buffer缓冲区),当不转发响应给下游或者在buffering标志位为0
-    //的情况下转发响应时,它同样表示接收包体的缓冲区大小   当接收后端过来的头部信息的时候先分配这么多空间来接收头部行等信息,见ngx_http_upstream_process_header
-    //头部行部分(也就是第一个fastcgi data标识信息,里面也会携带一部分网页数据)的fastcgi标识信息开辟的空间用buffer_size配置指定
-    //指定的大小空间开辟在ngx_http_upstream_process_header
+
+   /* 定义了接收头部的缓冲区分配的内存大小(ngx_http_upstream_t中的buffer缓冲区),当不转发响应给下游或者在buffering标志位为0
+    的情况下转发响应时,它同样表示接收包体的缓冲区大小   当接收后端过来的头部信息的时候先分配这么多空间来接收头部行等信息,见ngx_http_upstream_process_header
+    头部行部分(也就是第一个fastcgi data标识信息,里面也会携带一部分网页数据)的fastcgi标识信息开辟的空间用buffer_size配置指定
+    指定的大小空间开辟在ngx_http_upstream_process_header*/
     size_t                           buffer_size; //xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)
     size_t                           limit_rate;//默认值0 fastcgi_limit_rate 或者proxy memcached等进行限速配置  限制的是与客户端浏览器的速度,不是与后端的速度
+
     //仅当buffering标志位为1,并且向下游转发响应时生效.它会设置到ngx_event_pipe_t结构体的busy_size成员中
     //在buffering方式下,本地最多换成还没有发送到客户端的网页包体大小,在ngx_event_pipe_write_to_downstream生效
     //默认值为buffer_size的两倍,实际上总共为后端开辟的空间为buffer_size+ 5*3k(fastcgi_buffers  5 3K)
     //p->busy_size = u->conf->busy_buffers_size;
     size_t                           busy_buffers_size; //xxx_busy_buffers_size fastcgi_busy_buffers_size 默认值为buffer_size的两倍
+
     /*在buffering标志位为1时,如果上游速度快于下游速度,将有可能把来自上游的响应存储到临时文件中,而max_temp_file_size指定了临时文件的
     最大长度.实际上,它将限制ngx_event_pipe_t结构体中的temp_file     fastcgi_max_temp_file_size配置*/
     size_t                           max_temp_file_size; //fastcgi_max_temp_file_size XXX_max_temp_file_size
@@ -310,7 +313,7 @@ typedef struct { //upstream配置包括proxy fastcgi wcgi等都用该结构
 When enabled, only one request at a time will be allowed to populate a new cache element identified according to the proxy_cache_key
 directive by passing a request to a proxied server. Other requests of the same cache element will either wait for a response to appear
 in the cache or the cache lock for this element to be released, up to the time set by the proxy_cache_lock_timeout directive.
-这个主要解决一个问题: //proxy_cache_lock 默认off 0  //proxy_cache_lock_timeout 设置,默认5S
+这个主要解决一个问题: proxy_cache_lock 默认off 0  proxy_cache_lock_timeout 设置,默认5S
 假设现在又两个客户端,一个客户端正在获取后端数据,并且后端返回了一部分,则nginx会缓存这一部分,并且等待所有后端数据返回继续缓存.
 但是在缓存的过程中如果客户端2页来想后端去同样的数据uri等都一样,则会去到客户端缓存一半的数据,这时候就可以通过该配置来解决这个问题,
 也就是客户端1还没缓存完全部数据的过程中客户端2只有等客户端1获取完全部后端数据,或者获取到proxy_cache_lock_timeout超时,则客户端2只有从后端获取数据*/
@@ -322,10 +325,8 @@ in the cache or the cache lock for this element to be released, up to the time s
     ngx_flag_t cache_convert_head;
     ngx_flag_t cache_background_update;
 
-    /*
-语法:proxy_cache_valid reply_code [reply_code ...] time;  proxy_cache_valid  200 302 10m;
-proxy_cache_valid  301 1h;  proxy_cache_valid  any 1m;
-*/
+    /*语法:proxy_cache_valid reply_code [reply_code ...] time;  proxy_cache_valid  200 302 10m;
+        proxy_cache_valid  301 1h;  proxy_cache_valid  any 1m;  */
     ngx_array_t                     *cache_valid; //最终赋值给ngx_http_cache_t->valid_sec
 
     //xxx_cache_bypass  xx1 xx2设置的xx2不为空或者不为0,则不会从缓存中取,而是直接冲后端读取
@@ -490,6 +491,7 @@ request、rewrite redirect是可选的*/
 //FastCGI memcached  uwsgi  scgi proxy模块的相关配置都放在该结构中
 //ngx_http_request_t->upstream 中存取,upstream资源回收在ngx_http_upstream_finalize_request
 struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的相关配置里面(ngx_http_upstream_conf_t)获取的
+
     //处理读事件的回调方法,每一个阶段都有不同的read event handler
     //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
     //如果在读取后端包体的时候采用buffering方式,则在读取完头部行和部分包体后,会从置为ngx_http_upstream_process_upstream方式读取后端包体数据
@@ -497,6 +499,7 @@ struct ngx_http_upstream_s { //该结构中的部分成员是从upstream{}中的
     //非buffering方式,非子请求,后端头部信息已经读取完毕了,如果后端还有包体需要发送,则本端通过ngx_http_upstream_process_non_buffered_upstream读取
     //如果有子请求,后端头部信息已经读取完毕了,如果后端还有包体需要发送,则本端通过ngx_http_upstream_process_body_in_memory读取
     ngx_http_upstream_handler_pt     read_event_handler; //ngx_http_upstream_process_header  ngx_http_upstream_handler中执行
+
     //处理写事件的回调方法,每一个阶段都有不同的write event handler
     //注意ngx_http_upstream_t和ngx_http_request_t都有该成员 分别在ngx_http_request_handler和ngx_http_upstream_handler中执行
     ngx_http_upstream_handler_pt     write_event_handler; //ngx_http_upstream_send_request_handler用户向后端发送包体时,一次发送没完完成,再次出发epoll write的时候调用
@@ -646,8 +649,7 @@ Ngx_http_proxy_module.c (src\http\modules):    u->create_key = ngx_http_proxy_cr
     //ngx_http_xxx_create_request(例如ngx_http_fastcgi_create_request)
     ngx_int_t                      (*create_request)(ngx_http_request_t *r);//生成发送到上游服务器的请求缓冲(或者一条缓冲链)
 
-    /*
-    reinit_request可能会被多次回调.它被调用的原因只有一个,就是在第一次试图向上游服务器建立连接时,如果连接由于各种异常原因失败,
+    /*reinit_request可能会被多次回调.它被调用的原因只有一个,就是在第一次试图向上游服务器建立连接时,如果连接由于各种异常原因失败,
     那么会根据upstream中conf参数的策略要求再次重连上游服务器,而这时就会调用reinit_request方法了.图5-4描述了典型的reinit_request调用场景.
     下面简单地介绍一下图5-4中列出的步骤.
         1) Nginx主循环中会定期地调用事件模块,检查是否有网络事件发生.
@@ -665,16 +667,14 @@ Ngx_http_proxy_module.c (src\http\modules):    u->create_key = ngx_http_proxy_cr
         13)如果mytest模块没有实现reinit_request方法,那么是不会调用它的.而如果reinit_request不为NULL空指针,就会回调它.
         14) mytest模块在reinit_request中处理完自己的事情.
         15)处理宪第9步中的TCP连接断开事件,将控制权交还给事件模块.
-        16)事件模块处理完本轮网络事件后,交还控制权给Nginx主循环.
-    */
+        16)事件模块处理完本轮网络事件后,交还控制权给Nginx主循环*/
 
     //与上游服务器的通信失败后,如果按照重试规则还需要再次向上游服务器发起连接,则会调用reinit_request方法
     //下面的upstream回调指针是各个模块设置的,比如ngx_http_fastcgi_handler里面设置了fcgi的相关回调函数.
     //ngx_http_XXX_reinit_request(ngx_http_fastcgi_reinit_request) //在ngx_http_upstream_reinit中执行
     ngx_int_t                      (*reinit_request)(ngx_http_request_t *r);//在后端服务器被重置的情况下(在create_request被第二次调用之前)被调用
 
-    /*
-    收到上游服务器的响应后就会回调process_header方法.如果process_header返回NGXAGAIN,那么是在告诉upstream还没有收到完整的响应包头,
+    /*收到上游服务器的响应后就会回调process_header方法.如果process_header返回NGXAGAIN,那么是在告诉upstream还没有收到完整的响应包头,
     此时,对子本次upstream请求来说,再次接收到上游服务器发来的TCP流时,还会调用process_header方法处理,直到process_header函数返回
     非NGXAGAIN值这一阶段才会停止
     process_header回调方法process_header是用于解析上游服务器返回的基于TCP的响应头部的,因此,process_header可能会被多次调用,
@@ -696,12 +696,13 @@ Ngx_http_proxy_module.c (src\http\modules):    u->create_key = ngx_http_proxy_cr
         8)调用元阻塞的读取套接字接口.
         9)这时有可能返回套接字缓冲区已经为空.
         10)当第2步中的读取上游响应事件处理完毕后,控制权交还给事件模块.
-        11)事件模块处理完本轮网络事件后,交还控制权给Nginx主循环.
-    */
+        11)事件模块处理完本轮网络事件后,交还控制权给Nginx主循环*/
 
     //ngx_http_upstream_process_header和ngx_http_upstream_cache_send函数中调用
+
     /*解析上游服务器返回响应的包头,返回NGX_AGAIN表示包头还没有接收完整,返回NGX_HTTP_UPSTREAM_INVALID_HEADER表示包头不合法,返回
     NGX ERROR表示出现错误,返回NGX_OK表示解析到完整的包头*/
+
     //ngx_http_fastcgi_process_header  ngx_http_proxy_process_status_line->ngx_http_proxy_process_status_line(ngx_http_XXX_process_header)
     //在ngx_http_upstream_process_header中执行
     ngx_int_t                      (*process_header)(ngx_http_request_t *r); //处理上游服务器回复的第一个bit,时常是保存一个指向上游回复负载的指针

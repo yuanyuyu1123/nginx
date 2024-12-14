@@ -4,21 +4,17 @@
  * Copyright (C) Nginx, Inc.
  */
 
-/*
-ngx_radix_tree_t基数树与ngx_rbtree_t红黑树一样都是二叉查找树,ngx_rbtree_t红黑树具备的优点,ngx_radix_tree t基数树同样也有,
+/*ngx_radix_tree_t基数树与ngx_rbtree_t红黑树一样都是二叉查找树,ngx_rbtree_t红黑树具备的优点,ngx_radix_tree t基数树同样也有,
 但ngx_radix_treej基数树的应用范围要比ngx_rbtree_t红黑树小,因为ngx_radix_treej要求元素必须以整型数据作为关键字,所以大大减少
 了它的应用场景.然而,由于ngx_radix_tree_t墓数树在插入、删除元素时不需要做旋转操作,因此它的插入、删除效率一般要比ngx_rbtree_t
-红黑树高.选择使用哪种二叉查找树取决于实际的应用场景.不过,ngx_radix_tree_t基数树的用法要比ngx_rbtree_t红黑树简单许多.
-*/
+红黑树高.选择使用哪种二叉查找树取决于实际的应用场景.不过,ngx_radix_tree_t基数树的用法要比ngx_rbtree_t红黑树简单许多*/
 #include <ngx_config.h>
 #include <ngx_core.h>
 
 
 static ngx_radix_node_t *ngx_radix_alloc(ngx_radix_tree_t *tree);
 
-/*
-将预分配节点简单地设置为-1,这样pool内存池中就会只使用1个页面来尽可能地分配基数树节点
-*/
+/*将预分配节点简单地设置为-1,这样pool内存池中就会只使用1个页面来尽可能地分配基数树节点*/
 ngx_radix_tree_t *
 ngx_radix_tree_create(ngx_pool_t *pool, ngx_int_t preallocate) {
     uint32_t key, mask, inc;

@@ -172,11 +172,9 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
     of->err = 0;
 
     if (cache == NULL) { // 如果cache结构没有被初始化, 则获取name文件stat信息.
-        /*
-    如果没有配置open_file_cache max=1000 inactive=20s;,也就是说没有缓存cache缓存文件对应的文件stat信息,则每次都要从新打开文件获取文件stat信息,
-    如果有配置open_file_cache,则会把打开的cache缓存文件stat信息按照ngx_crc32_long做hash后添加到ngx_cached_open_file_t->rbtree中,这样下次在请求该
-    uri,则就不用再次open文件后在stat获取文件属性了,这样可以提高效率,参考ngx_open_cached_file
-    */
+        /*如果没有配置open_file_cache max=1000 inactive=20s;,也就是说没有缓存cache缓存文件对应的文件stat信息,则每次都要从新打开文件获取文件stat信息,
+        如果有配置open_file_cache,则会把打开的cache缓存文件stat信息按照ngx_crc32_long做hash后添加到ngx_cached_open_file_t->rbtree中,这样下次在请求该
+        uri,则就不用再次open文件后在stat获取文件属性了,这样可以提高效率,参考ngx_open_cached_file*/
         if (of->test_only) { //如果只是测试用  例如进入index module的时候,就走这里
 
             if (ngx_file_info_wrapper(name, of, &fi, pool->log) //对该文件的文件信息进行查询就返回,并不实际打开它
@@ -244,13 +242,11 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
             //加入事件监听文件描述符变化
             goto add_event;
         }
-        /*
-         这里使用了两种机制,这两种机制是互斥的.一个是文件事件检查机制,是kqueue下才有的.
+        /*这里使用了两种机制,这两种机制是互斥的.一个是文件事件检查机制,是kqueue下才有的.
          一个是定时检查机制(now - file->created < of->valid)
          如果定时检查没有问题,如果of没有uniq值那么就算检查通过了,否则对比uniq值
          这个值就是文件属性中的st_ino(同一个设备中的每个文件,这个值都是不同的).
-         这个值主要用于判断文件是否被修改(不过这个修改是覆盖这类的,如果你用open打开,然后写入的话,这个值还是一样的)
-         */
+         这个值主要用于判断文件是否被修改(不过这个修改是覆盖这类的,如果你用open打开,然后写入的话,这个值还是一样的)*/
         if (file->use_event //use_event只有kqueue才有效
             || (file->event == NULL
                 && (of->uniq == 0 || of->uniq == file->uniq)
@@ -316,11 +312,9 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
         if (rc != NGX_OK && (of->err == 0 || !of->errors)) {
             goto failed;
         }
-        /*
-           下面主要是检查文件属性是否发送变化,检查项有:
+        /*下面主要是检查文件属性是否发送变化,检查项有:
            现在name是目录,但是之前是文件,也就是文件变目录了,发生变化了.
-           目录变文件,并且检测uniq是否发送变化
-         */
+           目录变文件,并且检测uniq是否发送变化*/
         if (of->is_dir) {
             //对文件前后状态对比的检查
             if (file->is_dir || file->err) {

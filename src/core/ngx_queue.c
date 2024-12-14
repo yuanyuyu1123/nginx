@@ -8,8 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-便用双向链表排序的例子
+/*便用双向链表排序的例子
     本节定义一个简单的链表,并使用ngx_queue_sort方法对所有元素排序.在这个例子
 中,可以看到如何定义、初始化ngx_queue_t容器,如何定义任意类型的链表元素,如何遍
 历链表,如何自定义排序方法并执行排序.
@@ -24,8 +23,7 @@ typedef struct {
 例中它的上面有一个char~指针,下面有一个整型成员num,这样是允许的.
     排序方法需要自定义.下面以TestNode结构体中的num成员作为排序依据,实现
 compTestNode方法作为排序过程中任意两元素间的比较方法.
-    ngx_int_t compTeBtNode(const ngx_queue_t*a,  const ngx_queue_t*b)
-    {
+    ngx_int_t compTeBtNode(const ngx_queue_t*a,  const ngx_queue_t*b){
         //首先使用ngx_queue_data方法由ngx queue—t变量获取元素结构体TestNode的地址奇／
         TestNodet aNode=ngx_queue_data(a,  TestNode,  qEle)j
         TestNode★bNode=ngx_queue_data (b,  TestNode,  qEle)j
@@ -81,9 +79,8 @@ ngx_queue_last和ngx_queue_prev方法编写相关代码.
  * or the first element of the queue's second part otherwise
  */
 //链表中心元素ngx_queue_middle
-/*
-这里用到的技巧是每次middle向后移动一步,next向后移动两步,这样next指到队尾的时候,middle就指到了中间,时间复杂度就是O(N)
-*/
+
+/*这里用到的技巧是每次middle向后移动一步,next向后移动两步,这样next指到队尾的时候,middle就指到了中间,时间复杂度就是O(N)*/
 ngx_queue_t *
 ngx_queue_middle(ngx_queue_t *queue) {
     ngx_queue_t *middle, *next;

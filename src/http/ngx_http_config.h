@@ -190,7 +190,7 @@ typedef struct { //相关空间创建和赋值见ngx_http_block, 该结构是ngx
     void        **loc_conf;/* 指针数组,数组中的每介元素指向所有HTTP模块ngx_http_module_t->create->loc->conf方法产生的结构体 */
 } ngx_http_conf_ctx_t; //ctx是content的简称,表示上下文
 
-//参考:http://tech.uc.cn/?p=300   ngx_http_conf_ctx_t变量的指针ctx存储在ngx_cycle_t的conf_ctx所指向的指针数组,以ngx_http_module的index为下标的数组元素
+//ngx_http_conf_ctx_t变量的指针ctx存储在ngx_cycle_t的conf_ctx所指向的指针数组,以ngx_http_module的index为下标的数组元素
 
 /*
 Nginx安装完毕后,会有响应的安装目录,安装目录里nginx.conf为nginx的主配置文件,ginx主配置文件分为4部分,main(全局配置)、server(主机设置)、upstream(负载均衡服务器设)和location(URL匹配特定位置的设置),这四者关系为:server继承main,location继承server,upstream既不会继承其他设置也不会被继承.
@@ -205,7 +205,7 @@ events {
 use epoll; 设置工作模式为epoll,除此之外还有select、poll、kqueue、rtsig和/dev/poll模式
 worker_connections 65535; //定义每个进程的最大连接数 受系统进程的最大打开文件数量限制
 }
-…….
+
 [root@rhel6u3-7 server]# cat /proc/cpuinfo | grep "processor" | wc –l //查看逻辑CPU核数
 [root@rhel6u3-7 server]# ulimit -n 65535 //设置系统进程的最大打开文件数量
 二、Nginx的HTTP服务器配置,Gzip配置.
@@ -380,13 +380,13 @@ typedef struct { //注意和ngx_http_conf_ctx_t结构配合        初始化赋�
     //一般用来把对应的模块加入到11个阶段对应的阶段去ngx_http_phases,例如ngx_http_realip_module的ngx_http_realip_init
     ngx_int_t   (*postconfiguration)(ngx_conf_t *cf); //完成配置文件的解析后调用
 
-/*当需要创建数据结构用于存储main级别(直属于http{...}块的配置项)的全局配置项时,可以通过create_main_conf回调方法创建存储全局配置项的结构体*/
+    /*当需要创建数据结构用于存储main级别(直属于http{...}块的配置项)的全局配置项时,可以通过create_main_conf回调方法创建存储全局配置项的结构体*/
     void       *(*create_main_conf)(ngx_conf_t *cf);
     char       *(*init_main_conf)(ngx_conf_t *cf, void *conf);//常用于初始化main级别配置项
 
-/*当需要创建数据结构用于存储srv级别(直属于虚拟主机server{...}块的配置项)的配置项时,可以通过实现create_srv_conf回调方法创建存储srv级别配置项的结构体*/
+    /*当需要创建数据结构用于存储srv级别(直属于虚拟主机server{...}块的配置项)的配置项时,可以通过实现create_srv_conf回调方法创建存储srv级别配置项的结构体*/
     void       *(*create_srv_conf)(ngx_conf_t *cf);
-// merge_srv_conf回调方法主要用于合并main级别和srv级别下的同名配置项
+    // merge_srv_conf回调方法主要用于合并main级别和srv级别下的同名配置项
     char       *(*merge_srv_conf)(ngx_conf_t *cf, void *prev, void *conf);
 
     /*当需要创建数据结构用于存储loc级别(直属于location{...}块的配置项)的配置项时,可以实现create_loc_conf回调方法*/

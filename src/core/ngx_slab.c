@@ -7,14 +7,12 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-由于指针是4的倍数,那么后两位一定为0,此时我们可以利用指针的后两位做标记,充分利用空间.
+/*由于指针是4的倍数,那么后两位一定为0,此时我们可以利用指针的后两位做标记,充分利用空间.
 在nginx的slab中,我们使用ngx_slab_page_s结构体中的指针pre的后两位做标记,用于指示该page页面的slot块数与ngx_slab_exact_size的关系.
 当page划分的slot块小于32时候,pre的后两位为NGX_SLAB_SMALL.
 当page划分的slot块等于32时候,pre的后两位为NGX_SLAB_EXACT
 当page划分的slot大于32块时候,pre的后两位为NGX_SLAB_BIG
-当page页面不划分slot时候,即将整个页面分配给用户,pre的后两位为NGX_SLAB_PAGE
-*/
+当page页面不划分slot时候,即将整个页面分配给用户,pre的后两位为NGX_SLAB_PAGE  */
 #define NGX_SLAB_PAGE_MASK   3
 #define NGX_SLAB_PAGE        0
 #define NGX_SLAB_BIG         1
