@@ -2074,7 +2074,7 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
     ngx_http_core_loc_conf_t *clcf;
     /*
  既然NGX_HTTP_ACCESS_PHASE阶段用于控制客户端是否有权限访问服务,那么它就不需要对子请求起作用.如何判断请求究竟是来自客
-户端的原始请求还是被派生出的子请求呢？很简单,检查ngx_http_request_t结构体中的main指针即可.ngx_ http_init_request
+户端的原始请求还是被派生出的子请求呢?很简单,检查ngx_http_request_t结构体中的main指针即可.ngx_ http_init_request
 方法会把main指针指向其自身,而由这个请求派生出的其他子请求中的main指针,仍然会指向ngx_http_init_request方法初始化的原始请求.
 因此,检查main成员与ngx_http_request_t自身的指针是否相等即可
   */
@@ -2112,7 +2112,7 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
 ┃satisfy的参数 ┃    意义                                                                              ┃
 ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃              ┃    NGX HTTP ACCESS PHASE阶段可能有很多HTTP模块都对控制请求的访问权限感兴趣,         ┃
-┃              ┃那么以哪一个为准呢？当satisfy的参数为all时,这些HTTP模块必须同时发生作用,即以该阶    ┃
+┃              ┃那么以哪一个为准呢?当satisfy的参数为all时,这些HTTP模块必须同时发生作用,即以该阶    ┃
 ┃all           ┃                                                                                      ┃
 ┃              ┃段中全部的handler方法共同决定请求的访问权限,换句话说,这一阶段的所有handler方法必    ┃
 ┃              ┃须全部返回NGX OK才能认为请求具有访问权限                                              ┃
@@ -2993,7 +2993,7 @@ return ngx_http_output_filter(r, &out);
 */
 
 /*
-Nginx是一个全异步的事件驱动架构,那么仅仅调用ngx_http_send_header方法和ngx_http_output_filter方法,就可以把响应全部发送给客户端吗？当
+Nginx是一个全异步的事件驱动架构,那么仅仅调用ngx_http_send_header方法和ngx_http_output_filter方法,就可以把响应全部发送给客户端吗?当
 然不是,当响应过大无法一次发送完时(TCP的滑动窗口也是有限的,一次非阻塞的发送多半是无法发送完整的HTTP响应的),就需要向epoll以及定时
 器中添加写事件了,当连接再次可写时,就调用ngx_http_writer方法继续发送响应,直到全部的响应都发送到客户端为止.
 */
@@ -4366,7 +4366,7 @@ location ~ .*.php?$ {
 式的匹配的结果优先使用),如:location ^~ /images/,你希望对/images/这个目录进行一些特别的操作,如增加
 expires头,防盗链等,但是你又想把除了这个目录的图片外的所有图片只进行增加expires头的操作,这个操作可能
 会用到另外一个location,例如:location ~* .(gif|jpg|jpeg)$,这样,如果有请求/images/1.jpg,nginx如何决
-定去进行哪个location中的操作呢？结果取决于标识符^~,如果你这样写:location /images/,这样nginx会将1.jpg
+定去进行哪个location中的操作呢?结果取决于标识符^~,如果你这样写:location /images/,这样nginx会将1.jpg
 匹配到location ~* .(gif|jpg|jpeg)$这个location中,这并不是你需要的结果,而增加了^~这个标识符后,它在匹
 配了/images/这个字符串后就停止搜索其它带正则的location.
 2.= 表示精确的查找地址,如location = /它只会匹配uri为/的请求,如果请求为/index.html,将查找另外的
@@ -4462,7 +4462,7 @@ location ~ .php$ {
 nginx.conf的配置代码看上去没有任何问题,而事实上:
 访问 /user1/会正常执行php程序.
 访问 /user2/ 或 /user3/ 都不会执行程序,而是直接下载程序的源代码.
-原因在哪里？看到他们地区别了吗？
+原因在哪里?看到他们地区别了吗?
 /user1/是普通location写法
 而/user2/ 或 /user3/ 是正则表达式匹配的location
 问题就出在了/user2/ 或 /user3/匹配location指令使用了正则表达式,所以必须注意代码段的先后顺序,必须把

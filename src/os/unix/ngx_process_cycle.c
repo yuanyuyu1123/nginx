@@ -67,16 +67,14 @@ ngx_uint_t ngx_restart;
 
 static u_char master_process[] = "master process";
 
-/*
-在Nginx中,如果启用了proxy(fastcgi) cache功能,master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
+/*在Nginx中,如果启用了proxy(fastcgi) cache功能,master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
 存和磁盘的缓存个体.第一个进程的功能是定期检查缓存,并将过期的缓存删除;第二个进程的作用是在启动的时候将磁盘中已经缓存的个
 体映射到内存中(目前Nginx设定为启动以后60秒),然后退出.
 具体的,在这两个进程的ngx_process_events_and_timers()函数中,会调用ngx_event_expire_timers().Nginx的ngx_event_timer_rbtree(红黑树)里
 面按照执行的时间的先后存放着一系列的事件.每次取执行时间最早的事件,如果当前时间已经到了应该执行该事件,就会调用事件的handler.两个
 进程的handler分别是ngx_cache_manager_process_handler和ngx_cache_loader_process_handler
 也就是说manger 和 loader的定时器会分别调用ngx_cache_manager_process_handler和ngx_cache_loader_process_handler,不过可以看到manager的定
-时器初始时间是0,而loader是60000毫秒.也就是说,manager在nginx一启动时就启动了,但是,loader是在nginx启动了1分钟后才会启动.
-*/
+时器初始时间是0,而loader是60000毫秒.也就是说,manager在nginx一启动时就启动了,但是,loader是在nginx启动了1分钟后才会启动.*/
 static ngx_cache_manager_ctx_t ngx_cache_manager_ctx = {
         ngx_cache_manager_process_handler, "cache manager process", 0
 };
@@ -90,10 +88,10 @@ static ngx_cycle_t ngx_exit_cycle;
 static ngx_log_t ngx_exit_log;
 static ngx_open_file_t ngx_exit_log_file;
 
-/*ngx_master_process_cycle 调 用 ngx_start_worker_processes生成多个工作子进程,ngx_start_worker_processes 调 用 ngx_worker_process_cycle
+/*ngx_master_process_cycle调用ngx_start_worker_processes生成多个工作子进程,ngx_start_worker_processes调用ngx_worker_process_cycle
 创建工作内容,如果进程有多个子线程,这里也会初始化线程和创建线程工作内容,初始化完成之后,ngx_worker_process_cycle
-会进入处理循环,调用 ngx_process_events_and_timers , 该 函 数 调 用 ngx_process_events监听事件,
-并把事件投递到事件队列ngx_posted_events 中 , 最 终 会 在 ngx_event_thread_process_posted中处理事件.*/
+会进入处理循环,调用 ngx_process_events_and_timers,该函数调用ngx_process_events监听事件,
+并把事件投递到事件队列ngx_posted_events中,最终会在ngx_event_thread_process_posted中处理事件.*/
 
 /*master进程不需要处理网络事件,它不负责业务的执行,只会通过管理worker等子进
 程来实现重启服务、平滑升级、更换日志文件、配置文件实时生效等功能*/
@@ -449,7 +447,7 @@ ngx_start_worker_processes(ngx_cycle_t *cycle, ngx_int_t n, ngx_int_t type) {
                                  |----------(ngx_worker_process_cycle->ngx_worker_process_init)
     ngx_start_worker_processes---| ngx_processes[]相关的操作赋值流程
                                  |----------ngx_pass_open_channel
-*/
+    */
         ngx_spawn_process(cycle, ngx_worker_process_cycle,
                           (void *) (intptr_t) i, "worker process", type);
         /*这里每个子进程和父进程之间使用的是socketpair系统调用建立起来的全双工的socket
@@ -461,12 +459,7 @@ ngx_start_worker_processes(ngx_cycle_t *cycle, ngx_int_t n, ngx_int_t type) {
     }
 }
 
-/*在Nginx中,如果启用了proxy(fastcgi) cache功能,master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
-存和磁盘的缓存个体.第一个进程的功能是定期检查缓存,并将过期的缓存删除;第二个进程的作用是在启动的时候将磁盘中已经缓存的个
-体映射到内存中(目前Nginx设定为启动以后60秒),然后退出.
-具体的,在这两个进程的ngx_process_events_and_timers()函数中,会调用ngx_event_expire_timers().Nginx的ngx_event_timer_rbtree(红黑树)里
-面按照执行的时间的先后存放着一系列的事件.每次取执行时间最早的事件,如果当前时间已经到了应该执行该事件,就会调用事件的handler.两个
-进程的handler分别是ngx_cache_manager_process_handler和ngx_cache_loader_process_handler*/
+
 static void
 ngx_start_cache_manager_processes(ngx_cycle_t *cycle, ngx_uint_t respawn) {
     ngx_uint_t i, manager, loader;
@@ -491,13 +484,7 @@ ngx_start_cache_manager_processes(ngx_cycle_t *cycle, ngx_uint_t respawn) {
     if (manager == 0) { //只有在配置了缓存信息才会置1,所以如果没有配置缓存不会启动cache manage和load进程
         return;
     }
-    /*在Nginx中,如果启用了proxy(fastcgi) cache功能,master process会在启动的时候启动管理缓存的两个子进程(区别于处理请求的子进程)来管理内
-    存和磁盘的缓存个体.第一个进程的功能是定期检查缓存,并将过期的缓存删除;第二个进程的作用是在启动的时候将磁盘中已经缓存的个
-    体映射到内存中(目前Nginx设定为启动以后60秒),然后退出.
 
-    具体的,在这两个进程的ngx_process_events_and_timers()函数中,会调用ngx_event_expire_timers().Nginx的ngx_event_timer_rbtree(红黑树)里
-    面按照执行的时间的先后存放着一系列的事件.每次取执行时间最早的事件,如果当前时间已经到了应该执行该事件,就会调用事件的handler.两个
-    进程的handler分别是ngx_cache_manager_process_handler和ngx_cache_loader_process_handler */
     ngx_spawn_process(cycle, ngx_cache_manager_process_cycle,
                       &ngx_cache_manager_ctx, "cache manager process",
                       respawn ? NGX_PROCESS_JUST_RESPAWN : NGX_PROCESS_RESPAWN);
@@ -565,8 +552,7 @@ ngx_pass_open_channel(ngx_cycle_t *cycle) { //该函数可以建立本进程和�
     }
 }
 
-/*NGX_PROCESS_JUST_RESPAWN标识最终会在ngx_spawn_process()创建worker进程时,将ngx_processes[s].just_spawn = 1,以此作为区别旧的worker进程的标记.
-之后,执行:
+/*NGX_PROCESS_JUST_RESPAWN标识最终会在ngx_spawn_process()创建worker进程时,将ngx_processes[s].just_spawn = 1,以此作为区别旧的worker进程的标记.之后执行:
 ngx_signal_worker_processes(cycle, ngx_signal_value(NGX_SHUTDOWN_SIGNAL));
 以此关闭旧的worker进程.进入该函数,你会发现它也是循环向所有worker进程发送信号,所以它会先把旧worker进程关闭,然后再管理新的worker进程.*/
 static void  //ngx_reap_children和ngx_signal_worker_processes对应
@@ -667,7 +653,7 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo) { //向进程发送si
     }
 }
 
-//这个里面处理退出的子进程(有的worker异常退出,这时我们就需要重启这个worker ),如果所有子进程都退出则会返回0.
+//这个里面处理退出的子进程(有的worker异常退出,这时我们就需要重启这个worker),如果所有子进程都退出则会返回0.
 static ngx_uint_t
 ngx_reap_children(ngx_cycle_t *cycle) { //ngx_reap_children和ngx_signal_worker_processes对应
     ngx_int_t i, n;
@@ -871,10 +857,10 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data) { //data表示这是第
 
             if (!ngx_exiting) {
                 /*如果ngx_exiting为1,则开始准备关闭worker进程.首先,根据当前ngx_cycle_t中所有正在处理的连接,调用它们对应的关闭连接处理方法
-           (就是将连接中的close标志位置为1,再调用读事件的处理方法,在第9章中会详细讲解Nginx连接）.调用所有活动连接的读事件处理方法处
-           理连接关闭事件后,将检查ngx_event timer_ rbtree红黑树(保存所有事件的定时器,在第9章中会介绍它）是否为空,如果不为空,表示还
-           有事件需要处理,将继续向下执行,调用ngx_process—events—and—timers方法处理事件;如果为空,表示已经处理完所有的事件,这时将调
-           用所有模块的exit_process方法,最后销毁内存池,退出整个worker进程.
+                   (就是将连接中的close标志位置为1,再调用读事件的处理方法,在第9章中会详细讲解Nginx连接）.调用所有活动连接的读事件处理方法处
+                   理连接关闭事件后,将检查ngx_event timer_ rbtree红黑树(保存所有事件的定时器,在第9章中会介绍它）是否为空,如果不为空,表示还
+                   有事件需要处理,将继续向下执行,调用ngx_process—events—and—timers方法处理事件;如果为空,表示已经处理完所有的事件,这时将调
+                   用所有模块的exit_process方法,最后销毁内存池,退出整个worker进程.
                注意ngx_exiting标志位只有唯一一段代码会设置它,也就是下面接收到QUIT信号.ngx_quit只有;在首次设置为1时,才会将ngx_exiting置为1.*/
                 ngx_exiting = 1; //开始quit后的相关资源释放操作,见上面的if(ngx_exting)
                 ngx_set_shutdown_timer(cycle);
@@ -882,10 +868,8 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data) { //data表示这是第
                 ngx_close_idle_connections(cycle);
             }
         }
-        /*
-         使用-s reopen参数可以重新打开日志文件,这样可以先把当前日志文件改名或转移到其他目录中进行备份,再重新打开时就会生成新的日志文件.
-         这个功能使得日志文件不至于过大.当然,这与使用kill命令发送USR1信号效果相同.
-        */
+        /*使用-s reopen参数可以重新打开日志文件,这样可以先把当前日志文件改名或转移到其他目录中进行备份,再重新打开时就会生成新的日志文件.
+         这个功能使得日志文件不至于过大.当然,这与使用kill命令发送USR1信号效果相同*/
         if (ngx_reopen) {
             ngx_reopen = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reopening logs");

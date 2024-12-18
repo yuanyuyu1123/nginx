@@ -765,11 +765,11 @@ ngx_close_glob(ngx_glob_t *gl) {
 
 /*
 fcntl函数有5种功能:
-　　　　 1.复制一个现有的描述符(cmd=F_DUPFD).
-　　    2.获得／设置文件描述符标记(cmd=F_GETFD或F_SETFD).
-       3.获得／设置文件状态标记(cmd=F_GETFL或F_SETFL).
-       4.获得／设置异步I/O所有权(cmd=F_GETOWN或F_SETOWN).
-       5.获得／设置记录锁(cmd=F_GETLK,F_SETLK或F_SETLKW).
+　　1.复制一个现有的描述符(cmd=F_DUPFD).
+　　2.获得/设置文件描述符标记(cmd=F_GETFD或F_SETFD).
+   3.获得/设置文件状态标记(cmd=F_GETFL或F_SETFL).
+   4.获得/设置异步I/O所有权(cmd=F_GETOWN或F_SETOWN).
+   5.获得/设置记录锁(cmd=F_GETLK,F_SETLK或F_SETLKW) */
 
 /*对于文件锁,Nginx封装了3个方法:ngx_trylock_fd实现了不会阻塞进程、不会便得进程进入睡眠状态的互斥锁;
  *ngx_lock_fd提供的互斥锁在锁,已经被其他进程拿到时将会导致当前进程进入睡眠状态,直到顺利拿到这个锁后,当前进程才会被Linux内核重新调度,所以它是阻塞操作;

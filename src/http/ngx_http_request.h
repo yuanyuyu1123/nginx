@@ -1406,7 +1406,7 @@ struct ngx_http_request_s { //当接收到客户端请求数据后,调用ngx_htt
     //默认是为0的表示需要缓存客户端包体,决定是否需要转发客户端包体到后端,如果request_body_no_buffering为1表示不用缓存包体,那么request_body_in_file_only也为0,因为不用缓存包体,那么就不用写到临时文件中
     unsigned                          request_body_no_buffering:1; //是否缓存HTTP包体,如果不缓存包体,和request_body_in_file_only是互斥的,见ngx_http_read_client_request_body
 
-    /*upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢？
+    /*upstream有3种处理上游响应包体的方式,但HTTP模块如何告诉upstream使用哪一种方式处理上游的响应包体呢?
     当请求的ngx_http_request_t结构体中subrequest_in_memory标志位为1时,将采用第1种方式,即upstream不转发响应包体
     到下游,由HTTP模块实现的input_filter方法处理包体;当subrequest_in_memory为0时,upstream会转发响应包体.当ngx_http_upstream_conf_t
     配置结构体中的buffering标志位为1时,将开启更多的内存和磁盘文件用于缓存上游的响应包体,这意味上游网速更快;当buffering

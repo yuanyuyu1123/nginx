@@ -119,10 +119,11 @@ ngx_readv_chain(ngx_connection_t *c, ngx_chain_t *chain, off_t limit) {
                    "readv: %ui, last:%uz", vec.nelts, iov->iov_len);
 
     do {
-        //read系列函数返回0表示对端发送了FIN包
-        //If any portion of a regular file prior to the end-of-file has not been written, read() shall return bytes with value 0.
-        //如果是没有数据可读了,会返回-1,然后errno为EAGAIN表示暂时没有数据.
-        //从上面可以看出readv可以将对端的数据读入到本端的几个不连续的内存中,而read则只能读入到连续的内存中
+        /*read系列函数返回0表示对端发送了FIN包
+        If any portion of a regular file prior to the end-of-file has not been written, read() shall return bytes with value 0.
+        如果是没有数据可读了,会返回-1,然后errno为EAGAIN表示暂时没有数据.
+        从上面可以看出readv可以将对端的数据读入到本端的几个不连续的内存中,而read则只能读入到连续的内存中*/
+
         /* On success, the readv() function returns the number of bytes read; the writev() function returns the number of bytes written.
         On error, -1 is returned, and errno is  set appropriately. readv返回被读的字节总数.如果没有更多数据和碰到文件末尾时返回0的计数. */
         n = readv(c->fd, (struct iovec *) vec.elts, vec.nelts);

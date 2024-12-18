@@ -15,10 +15,10 @@ ngx_os_io_t ngx_io; //epoll为ngx_os_io
 
 static void ngx_drain_connections(ngx_cycle_t *cycle);
 
-//ngx_event_process_init
-//master进程执行ngx_clone_listening中如果配置了多worker,监听80端口会有worker个listen赋值,master进程在ngx_open_listening_sockets
-//中会监听80端口worker次,那么子进程创建起来后,不是每个字进程都关注这worker多个 listen事件了吗?为了避免这个问题,nginx通过
-//在子进程运行ngx_event_process_init函数的时候,通过ngx_add_event来控制子进程关注的listen,最终实现只关注master进程中创建的一个listen事件
+/*ngx_event_process_init
+master进程执行ngx_clone_listening中如果配置了多worker,监听80端口会有worker个listen赋值,master进程在ngx_open_listening_sockets
+中会监听80端口worker次,那么子进程创建起来后,不是每个字进程都关注这worker多个 listen事件了吗?为了避免这个问题,nginx通过
+在子进程运行ngx_event_process_init函数的时候,通过ngx_add_event来控制子进程关注的listen,最终实现只关注master进程中创建的一个listen事件*/
 
 //ngx_create_listening创建ngx_listening_t结构,如果是多个worker,则ngx_clone_listening中会复制worker个ngx_listening_t结构
 ngx_listening_t *
@@ -98,12 +98,7 @@ ngx_create_listening(ngx_conf_t *cf, struct sockaddr *sockaddr,
     return ls;
 }
 
-//ngx_event_process_init
-//master进程执行ngx_clone_listening中如果配置了多worker,监听80端口会有worker个listen赋值,master进程在ngx_open_listening_sockets
-//中会监听80端口worker次,那么子进程创建起来后,不是每个字进程都关注这worker多个 listen事件了吗?为了避免这个问题,nginx通过
-//在子进程运行ngx_event_process_init函数的时候,通过ngx_add_event来控制子进程关注的listen,最终实现只关注master进程中创建的一个listen事件
 
-//ngx_create_listening创建ngx_listening_t结构,如果是多个worker,则ngx_clone_listening中会复制worker个ngx_listening_t结构
 ngx_int_t
 ngx_clone_listening(ngx_cycle_t *cycle, ngx_listening_t *ls) {
 #if (NGX_HAVE_REUSEPORT)
@@ -498,10 +493,8 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle) {
 
             if (ls[i].type != SOCK_DGRAM || !ngx_test_config) {
 
-                /*
-          默认情况下,server重启,调用socket,bind,然后listen,会失败.因为该端口正在被使用.如果设定SO_REUSEADDR,那么server重启才会成功.因此,
-          所有的TCP server都必须设定此选项,用以应对server重启的现象.
-          */
+                /*默认情况下,server重启,调用socket,bind,然后listen,会失败.因为该端口正在被使用.如果设定SO_REUSEADDR,那么server重启才会成功.因此,
+                    所有的TCP server都必须设定此选项,用以应对server重启的现象.*/
                 if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
                                (const void *) &reuseaddr, sizeof(int))
                     == -1) {
@@ -769,9 +762,7 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle) {
 #if (NGX_KEEPALIVE_FACTOR)
             value *= NGX_KEEPALIVE_FACTOR;
 #endif
-            /*
-            设置SO_KEEPALIVE选项来开启KEEPALIVE,然后通过TCP_KEEPIDLE、TCP_KEEPINTVL和TCP_KEEPCNT设置keepalive的开始时间、间隔、次数等参数
-             */
+            /*设置SO_KEEPALIVE选项来开启KEEPALIVE,然后通过TCP_KEEPIDLE、TCP_KEEPINTVL和TCP_KEEPCNT设置keepalive的开始时间、间隔、次数等参数*/
             if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_KEEPIDLE,
                            (const void *) &value, sizeof(int))
                 == -1) {
@@ -929,21 +920,19 @@ ngx_configure_listening_sockets(ngx_cycle_t *cycle) {
                 value = 0;
             }
 
-            /*
-    TCP_DEFER_ACCEPT 优化 使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,也可以减少用户调用epoll_ctl和epoll_wait的次数,从而提高了程序的性能.
-    设置listen套接字的TCP_DEFER_ACCEPT选项后, 只当一个链接有数据时是才会从accpet中返回(而不是三次握手完成).所以节省了一次读第一个http请求包的过程,减少了系统调用
+            /*TCP_DEFER_ACCEPT 优化 使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,也可以减少用户调用epoll_ctl和epoll_wait的次数,从而提高了程序的性能.
+            设置listen套接字的TCP_DEFER_ACCEPT选项后, 只当一个链接有数据时是才会从accpet中返回(而不是三次握手完成).所以节省了一次读第一个http请求包的过程,减少了系统调用
 
-    查询资料,TCP_DEFER_ACCEPT是一个很有趣的选项,
-    Linux 提供的一个特殊 setsockopt ,　在 accept 的 socket 上面,只有当实际收到了数据,才唤醒正在 accept 的进程,可以减少一些无聊的上下文切换.代码如下.
-    val = 5;
-    setsockopt(srv_socket->fd, SOL_TCP, TCP_DEFER_ACCEPT, &val, sizeof(val)) ;
-    里面 val 的单位是秒,注意如果打开这个功能,kernel 在 val 秒之内还没有收到数据,不会继续唤醒进程,而是直接丢弃连接.
-    经过测试发现,设置TCP_DEFER_ACCEPT选项后,服务器受到一个CONNECT请求后,操作系统不会Accept,也不会创建IO句柄.操作系统应该在若干秒,(但肯定远远大于上面设置的1s) 后,
-    会释放相关的链接.但没有同时关闭相应的端口,所以客户端会一直以为处于链接状态.如果Connect后面马上有后续的发送数据,那么服务器会调用Accept接收这个链接端口.
-    感觉了一下,这个端口设置对于CONNECT链接上来而又什么都不干的攻击方式处理很有效.我们原来的代码都是先允许链接,然后再进行超时处理,比他这个有点Out了.不过这个选项可能会导致定位某些问题麻烦.
-    timeout = 0表示取消 TCP_DEFER_ACCEPT选项
-    性能四杀手:内存拷贝,内存分配,进程切换,系统调用.TCP_DEFER_ACCEPT 对性能的贡献,就在于 减少系统调用了.
-    */
+            查询资料,TCP_DEFER_ACCEPT是一个很有趣的选项,
+            Linux 提供的一个特殊 setsockopt ,　在 accept 的 socket 上面,只有当实际收到了数据,才唤醒正在 accept 的进程,可以减少一些无聊的上下文切换.代码如下.
+            val = 5;
+            setsockopt(srv_socket->fd, SOL_TCP, TCP_DEFER_ACCEPT, &val, sizeof(val)) ;
+            里面 val 的单位是秒,注意如果打开这个功能,kernel 在 val 秒之内还没有收到数据,不会继续唤醒进程,而是直接丢弃连接.
+            经过测试发现,设置TCP_DEFER_ACCEPT选项后,服务器受到一个CONNECT请求后,操作系统不会Accept,也不会创建IO句柄.操作系统应该在若干秒,(但肯定远远大于上面设置的1s) 后,
+            会释放相关的链接.但没有同时关闭相应的端口,所以客户端会一直以为处于链接状态.如果Connect后面马上有后续的发送数据,那么服务器会调用Accept接收这个链接端口.
+            感觉了一下,这个端口设置对于CONNECT链接上来而又什么都不干的攻击方式处理很有效.我们原来的代码都是先允许链接,然后再进行超时处理,比他这个有点Out了.不过这个选项可能会导致定位某些问题麻烦.
+            timeout = 0表示取消 TCP_DEFER_ACCEPT选项
+            性能四杀手:内存拷贝,内存分配,进程切换,系统调用.TCP_DEFER_ACCEPT 对性能的贡献,就在于 减少系统调用了.*/
             if (setsockopt(ls[i].fd, IPPROTO_TCP, TCP_DEFER_ACCEPT,
                            &value, sizeof(int))
                 == -1) {
@@ -1096,20 +1085,7 @@ ngx_close_listening_sockets(ngx_cycle_t *cycle) {
     cycle->listening.nelts = 0;
 }
 
-/*
-在使用连接池时,Nginx也封装了两个方法,见表9-1.
-    如果我们开发的模块直接使用了连接池,那么就可以用这两个方法来获取、释放ngx_connection_t结构体.
-表9-1  连接池的使用方法
-┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
-┃    连接池操作方法名                  ┃    参数含义                ┃    执行意义                          ┃
-┣━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃npc_connection_t *ngx_get_connection  ┃  s是这条连接的套接字句柄, ┃  从连接池中获取一个ngx_connection_t  ┃
-┃(ngx_socket_t s, ngx_log_t *log)      ┃log则是记录日志的对象       ┃结构体,同时获取相应的读／写事件      ┃
-┣━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃void ngx_free_connection              ┃  c是需要回收的连接         ┃  将这个连接回收到连接池中            ┃
-┃(ngx_connection_t)                    ┃                            ┃                                      ┃
-┗━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛
-*/
+
 ngx_connection_t *
 ngx_get_connection(ngx_socket_t s, ngx_log_t *log) { //从连接池中获取一个ngx_connection_t
     ngx_uint_t instance;
@@ -1174,20 +1150,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log) { //从连接池中获取一�
     return c;
 }
 
-/*
-在使用连接池时,Nginx也封装了两个方法,见表9-1.
-    如果我们开发的模块直接使用了连接池,那么就可以用这两个方法来获取、释放ngx_connection_t结构体.
-表9-1  连接池的使用方法
-┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
-┃    连接池操作方法名                  ┃    参数含义                ┃    执行意义                          ┃
-┣━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃npc_connection_t *ngx_get_connection  ┃  s是这条连接的套接字句柄, ┃  从连接池中获取一个ngx_connection_t  ┃
-┃(ngx_socket_t s, ngx_log_t *log)      ┃log则是记录日志的对象       ┃结构体,同时获取相应的读／写事件      ┃
-┣━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━┫
-┃void ngx_free_connection              ┃  c是需要回收的连接         ┃  将这个连接回收到连接池中            ┃
-┃(ngx_connection_t)                    ┃                            ┃                                      ┃
-┗━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━┛
-*/
+
 void
 ngx_free_connection(ngx_connection_t *c) { //归还c到连接池中
     c->data = ngx_cycle->free_connections;
@@ -1199,11 +1162,9 @@ ngx_free_connection(ngx_connection_t *c) { //归还c到连接池中
     }
 }
 
-/*
-ngx_http_close_request方法是更高层的用于关闭请求的方法,当然,HTTP模块一般也不会直接调用它的.在上面几节中反复提到的引用计数,
+/*ngx_http_close_request方法是更高层的用于关闭请求的方法,当然,HTTP模块一般也不会直接调用它的.在上面几节中反复提到的引用计数,
 就是由ngx_http_close_request方法负责检测的,同时它会在引用计数清零时正式调用ngx_http_free_request方法和ngx_http_close_connection(ngx_close_connection)
-方法来释放请求、关闭连接,见ngx_http_close_request
-*/
+方法来释放请求、关闭连接,见ngx_http_close_request*/
 void
 ngx_close_connection(ngx_connection_t *c) {
     ngx_err_t err;

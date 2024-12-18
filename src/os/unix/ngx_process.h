@@ -21,6 +21,7 @@ cacheManage进程或者cache_loader进程的工作循环ngx_cache_manager_proces
 
 //ngx_spawn_process函数中调用
 typedef void (*ngx_spawn_proc_pt)(ngx_cycle_t *cycle, void *data);
+
 /*在解释master工作流程前,还需要对master进程管理子进程的数据结构有个初步了解.下面定义了pgx_processes全局数组,虽然子进程中也会
 有ngx_processes数组,但这个数组仅仅是给master进程使用的
 master进程中所有子进程相关的状态信息都保存在ngx_processes数组中.再来看一下数组元素的类型ngx_process_t结构体的定义,代码如下.*/
@@ -44,7 +45,7 @@ typedef struct {
     unsigned            just_spawn:1; //标志位,为1时表示正在生成子进程
     unsigned            detached:1; //标志位,为1时表示在进行父、子进程分离
     unsigned            exiting:1;//标志位,为1时表示进程正在退出
-    unsigned            exited:1;//标志位,为1时表示进程已经退出  当子进程退出后,父进程收到SIGCHLD后,开始waitpid,见ngx_process_get_status
+    unsigned            exited:1;//标志位,为1时表示进程已经退出;当子进程退出后,父进程收到SIGCHLD后,开始waitpid,见ngx_process_get_status
 } ngx_process_t;
 
 
@@ -57,16 +58,14 @@ typedef struct { //赋值见ngx_exec_new_binary
 
 //定义1024个元素的ngx_processes数组,也就是最多只能有1024个子进程
 #define NGX_MAX_PROCESSES         1024
-/*
-在分析ngx_spawn_process()创建新进程时,先了解下进程属性.通俗点说就是进程挂了需不需要重启.
+/*在分析ngx_spawn_process()创建新进程时,先了解下进程属性.通俗点说就是进程挂了需不需要重启.
 在源码中,nginx_process.h中,有以下几种属性标识:
 NGX_PROCESS_NORESPAWN    :子进程退出时,父进程不会再次重启
 NGX_PROCESS_JUST_SPAWN   :--
 NGX_PROCESS_RESPAWN      :子进程异常退出时,父进程需要重启
 NGX_PROCESS_JUST_RESPAWN :--
 NGX_PROCESS_DETACHED     :热代码替换,暂时估计是用于在不重启Nginx的情况下进行软件升级
-NGX_PROCESS_JUST_RESPAWN标识最终会在ngx_spawn_process()创建worker进程时,将ngx_processes[s].just_spawn = 1,以此作为区别旧的worker进程的标记.
-*/
+NGX_PROCESS_JUST_RESPAWN标识最终会在ngx_spawn_process()创建worker进程时,将ngx_processes[s].just_spawn = 1,以此作为区别旧的worker进程的标记*/
 #define NGX_PROCESS_NORESPAWN     -1 //子进程退出时,父进程不会再次重启
 #define NGX_PROCESS_JUST_SPAWN    -2
 #define NGX_PROCESS_RESPAWN       -3 //子进程异常退出时,父进程需要重启

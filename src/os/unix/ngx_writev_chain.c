@@ -12,9 +12,9 @@
 
 ngx_chain_t *
 ngx_writev_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) {
-    //调用writev一次发送多个缓冲区,如果没有发送完毕,则返回剩下的链接结构头部.
-    //ngx_chain_writer调用这里,调用方式为 ctx->out = c->send_chain(c, ctx->out, ctx->limit);
-    //第二个参数为要发送的数据
+   /* 调用writev一次发送多个缓冲区,如果没有发送完毕,则返回剩下的链接结构头部.
+    ngx_chain_writer调用这里,调用方式为 ctx->out = c->send_chain(c, ctx->out, ctx->limit);
+    第二个参数为要发送的数据*/
     ssize_t n, sent;
     off_t send, prev_send;
     ngx_chain_t *cl;
@@ -93,6 +93,7 @@ ngx_writev_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) {
         c->sent += sent; //递增统计数据,这个链接上发送的数据大小
 
         in = ngx_chain_update_sent(in, sent); //send是此次调用ngx_wrtev发送成功的字节数
+
         //ngx_chain_update_sent返回后的in链已经不包括之前发送成功的in节点了,这上面只包含剩余的数据
         if (send - prev_send != sent) { //这里说明最多调用ngx_writev两次成功发送后,这里就会返回
             wev->ready = 0; //标记暂时不能发送数据了,必须重新epoll_add写事件
@@ -186,8 +187,9 @@ ngx_writev(ngx_connection_t *c, ngx_iovec_t *vec) {
     ngx_err_t err;
 
     eintr:
-    //调用writev发送这些数据,返回发送的数据大小
-    //readv 和writev可以一下读写多个缓冲区的内容,read和write只能一下读写一个缓冲区的内容;
+    /*调用writev发送这些数据,返回发送的数据大小
+    readv 和writev可以一下读写多个缓冲区的内容,read和write只能一下读写一个缓冲区的内容;*/
+
     /* On success, the readv() function returns the number of bytes read; the writev() function returns the number of bytes written.
         On error, -1 is returned, and errno is  set appropriately. readv返回被读的字节总数.如果没有更多数据和碰到文件末尾时返回0的计数. */
     n = writev(c->fd, vec->iovs, vec->count);

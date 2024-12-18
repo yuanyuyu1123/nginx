@@ -250,7 +250,7 @@ ngx_module_t ngx_event_core_module = {
 //当一次处理客户端请求结束后,会把ngx_http_process_request_line添加到定时器中,如果等client_header_timeout还没有信的请求数据过来,
 //则会走到ngx_http_read_request_header中的ngx_http_finalize_request(r, NGX_HTTP_BAD_REQUEST);从而关闭连接
 
-/*在说nginx前,先来看看什么是"惊群"？简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
+/*在说nginx前,先来看看什么是"惊群"?简单说来,多线程/多进程(linux下线程进程也没多大区别)等待同一个socket事件,当这个事件发生时,
 这些线程/进程被同时唤醒,就是惊群.可以想见,效率很低下,许多进程被内核重新调度唤醒,同时去响应这一个事件,当然只有一个进程能处理
 事件成功,其他的进程在处理该事件失败后重新休眠(也有其他选择).这种性能浪费现象就是惊群.
 nginx就是这样,master进程监听端口号(例如80),所有的nginx worker进程开始用epoll_wait来处理新事件(linux下),如果不加任何保护,一个
@@ -406,7 +406,7 @@ ET模式下,EPOLLOUT触发条件有:
 另:
 一道腾讯后台开发的面试题
 使用Linux epoll模型,水平触发模式;当socket可写时,会不停的触发socket
-可写的事件,如何处理？
+可写的事件,如何处理?
 第一种最普遍的方式:
 需要向socket写数据的时候才把socket加入epoll,等待可写事件.接受到可写事件后,调用write或者send发送数据.当所有数据都写完后,把socket移出epoll.
 这种方式的缺点是,即使发送很少的数据,也要把socket加入epoll,写完后在移出epoll,有一定操作代价.
@@ -688,7 +688,7 @@ ngx_event_module_init(ngx_cycle_t *cycle) {
     /* cl should be equal to or greater than cache line size */
 
 /*
-计算出需要使用的共享内存的大小.为什么每个统计成员需要使用128字节呢？这似乎太大了,看上去,每个ngx_atomic_t原子变量最多需要8字
+计算出需要使用的共享内存的大小.为什么每个统计成员需要使用128字节呢?这似乎太大了,看上去,每个ngx_atomic_t原子变量最多需要8字
 节而已.其实是因为Nginx充分考虑了CPU的二级缓存.在目前许多CPU架构下缓存行的大小都是128字节,而下面需要统计的变量都是访问非常频
 繁的成员,同时它们占用的内存又非常少,所以采用了每个成员都使用128字节存放的形式,这样速度更快*/
     cl = 128;

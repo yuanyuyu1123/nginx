@@ -2623,7 +2623,7 @@ DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->da
 
 /*HTTP框架无论是调用ngx_http_process_request方法(首次从业务上处理请求)还是ngx_http_request_handler方法(TCP连接上后续的事件触发时)处理
 请求,最后都有一个步骤,就是调用ngx_http_run_posted_requests方法处理post请求
-ngx_http_run_posted_requests函数又是在什么时候调用？它实际上是在某个请求的读(写)事件的handler中,执行完该请求相关的处理后被调用,
+ngx_http_run_posted_requests函数又是在什么时候调用?它实际上是在某个请求的读(写)事件的handler中,执行完该请求相关的处理后被调用,
 比如主请求在走完一遍PHASE的时候会调用ngx_http_run_posted_requests,这时子请求得以运行.
 11个阶段执行完毕后,调用ngx_http_run_posted_requests方法执行post请求,这里一般都是对subrequest进行处理*/
 
@@ -2662,7 +2662,7 @@ ngx_http_run_posted_requests(ngx_connection_t *c) { //执行r->main->posted_requ
 
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, c->log, 0,
                        "http posted request: \"%V?%V\"", &r->uri, &r->args);
-        /*调用这个post请求ngx_http_request_t结构体中的write event handler方法.为什么不是执行read_ event_ handler方法呢？原因
+        /*调用这个post请求ngx_http_request_t结构体中的write event handler方法.为什么不是执行read_ event_ handler方法呢?原因
          很简单,子请求不是被网络事件驱动的,因此,执行post请求时就相当于有可写事件,由Nginx主动做出动作.
          一般子请求的write_event_handler在ngx_http_set_write_handler中设置为ngx_http_writer*/
 
@@ -2700,12 +2700,12 @@ ngx_http_post_request(ngx_http_request_t *r, ngx_http_posted_request_t *pr) {  /
 他事件在定时器或者epoll中.当这些事件被回调时,请求却已经不存在了,这就是严重的内存访问越界错误！如果尝试在属于某个HTTP模块的
 回调方法中试图结束请求,先要把这个请求相关的所有事件(有些事件可能属于其他HTTP模块)都从定时器和epoll中取出并调用其handler方法,
 这又太复杂了,另外,不同HTTP模块上的代码耦合太紧密将会难以维护.
-    那HTTP框架又是怎样解决这个问题的呢？HTTP框架把一个请求分为多种动作,如果HTTP框架提供的方法会导致Nginx再次调度到请求(例如,
+    那HTTP框架又是怎样解决这个问题的呢?HTTP框架把一个请求分为多种动作,如果HTTP框架提供的方法会导致Nginx再次调度到请求(例如,
 在这个方法中产生了新的事件,或者重新将已有事件添加到epoll或者定时器中),那么可以认为这一步调用是一种独立的动作.例如,接收HTTP
 请求的包体、调用upstream机制提供的方法访问第三方服务、派生出subrequest子请求等.这些所谓独立的动作,都是在告诉Nginx,如果机会合
 适就再次调用它们处理请求,因为这个动作并不是Nginx调用一次它们的方法就可以处理完毕的.因此,每一种动作对于整个请求来说都是独立的,
 HTTP框架希望每个动作结束时仅维护自己的业务,不用去关心这个请求是否还做了其他动作.这种设计大大降低了复杂度.
-    这种设计具体又是怎么实现的呢？每个HTTP请求都有一个引用计数,每派生出一种新的会独立向事件收集器注册事件的动作时(如ngx_http_
+    这种设计具体又是怎么实现的呢?每个HTTP请求都有一个引用计数,每派生出一种新的会独立向事件收集器注册事件的动作时(如ngx_http_
 read_ client_request_body方法或者ngx_http_subrequest方法),都会把引用计数加1,这样每个动作结束时都通过调用ngx_http_finalize_request方法
 来结束请求,而ngx_http_finalize_request方法实际上却会在引用计数减1后先检查引用计数的值,如果不为O是不会真正销毁请求的.*/
 
@@ -2785,7 +2785,7 @@ ngx_http_finalize_request(ngx_http_request_t *r, ngx_int_t rc) { //subrequest注
         /* 设置读／写事件的回调方法为ngx_http_request_handler方法,这个方法,它会继续处理HTTP请求. */
         c->read->handler = ngx_http_request_handler;
         c->write->handler = ngx_http_request_handler;
-        /*调用ngx_http_special_response_handler方法,该方法负责根据rc参数构造完整的HTTP响应.为什么可以在这一步中构造这样的响应呢？
+        /*调用ngx_http_special_response_handler方法,该方法负责根据rc参数构造完整的HTTP响应.为什么可以在这一步中构造这样的响应呢?
       这时rc要么是表示上传成功的201或者204,要么就是表示异步的300以上的响应码,对于这些情况,都是可以让HTTP框架独立构造响应包的.*/
         ngx_http_finalize_request(r, ngx_http_special_response_handler(r, rc));
         return;
@@ -3134,7 +3134,7 @@ ngx_http_writer(ngx_http_request_t *r) {
     有两种可能性:
         1.,由于网络异常或者客户端长时间不接收响应,导致真实的发送响应超时;
         2,由于上一次发送响应时发送速率过快,超过了请求的limit_rate速率上限,ngx_http_write_filter方法就会设置一个超时
-        时间将写事件添加到定时器中,这时本次的超时只是由限速导致,并非真正超时.那么,如何判断这个超时是真的超时还是出于限速的考虑呢？这
+        时间将写事件添加到定时器中,这时本次的超时只是由限速导致,并非真正超时.那么,如何判断这个超时是真的超时还是出于限速的考虑呢?这
         要看事件的delayed标志位.如果是限速把写事件加入定时器,一定会把delayed标志位置为1,如果写事件的delayed标志位为0,那就是真的超时
         了,这时调用ngx_http_finalize_request方法结束请求,传人的参数是NGX_HTTP_REQUEST_TIME_OUT,表示需要向客户端发送408错误码;*/
     if (wev->timedout) {
@@ -3714,7 +3714,7 @@ lingering_close
 /*lingering_close存在的意义就是来读取剩下的客户端发来的数据,所以nginx会有一个读超时时间,通过lingering_timeout选项来设置,如果在
 lingering_timeout时间内还没有收到数据,则直接关掉连接.nginx还支持设置一个总的读取时间,通过lingering_time来设置,这个时间也就是
 nginx在关闭写之后,保留socket的时间,客户端需要在这个时间内发送完所有的数据,否则nginx在这个时间过后,会直接关掉连接.当然,nginx
-是支持配置是否打开lingering_close选项的,通过lingering_close选项来配置. 那么,我们在实际应用中,是否应该打开lingering_close呢？这
+是支持配置是否打开lingering_close选项的,通过lingering_close选项来配置. 那么,我们在实际应用中,是否应该打开lingering_close呢?这
 个就没有固定的推荐值了,如Maxim Dounin所说,lingering_close的主要作用是保持更好的客户端兼容性,但是却需要消耗更多的额外资源(比如
 连接会一直占着).*/
 static void

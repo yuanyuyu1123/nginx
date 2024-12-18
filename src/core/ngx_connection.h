@@ -15,9 +15,9 @@
 
 typedef struct ngx_listening_s ngx_listening_t;
 
-//初始化赋值等可以参考ngx_event_process_init
-//ngx_listening_t结构体代表着Nginx服务器监听的一个端口
-//实际上这些ngx_listening_s结构体是从 cycle->listening.elts中来的,见ngx_event_process_init
+/*初始化赋值等可以参考ngx_event_process_init
+ngx_listening_t结构体代表着Nginx服务器监听的一个端口
+实际上这些ngx_listening_s结构体是从 cycle->listening.elts中来的,见ngx_event_process_init*/
 struct ngx_listening_s { //初始化及赋值见ngx_http_add_listening,热升级nginx的时候,继承源master listen fd在ngx_set_inherited_sockets
     ngx_socket_t fd; //socket套接字句柄,赋值见ngx_open_listening_sockets
 
@@ -76,12 +76,12 @@ struct ngx_listening_s { //初始化及赋值见ngx_http_add_listening,热升级
     //表示是否已经绑定.实际上目前该标志位没有使用
     unsigned bound: 1;       /* already bound */
     /* 表示当前监听句柄是否来自前一个进程(如升级Nginx程序),如果为1,则表示来自前一个进程.一般会保留之前已经设置好的套接字,不做改变 */
-    unsigned inherited: 1;   /* inherited from previous process */ //说明是热升级过程
+    unsigned inherited: 1;   /* inherited from previous process  说明是热升级过程*/
     unsigned nonblocking_accept: 1;  //目前未使用
     //lsopt.bind = 1;这里面存的是bind为1的配置才会有创建ngx_http_port_t
     unsigned listen: 1; //标志位,为1时表示当前结构体对应的套接字已经监听,赋值见ngx_open_listening_sockets
-    unsigned nonblocking: 1; //表素套接字是否阻塞,目前该标志位没有意义
-    unsigned shared: 1;    /* shared between threads or processes */ //目前该标志位没有意义
+    unsigned nonblocking: 1; //表示套接字是否阻塞,目前该标志位没有意义
+    unsigned shared: 1;    /* shared between threads or processes  目前该标志位没有意义*/
     //标志位,为1时表示Nginx会将网络地址转变为字符串形式的地址,见addr_text;赋值见ngx_http_add_listening,当在ngx_create_listening把listen的IP地址转换为字符串地址后置1
     unsigned addr_ntop: 1;
     unsigned wildcard: 1;
@@ -122,8 +122,7 @@ typedef enum {
     NGX_ERROR_IGNORE_EINVAL
 } ngx_connection_log_error_e;
 
-/*
-linux 下是tcp_cork,上面的意思就是说,当使用sendfile函数时,tcp_nopush才起作用,它和指令tcp_nodelay是互斥的.tcp_cork是linux下
+/*linux 下是tcp_cork,上面的意思就是说,当使用sendfile函数时,tcp_nopush才起作用,它和指令tcp_nodelay是互斥的.tcp_cork是linux下
 tcp/ip传输的一个标准了,这个标准的大概的意思是,一般情况下,在tcp交互的过程中,当应用程序接收到数据包后马上传送出去,不等待,
 而tcp_cork选项是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,这样有助于解决网络堵塞,已经是默认了.
 也就是说tcp_nopush = on 会设置调用tcp_cork方法,这个也是默认的,结果就是数据包不会马上传送出去,等到数据包最大时,一次性的传输出去,
@@ -133,9 +132,16 @@ tcp/ip传输的一个标准了,这个标准的大概的意思是,一般情况下
 选项干的事情,这样的话,会最大化的利用网络资源,虽然有一点点延迟.
 对于nginx配置文件中的tcp_nopush,默认就是tcp_nopush,不需要特别指定,这个选项对于www,ftp等大文件很有帮助
 tcp_nodelay
-        TCP_NODELAY和TCP_CORK基本上控制了包的"Nagle化",Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly window syndrome,中文称"愚蠢窗口症候群",具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有一个字节的数据载荷以及40个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
-       现在让我们假设某个应用程序发出了一个请求,希望发送小块数据.我们可以选择立即发送数据或者等待产生更多的数据然后再一次发送两种策略.如果我们马上发送数据,那么交互性的以及客户/服务器型的应用程序将极大地受益.如果请求立即发出那么响应时间也会快一些.以上操作可以通过设置套接字的TCP_NODELAY = on 选项来完成,这样就禁用了Nagle 算法.
-       另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.应用 Nagle算法在这种情况下就会产生问题.但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反(TCP_CORK和 TCP_NODELAY是互相排斥的).
+        TCP_NODELAY和TCP_CORK基本上控制了包的"Nagle化",Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧.
+        John Nagle是Nagle算法的发明人,后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).
+        他解决的问题就是所谓的silly window syndrome,中文称"愚蠢窗口症候群",具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,
+        而典型情况下一个包会拥有一个字节的数据载荷以及40个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞.
+        Nagle化后来成了一种标准并且立即在因特网上得以实现.它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
+       现在让我们假设某个应用程序发出了一个请求,希望发送小块数据.我们可以选择立即发送数据或者等待产生更多的数据然后再一次发送两种策略.
+       如果我们马上发送数据,那么交互性的以及客户/服务器型的应用程序将极大地受益.如果请求立即发出那么响应时间也会快一些.
+       以上操作可以通过设置套接字的TCP_NODELAY = on 选项来完成,这样就禁用了Nagle 算法.
+       另外一种情况则需要我们等到数据量达到最大时才通过网络一次发送全部数据,这种数据传输方式有益于大量数据的通信性能,典型的应用就是文件服务器.应用 Nagle算法在这种情况下就会产生问题.
+       但是,如果你正在发送大量数据,你可以设置TCP_CORK选项禁用Nagle化,其方式正好同 TCP_NODELAY相反(TCP_CORK和 TCP_NODELAY是互相排斥的).
 tcp_nopush
 语法:tcp_nopush on | off;
 默认:tcp_nopush off;
@@ -168,8 +174,7 @@ typedef enum {
 以ngx_connection_t结构体为基础实现的.本节将说明这两种连接中各字段的意义,同时需要注意的是,这两种连接都不可以随意创建,必须从
 连接池中获取*/
 
-/*
-在使用连接池时,Nginx也封装了两个方法,如果我们开发的模块直接使用了连接池,那么就可以用这两个方法来获取、释放ngx_connection_t结构体.
+/*在使用连接池时,Nginx也封装了两个方法,如果我们开发的模块直接使用了连接池,那么就可以用这两个方法来获取、释放ngx_connection_t结构体.
 连接池的使用方法:
 ┏━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
 ┃    连接池操作方法名                  ┃    参数含义                ┃    执行意义                          ┃
@@ -205,17 +210,15 @@ struct ngx_connection_s { //cycle->read_events和cycle->write_events这两个数
 
     ngx_socket_t fd; //套接字句柄
 
-    /* 如果启用了ssl,则发送和接收数据在ngx_ssl_recv ngx_ssl_write ngx_ssl_recv_chain ngx_ssl_send_chain */
-
     //服务端通过ngx_http_wait_request_handler读取数据
-    ngx_recv_pt recv; //直接接收网络字符流的方法  见ngx_event_accept或者ngx_http_upstream_connect   赋值为ngx_os_io  在接收到客户端连接或者向上游服务器发起连接后赋值
-    ngx_send_pt send; //直接发送网络字符流的方法  见ngx_event_accept或者ngx_http_upstream_connect   赋值为ngx_os_io  在接收到客户端连接或者向上游服务器发起连接后赋值
+    ngx_recv_pt recv; //直接接收网络字符流的方法,见ngx_event_accept或者ngx_http_upstream_connect,赋值为ngx_os_io,在接收到客户端连接或者向上游服务器发起连接后赋值
+    ngx_send_pt send; //直接发送网络字符流的方法,见ngx_event_accept或者ngx_http_upstream_connect,赋值为ngx_os_io,在接收到客户端连接或者向上游服务器发起连接后赋值
 
     /* 如果启用了ssl,则发送和接收数据在ngx_ssl_recv ngx_ssl_write ngx_ssl_recv_chain ngx_ssl_send_chain */
-    //以ngx_chain_t链表为参数来接收网络字符流的方法  ngx_recv_chain
+    //以ngx_chain_t链表为参数来接收网络字符流的方法 ngx_recv_chain
     ngx_recv_chain_pt recv_chain; //赋值见ngx_event_accept     ngx_event_pipe_read_upstream中执行
 
-    //以ngx_chain_t链表为参数来发送网络字符流的方法    ngx_send_chain
+    //以ngx_chain_t链表为参数来发送网络字符流的方法 ngx_send_chain
     //当http2头部帧发送的时候,会在ngx_http_v2_header_filter把ngx_http_v2_send_chain.send_chain=ngx_http_v2_send_chain
     ngx_send_chain_pt send_chain; //赋值见ngx_event_accept   ngx_http_write_filter和ngx_chain_writer中执行
 
@@ -255,7 +258,7 @@ struct ngx_connection_s { //cycle->read_events和cycle->write_events这两个数
     /*该字段用来将当前连接以双向链表元素的形式添加到ngx_cycle_t核心结构体的reusable_connections_queue双向链表中,表示可以重用的连接*/
     ngx_queue_t queue;
 
-    /*连接使用次数.ngx_connection t结构体每次建立一条来自客户端的连接,或者用于主动向后端服务器发起连接时(ngx_peer_connection_t也使用它),number都会加1*/
+    /*连接使用次数.ngx_connection_t结构体每次建立一条来自客户端的连接,或者用于主动向后端服务器发起连接时(ngx_peer_connection_t也使用它),number都会加1*/
     ngx_atomic_uint_t number; //这个应该是记录当前连接是整个连接中的第几个连接,见ngx_event_accept  ngx_event_connect_peer
 
     ngx_msec_t start_time;
@@ -273,8 +276,8 @@ struct ngx_connection_s { //cycle->read_events和cycle->write_events这两个数
         #define NGX_HTTP_SUB_BUFFERED         0x02
         #define NGX_HTTP_COPY_BUFFERED        0x04
         #define NGX_HTTP_IMAGE_BUFFERED       Ox08
-    同时,对于HTTP模块而言,buffered的低4位要慎用,在实际发送响应的ngx_http_write_filter_module过滤模块中,低4位标志位为1则惫味着
-    Nginx会一直认为有HTTP模块还需要处理这个请求,必须等待HTTP模块将低4位全置为0才会正常结束请求.检查低4位的宏如下:
+        同时,对于HTTP模块而言,buffered的低4位要慎用,在实际发送响应的ngx_http_write_filter_module过滤模块中,低4位标志位为1则惫味着
+        Nginx会一直认为有HTTP模块还需要处理这个请求,必须等待HTTP模块将低4位全置为0才会正常结束请求.检查低4位的宏如下:
         #define NGX_LOWLEVEL_BUFFERED  OxOf
      */
     unsigned buffered: 8; //不为0,表示有数据没有发送完毕,ngx_http_request_t->out中还有未发送的报文
@@ -343,9 +346,9 @@ struct ngx_connection_s { //cycle->read_events和cycle->write_events这两个数
     unsigned need_last_buf: 1;
 
     /*
-#if (NGX HAVE AIO- SENDFILE)
+#if (NGX HAVE AIO_SENDFILE)
     //标志位,为1时表示使用异步I/O的方式将磁盘上文件发送给网络连接的另一端
-    unsigned aio一sendfile:l;
+    unsigned aio_sendfile:l;
     //使用异步I/O方式发送的文件,busy_sendfile缓冲区保存待发送文件的信息
     ngx_buf_t   *busy_sendf ile;
 #endif

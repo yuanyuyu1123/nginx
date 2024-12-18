@@ -938,7 +938,7 @@ ngx_http_read_discarded_request_body(ngx_http_request_t *r) {
     b.temporary = 1;
 
     for (;;) {
-        /*丢弃包体时请求的request_body成员实际上是NULL室指针,那么用什么变量来表示已经丢弃的包体有多大呢？实际上这时使用
+        /*丢弃包体时请求的request_body成员实际上是NULL室指针,那么用什么变量来表示已经丢弃的包体有多大呢?实际上这时使用
         了请求ngx_http_request_t结构体headers_in成员里的content_length_n,最初它等于content-length头部,而每丢弃一部分包体,就会在
         content_length_n变量中减去相应的大小.因此,content_length_n表示还需要丢弃的包体长度,这里首先检查请求的content_length_n成员,
         如果它已经等于0,则表示已经接收到完整的包体,这时要把read event_handler重置为ngx_http_block_reading方法,表示如果再有可读

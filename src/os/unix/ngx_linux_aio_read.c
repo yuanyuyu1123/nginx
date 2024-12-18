@@ -217,7 +217,7 @@ ngx_file_aio_read(ngx_file_t *file, u_char *buf, size_t size, off_t offset,
     //表示当使用IOCB_FLAG_RESFD标志位时,用于进行事件通知的句柄
     aio->aiocb.aio_resfd = ngx_eventfd;
     /*异步文件i/o设置事件的回调方法为ngx_file_aio_event_handler,它的调用关系类似这样:epoll_wait中调用ngx_epoll_eventfd_handler方法将当前事件
-放入到ngx_posted_events队列中,在延后执行的队列中调用ngx_file_aio_event_handler方法*/
+    放入到ngx_posted_events队列中,在延后执行的队列中调用ngx_file_aio_event_handler方法*/
     ev->handler = ngx_file_aio_event_handler; //在ngx_epoll_eventfd_handler中会获取该ev,然后会执行该handler
 
     piocb[0] = &aio->aiocb;
@@ -258,7 +258,7 @@ ngx_file_aio_event_handler(ngx_event_t *ev) {
     ngx_log_debug2(NGX_LOG_DEBUG_CORE, ev->log, 0,
                    "aio event handler fd:%d %V", aio->fd, &aio->file->name);
     /* 这里调用了ngx_event_aio_t结构体的handler回调方法,这个回调方法是由真正的业务
-模块实现的,也就是说,任一个业务模块想使用文件异步I/O,就可以实现handler方法,这
-样,在文件异步操作完成后,该方法就会被回调. */
+        模块实现的,也就是说,任一个业务模块想使用文件异步I/O,就可以实现handler方法,这
+        样,在文件异步操作完成后,该方法就会被回调. */
     aio->handler(ev); //例如ngx_output_chain_copy_buf->ngx_http_copy_aio_handler
 }
