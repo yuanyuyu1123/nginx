@@ -84,6 +84,7 @@ struct ngx_event_s {
     unsigned         disabled:1;
 
     /* the ready event; in aio mode 0 means that no operation can be posted */
+
     /*标志位,为1时表示当前事件已经淮备就绪,也就是说,允许这个事件的消费模块处理这个事件.在
     HTTP框架中,经常会检查事件的ready标志位以确定是否可以接收请求或者发送响应
     ready标志位,如果为1,则表示在与客户端的TCP连接上可以发送数据;如果为0,则表示暂不可发送数据.*/
@@ -106,6 +107,7 @@ struct ngx_event_s {
     unsigned         error:1;
 
     //标志位,为1时表示这个事件已经超时,用以提示事件的消费模块做超时处理
+
     /*读客户端连接的数据,在ngx_http_init_connection(ngx_connection_t *c)中的ngx_add_timer(rev, c->listening->post_accept_timeout)把读事件添加到定时器中,如果超时则置1
       每次ngx_unix_recv把内核数据读取完毕后,在重新启动add epoll,等待新的数据到来,同时会启动定时器ngx_add_timer(rev, c->listening->post_accept_timeout);
       如果在post_accept_timeout这么长事件内没有数据到来则超时,开始处理关闭TCP流程*/
@@ -124,8 +126,9 @@ struct ngx_event_s {
     unsigned         deferred_accept:1; //通过listen的时候添加 deferred 参数来确定
 
     /* the pending eof reported by kqueue, epoll or in aio chain operation */
-    //标志位,为1时表示等待字符流结束,它只与kqueue和aio事件驱动机制有关
-    //一般在触发EPOLLRDHUP(当对端已经关闭,本端写数据,会引起该事件)的时候,会置1,见ngx_epoll_process_events
+
+    /*标志位,为1时表示等待字符流结束,它只与kqueue和aio事件驱动机制有关
+    一般在触发EPOLLRDHUP(当对端已经关闭,本端写数据,会引起该事件)的时候,会置1,见ngx_epoll_process_events*/
     unsigned         pending_eof:1;
 
     /*

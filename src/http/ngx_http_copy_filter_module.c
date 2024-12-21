@@ -61,8 +61,7 @@ static ngx_http_module_t ngx_http_copy_filter_module_ctx = {
         ngx_http_copy_filter_merge_conf        /* merge location configuration */
 };
 
-/*
-表6-1  默认即编译进Nginx的HTTP过滤模块
+/*表6-1  默认即编译进Nginx的HTTP过滤模块
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃默认即编译进Nginx的HTTP过滤模块     ┃    功能                                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -257,17 +256,18 @@ static ngx_http_output_body_filter_pt ngx_http_next_body_filter;
 2016/01/07 18:47:27[                    ngx_http_writer,  3156]  [debug] 20923#20923: *1 http writer done: "/test2.php?"
 2016/01/07 18:47:27[          ngx_http_finalize_request,  2598]  [debug] 20923#20923: *1 http finalize request rc: 0, "/test2.php?" a:1, c:1
 */
-//如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数机会一样,参考上面日志.大文件下载和下文件获取过程机会一样,只是在ngx_http_writer后面有判断
-//是否写完成,通过r->buffered是否为0来区分
+
+/*如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数机会一样,参考上面日志.大文件下载和下文件获取过程机会一样,只是在ngx_http_writer后面有判断
+是否写完成,通过r->buffered是否为0来区分*/
 
 
 /*通过这里发送触发在ngx_http_write_filter->ngx_linux_sendfile_chain(如果文件通过sendfile发送),
 如果是普通写发送,则在ngx_http_write_filter->ngx_writev(一般chain->buf在内存中的情况下用该方式),
-或者ngx_http_copy_filter->ngx_output_chain中的if (ctx->aio) { return NGX_AGAIN;}(如果文件通过aio发送),然后由aio异步事件epoll触发
-读取文件内容超过,然后在继续发送文件*/
+或者ngx_http_copy_filter->ngx_output_chain中的if (ctx->aio) { return NGX_AGAIN;}(如果文件通过aio发送),然后由aio异步事件epoll触发读取文件内容超过,然后在继续发送文件*/
 
 /* 注意:到这里的in实际上是已经指向数据内容部分,或者如果发送的数据需要从文件中读取,in中也会指定文件file_pos和file_last已经文件fd等,
    可以参考ngx_http_cache_send ngx_http_send_header ngx_http_output_filter */
+
 //in为需要发送的chain链,上面存储的是实际要发送的数据
 static ngx_int_t
 ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
@@ -296,8 +296,7 @@ ngx_http_copy_filter(ngx_http_request_t *r, ngx_chain_t *in) {
         conf = ngx_http_get_module_loc_conf(r, ngx_http_copy_filter_module);
         clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
         /*和后端的ngx_connection_t在ngx_event_connect_peer这里置为1,但在ngx_http_upstream_connect中c->sendfile &= r->connection->sendfile;,
-        和客户端浏览器的ngx_connextion_t的sendfile需要在ngx_http_update_location_config中判断,因此最终是由是否在configure的时候是否有加
-        sendfile选项来决定是置1还是置0*/
+        和客户端浏览器的ngx_connextion_t的sendfile需要在ngx_http_update_location_config中判断,因此最终是由是否在configure的时候是否有加sendfile选项来决定是置1还是置0*/
         ctx->sendfile = c->sendfile;
         ctx->need_in_memory = r->main_filter_need_in_memory
                               || r->filter_need_in_memory;

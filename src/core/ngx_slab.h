@@ -16,19 +16,20 @@
 typedef struct ngx_slab_page_s ngx_slab_page_t;
 
 struct ngx_slab_page_s { //初始化赋值在ngx_slab_init
-    /*多种情况,多个用途
-    当需要分配新的页的时候,分配N个页ngx_slab_page_s结构中第一个页的slab表示这次一共分配了多少个页 //标记这是连续分配多个page,并且我不是首page,例如一次分配3个page,分配的page为[1-3],则page[1].slab=3  page[2].slab=page[3].slab=NGX_SLAB_PAGE_BUSY记录
-    如果OBJ<128一个页中存放的是多个obj(例如128个32字节obj),则slab记录里面的obj的大小,见ngx_slab_alloc_locked
+    /*多种情况,多个用途:
+    当需要分配新的页的时候,分配N个页ngx_slab_page_s结构中第一个页的slab表示这次一共分配了多少个页,
+    标记这是连续分配多个page,并且我不是首page,例如一次分配3个page,分配的page为[1-3],则page[1].slab=3  page[2].slab=page[3].slab=NGX_SLAB_PAGE_BUSY记录
+    如果obj<128一个页中存放的是多个obj(例如128个32字节obj),则slab记录里面的obj的大小,见ngx_slab_alloc_locked
     如果obj移位大小为ngx_slab_exact_shift,也就是obj128字节,page->slab = 1;page->slab存储obj的bitmap,例如这里为1,表示说第一个obj分配出去了   见ngx_slab_alloc_locked
     如果obj移位大小为ngx_slab_exact_shift,也就是obj>128字节,page->slab = ((uintptr_t) 1 << NGX_SLAB_MAP_SHIFT) | shift;//大于128,也就是至少256�,4K最多也就16个256,因此只需要slab的高16位表示obj位图即可
     当分配某些大小的obj的时候(一个缓存页存放多个obj),slab表示被分配的缓存的占用情况(是否空闲),以bit位来表示*/
     uintptr_t slab; //ngx_slab_init中初始赋值为共享内存中剩余页的个数
 
     /*在ngx_slab_init中初始化的9个ngx_slab_page_s通过next连接在一起
-    如果页中的ojb<128 = 128 或者>128 ,则next直接指向对应的页slots[slot].next = page; 同时pages_m[]指向page->next = &slots[slot];*/
+    如果页中的ojb<128 = 128或者>128,则next直接指向对应的页slots[slot].next = page; 同时pages_m[]指向page->next = &slots[slot];*/
     ngx_slab_page_t *next; //在分配较小obj的时候,next指向slab page在pool->pages的位置,下一个page页
 
-    /*由于指针是4的倍数,那么后两位一定为0,此时我们可以利用指针的后两位做标记,充分利用空间. 用低两位记录NGX_SLAB_PAGE等标记
+    /*由于指针是4的倍数,那么后两位一定为0,此时我们可以利用指针的后两位做标记,充分利用空间.用低两位记录NGX_SLAB_PAGE等标记
     如果页中的obj<128,标记该页中存储的是小与128的obj page->prev = (uintptr_t) &slots[slot] | NGX_SLAB_SMALL
     obj=128 page->prev = (uintptr_t) &slots[slot] | NGX_SLAB_EXACT;*/
     uintptr_t prev; //上一个page页
@@ -64,11 +65,11 @@ typedef struct { //初始化赋值在ngx_slab_init  slab结构是配合共享内
     //slab pool以shift来比较和计算所需分配的obj大小、每个缓存页能够容纳obj个数以及所分配的页在缓存空间的位置
     size_t min_shift;  //ngx_init_zone_pool中默认为3
 
-    /*共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize(这是实际的数据部分,
-        每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)*/
+    /*共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize
+     (这是实际的数据部分,每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)*/
 
     //指向ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t) + pages * sizeof(ngx_slab_page_t) +pages*ngx_pagesize(这是实际的数据部分)中的pages * sizeof(ngx_slab_page_t)开头处
-    ngx_slab_page_t *pages;  //slab page空间的开头   初始指向pages * sizeof(ngx_slab_page_t)首地址
+    ngx_slab_page_t *pages;  //slab page空间的开头,初始指向pages * sizeof(ngx_slab_page_t)首地址
     ngx_slab_page_t *last; // 也就是指向实际的数据页pages*ngx_pagesize,指向最后一个pages页
 
     //管理free的页面是一个链表头,用于连接空闲页面.

@@ -56,7 +56,7 @@ ngx_array_push(ngx_array_t *a) {
 
         p = a->pool;
 
-        if ((u_char *) a->elts + size == p->d.last
+        if ((u_char *) a->elts + size == p->d.last //判断后面的内存是否被别人用了
             && p->d.last + a->size <= p->d.end) {
             /*
              * the array allocation is the last in the pool
@@ -69,9 +69,7 @@ ngx_array_push(ngx_array_t *a) {
         } else {
 
             /* allocate a new array
-              如果当前内存池中剩余的空间小于本次需要新增的空间,那么对ngx_array_push方法来说,会将原先动态数组的容量扩容一倍,而对于
-              ngx_array_push_n来说,情况更复杂一些,如果参数n小于原先动态数组的容量,将会扩容一倍;如果参数n大于原先动态数组的容量,
-              这时会分配2×n大小的空间,扩容会超过一倍.*/
+              如果当前内存池中剩余的空间小于本次需要新增的空间,那么对ngx_array_push方法来说,会将原先动态数组的容量扩容一倍*/
             new = ngx_palloc(p, 2 * size);
             if (new == NULL) {
                 return NULL;
@@ -118,9 +116,7 @@ ngx_array_push_n(ngx_array_t *a, ngx_uint_t n) {
 
         } else {
             /* allocate a new array
-             * 如果当前内存池中剩余的空间小于本次需要新增的空间,那么对ngx_array_push方法来说,会将原先动态数组的容量扩容一倍,而对于
-             * ngx_array_push_n来说,情况更复杂一些,如果参数n小于原先动态数组的容量,将会扩容一倍;如果参数n大于原先动态数组的容量,
-             * 这时会分配2×n大小的空间,扩容会超过一倍*/
+             * 如果参数n小于原先动态数组的容量,将会扩容一倍;如果参数n大于原先动态数组的容量,这时会分配2×n大小的空间,扩容会超过一倍*/
 
             nalloc = 2 * ((n >= a->nalloc) ? n : a->nalloc);
 

@@ -41,13 +41,13 @@ typedef struct {
     ngx_str_t value;
 } ngx_keyval_t;
 
-/*ngx_http_core_main_conf_t->variabels数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variabels数组成员结构是
+/*ngx_http_core_main_conf_t->variabels数组成员的结构是ngx_http_variable_s, ngx_http_request_s->variabels数组成员结构是
 ngx_variable_value_t这两个结构的关系很密切,一个所谓变量,一个所谓变量值
-    r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
+    r->variables这个变量和cmcf->variables是一一对应的,形成var_name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
 相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
 量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值*/
 
-//参考<输入剖析nginx-变量>
+//参考<输入剖析nginx-variable>
 typedef struct {
     unsigned len: 28;  /* 变量值的长度 */
 

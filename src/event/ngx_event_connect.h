@@ -59,9 +59,9 @@ struct ngx_peer_connection_s {
        答:当这个fail_timeout时间段过了后,会重置peer->checked,那么有可以试探该服务器了,参考ngx_http_upstream_get_peer
        checked用来检测时间,例如某个时间段fail_timeout这段时间后端失效了,那么这个fail_timeout过了后,也可以试探使用该服务器*/
 
-    //ngx_event_connect_peer中执行 获取连接的方法,如果使用长连接构成的连接池,那么必须要实现get方法
-    //ngx_http_upstream_get_round_robin_peer ngx_http_upstream_get_least_conn_peer
-    //ngx_http_upstream_get_hash_peer  ngx_http_upstream_get_ip_hash_peer ngx_http_upstream_get_keepalive_peer等
+   /* ngx_event_connect_peer中执行 获取连接的方法,如果使用长连接构成的连接池,那么必须要实现get方法
+    ngx_http_upstream_get_round_robin_peer ngx_http_upstream_get_least_conn_peer
+    ngx_http_upstream_get_hash_peer  ngx_http_upstream_get_ip_hash_peer ngx_http_upstream_get_keepalive_peer等*/
     ngx_event_get_peer_pt            get; //赋值见ngx_http_upstream_init_xxx_peer(例如ngx_http_upstream_init_round_robin_peer)
     ngx_event_free_peer_pt           free; //与get方法对应的释放连接的方法 ngx_http_upstream_next或者ngx_http_upstream_finalize_request中执行
 
@@ -90,8 +90,9 @@ struct ngx_peer_connection_s {
     unsigned down: 1;
 
     /* ngx_connection_log_error_e */
+
     /*NGX_ERROR_IGNORE_EINVAL  ngx_connection_log_error_e
-  与ngx_connection_t里的log_error惫义是相同的,区别在于这里的log_error只有两位,只能表达4种错误,NGX_ERROR_IGNORE_EINVAL错误无法表达*/
+        与ngx_connection_t里的log_error惫义是相同的,区别在于这里的log_error只有两位,只能表达4种错误,NGX_ERROR_IGNORE_EINVAL错误无法表达*/
     unsigned log_error: 2;
 
     NGX_COMPAT_BEGIN(2)

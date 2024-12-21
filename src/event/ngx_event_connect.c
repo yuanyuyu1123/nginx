@@ -260,8 +260,8 @@ ngx_event_connect_peer(ngx_peer_connection_t *pc) {
 
     if (ngx_add_conn) {
         if (rc == -1) {
-            //这个表示发出了连接三步握手中的SYN,单还没有等待对方完全应答回来表示连接成功通过外层的
-            //c->write->handler = ngx_http_upstream_handler;  u->write_event_handler = ngx_http_upstream_send_request_handler促发返回成功
+           /* 这个表示发出了连接三步握手中的SYN,单还没有等待对方完全应答回来表示连接成功通过外层的
+            c->write->handler = ngx_http_upstream_handler;  u->write_event_handler = ngx_http_upstream_send_request_handler促发返回成功*/
             /* NGX_EINPROGRESS */
 
             return NGX_AGAIN;

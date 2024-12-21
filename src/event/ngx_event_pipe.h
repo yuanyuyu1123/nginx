@@ -34,9 +34,9 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
       3.还有种情况就是如果读取后端的数据没有塞满一块buf指向的内存,则会暂时添加到free_raw_bufs的头部,见ngx_event_pipe_read_upstream   */
     ngx_chain_t *free_raw_bufs; //赋值见ngx_event_pipe_read_upstream
 
-    // 表示接收到的上游响应缓冲区,其数据是经过input_filter处理的
-    //ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
-    //ngx_http_write_filter把in中的数据拼接到out后面,然后调用writev发送,没有发送出去的数据buf还是会留在out链表中
+    /* 表示接收到的上游响应缓冲区,其数据是经过input_filter处理的
+    ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
+    ngx_http_write_filter把in中的数据拼接到out后面,然后调用writev发送,没有发送出去的数据buf还是会留在out链表中*/
     ngx_chain_t       *in;//每次读取数据后,调用input_filter对协议格式进行解析,解析完后的数据部分放到in里面形成一个链表.参考ngx_http_fastcgi_input_filter
 
     /*关于p->in和shadow,in指向一堆chain链表,每个链表指向一块实实在在的fcgi DATA数据,多个这样的php等代码块共享一块大的裸FCGI数据块;
@@ -48,11 +48,11 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
 
     ngx_chain_t *writing;
 
-    //ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
-    //ngx_http_write_filter把p->in中的数据拼接到ngx_http_request_t->out后面,然后调用writev发送,没有发送出去的数据buf还是会留在ngx_http_request_t->out链表中
+    /*ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
+    ngx_http_write_filter把p->in中的数据拼接到ngx_http_request_t->out后面,然后调用writev发送,没有发送出去的数据buf还是会留在ngx_http_request_t->out链表中*/
 
-    //保存着将要发给客户端的缓冲区链表.在写入临时文件成功时,会把in中的缓冲区添加到out中
-    //buf到tempfile的数据会放到out里面,并用新的chain指向.在ngx_event_pipe_write_chain_to_temp_file函数里面设置的.ngx_event_pipe_write_chain_to_temp_file
+    /*保存着将要发给客户端的缓冲区链表.在写入临时文件成功时,会把in中的缓冲区添加到out中
+    buf到tempfile的数据会放到out里面,并用新的chain指向.在ngx_event_pipe_write_chain_to_temp_file函数里面设置的.ngx_event_pipe_write_chain_to_temp_file*/
 
     /*bufferin方式如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了,则会把缓存中的数据写入临时文件,然后继续读,读到ngx_event_pipe_write_chain_to_temp_file
     后写入临时文件,直到read返回NGX_AGAIN,然后在ngx_event_pipe_write_to_downstream->ngx_output_chain->ngx_output_chain_copy_buf中读取临时文件内容
@@ -61,6 +61,7 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
 
     // 等待释放的缓冲区
     ngx_chain_t       *free;
+
     /* 表示上次调用ngx_http_output_filter函数发送响应时没有发送完的缓冲区链表
     根据out中各个节点指向的buf空余空间的大小是否为0,来决定out中各个节点buf的数据是否已经发送出去,如果out中各个buf已经发送完毕,则移动到
     free中,如果还有剩余则添加到busy中.见ngx_chain_update_chains*/
@@ -124,21 +125,26 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
     unsigned aio: 1;
 
     ngx_int_t          allocated;    // 已分配的缓冲区数据
-    // 记录了接收上游响应的内存缓冲区大小,bufs.size表示每个内存缓冲区大小,bufs.num表示最多可以有num个缓冲区
-    //以缓存响应的方式转发上游服务器的包体时所使用的内存大小
-    //在ngx_event_pipe_read_upstream中创建空间  默认fastcgi_buffers 8  ngx_pagesize  只针对buffing方式生效
+
+    /* 记录了接收上游响应的内存缓冲区大小,bufs.size表示每个内存缓冲区大小,bufs.num表示最多可以有num个缓冲区
+    以缓存响应的方式转发上游服务器的包体时所使用的内存大小
+    在ngx_event_pipe_read_upstream中创建空间  默认fastcgi_buffers 8  ngx_pagesize  只针对buffing方式生效*/
     ngx_bufs_t         bufs;//例如fastcgi_buffers  5 3K   成员初始化及赋值见ngx_http_upstream_send_response中赋值
+
     // 用于设置、比较缓冲区链表中的ngx_buf_t结构体的tag标志位
     ngx_buf_tag_t      tag; //p->tag = u->output.tag //成员初始化及赋值见ngx_http_upstream_send_response中赋值
     /* busy缓冲区中待发送响应长度的最大值,当到达busy_size时,必须等待busy缓冲区发送了足够的数据,才能继续发送out和in中的内容 */
+
     //该配置生效地方在ngx_event_pipe_write_to_downstream
     ssize_t            busy_size; // p->busy_size = u->conf->busy_buffers_size; //仅当buffering标志位为1,并且向下游转发响应时生效.
 
     // 已经接收到来自上游响应包体的长度
     off_t              read_length;
-    //初始值-1  flcf->keep_conn //fastcgi_keep_conn  on | off 和后端长连接的时候才会发生赋值
-    //如果是chunk的传送发送,则一直为-1  fastcgi包体部分长度赋值在ngx_http_fastcgi_input_filter
-    //proxy包体长度赋值在ngx_http_proxy_input_filter_init  读取部分包体后就ngx_http_proxy_copy_filter减去读取的这部分,表示还需要读多少才能读完
+
+    /*初始值-1  flcf->keep_conn //fastcgi_keep_conn  on | off 和后端长连接的时候才会发生赋值
+    如果是chunk的传送发送,则一直为-1  fastcgi包体部分长度赋值在ngx_http_fastcgi_input_filter
+    proxy包体长度赋值在ngx_http_proxy_input_filter_init  读取部分包体后就ngx_http_proxy_copy_filter减去读取的这部分,表示还需要读多少才能读完*/
+
     /* fastcgi情况下,后端短连接的情况下收到NGX_HTTP_FASTCGI_END_REQUEST标识报文置upstream_done为1,表示后端数据读取完毕,因此对fastcgi来说length一直未-1
         如果为proxy情况下,读取部分包体后就ngx_http_proxy_copy_filter中p->length减去读取的这部分,表示还需要读多少才能读完*/
     off_t              length; //表示还需要读取多少包体才表示整个网页包体读完  可以参考ngx_http_fastcgi_input_filter
@@ -166,8 +172,8 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
     // 表示在接收上游服务器响应头部阶段,已经读取到响应包体长度
     size_t             preread_size;
 
-    // 用于缓存文件 if(u->cacheable == 1) ngx_http_upstream_send_response中创建空间和赋值
-    //指向的是为获取后端头部行的时候分配的第一个缓冲区的头部行部分,buf大小由xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)指定
+    /* 用于缓存文件 if(u->cacheable == 1) ngx_http_upstream_send_response中创建空间和赋值
+    指向的是为获取后端头部行的时候分配的第一个缓冲区的头部行部分,buf大小由xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)指定*/
 
     /*这里面只存储了头部行buffer中头部行的内容部分,因为后面写临时文件的时候,需要把后端头部行也写进来,由于前面读取头部行后指针已经指向了数据部分
       因此需要临时用buf_to_file->start指向头部行部分开始,pos指向数据部分开始,也就是头部行部分结尾
@@ -179,11 +185,11 @@ struct ngx_event_pipe_s { //ngx_http_XXX_handler(ngx_http_fastcgi_handler)中创
 
     // 存放上游响应的临时文件  默认值ngx_http_fastcgi_temp_path
 
-/*默认情况下p->temp_file->path = u->conf->temp_path; 也就是由ngx_http_fastcgi_temp_path指定路径,但是如果是缓存方式(p->cacheable=1)并且配置
-proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示不使用ngx_http_fastcgi_temp_path配置的path),
-则p->temp_file->path = r->cache->file_cache->temp_path; 也就是临时文件/a/b/temp.use_temp_path=off表示不使用ngx_http_fastcgi_temp_path
-配置的路径,而使用指定的临时路径/a/b/temp   见ngx_http_upstream_send_response
-ngx_event_pipe_write_chain_to_temp_file->ngx_write_chain_to_temp_file中创建并写入临时文件*/
+    /*默认情况下p->temp_file->path = u->conf->temp_path; 也就是由ngx_http_fastcgi_temp_path指定路径,但是如果是缓存方式(p->cacheable=1)并且配置
+    proxy_cache_path(fastcgi_cache_path) /a/b的时候带有use_temp_path=off(表示不使用ngx_http_fastcgi_temp_path配置的path),
+    则p->temp_file->path = r->cache->file_cache->temp_path; 也就是临时文件/a/b/temp.use_temp_path=off表示不使用ngx_http_fastcgi_temp_path
+    配置的路径,而使用指定的临时路径/a/b/temp   见ngx_http_upstream_send_response
+    ngx_event_pipe_write_chain_to_temp_file->ngx_write_chain_to_temp_file中创建并写入临时文件*/
 
     /* 当前fastcgi_buffers 和fastcgi_buffer_size配置的空间都已经用完了,则需要把数据写道临时文件中去,参考ngx_event_pipe_read_upstream */
 
@@ -193,8 +199,8 @@ ngx_event_pipe_write_chain_to_temp_file->ngx_write_chain_to_temp_file中创建�
     后写入临时文件,直到read返回NGX_AGAIN,然后在ngx_event_pipe_write_to_downstream->ngx_output_chain->ngx_output_chain_copy_buf中读取临时文件内容
     发送到后端,当数据继续到来,通过epoll read继续循环该流程*/
 
-    //temp_file默认在文件内容发送到客户端后,会删除文件,见ngx_create_temp_file->ngx_pool_delete_file
-    //从ngx_http_file_cache_update可以看出,后端数据先写到临时文件后,在写入xxx_cache_path中,见ngx_http_file_cache_update
+    /*temp_file默认在文件内容发送到客户端后,会删除文件,见ngx_create_temp_file->ngx_pool_delete_file
+    从ngx_http_file_cache_update可以看出,后端数据先写到临时文件后,在写入xxx_cache_path中,见ngx_http_file_cache_update*/
 
     /*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
     中创建临时文件,然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件,最后在

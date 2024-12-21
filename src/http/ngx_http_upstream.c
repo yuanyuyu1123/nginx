@@ -405,8 +405,7 @@ static ngx_http_upstream_header_t ngx_http_upstream_headers_in[] = { //后端应
 };
 
 
-/*
-关于nginx upstream的几种配置方式
+/*关于nginx upstream的几种配置方式
 发表于2011 年 06 月 16 日由edwin
 平时一直依赖硬件来作load blance,最近研究Nginx来做负载设备,记录下upstream的几种配置方式.
 第一种:轮询
@@ -452,75 +451,70 @@ server{
 2.weight: 默认为1,weight越大,负载的权重就越大.
 3.max_fails: 允许请求失败的次数默认为1.当超过最大次数时,返回proxy_next_upstream模块定义的错误.
 4.fail_timeout: max_fails次失败后,暂停的时间.
-5.backup: 其它所有的非backup机器down或者忙的时候,请求backup机器,应急措施.
-*/
+5.backup: 其它所有的非backup机器down或者忙的时候,请求backup机器,应急措施*/
 static ngx_command_t ngx_http_upstream_commands[] = {
-        /*
-语法:upstream name { ... }
-默认值:none
-使用字段:http
-这个字段设置一群服务器,可以将这个字段放在proxy_pass和fastcgi_pass指令中作为一个单独的实体,它们可以可以是监听不同端口的服务器,
-并且也可以是同时监听TCP和Unix socket的服务器.
-服务器可以指定不同的权重,默认为1.
-示例配置
-upstream backend {
-  server backend1.example.com weight=5;
-  server 127.0.0.1:8080       max_fails=3  fail_timeout=30s;
-  server unix:/tmp/backend3;
-  server backup1.example.com:8080 backup;
-}请求将按照轮询的方式分发到后端服务器,但同时也会考虑权重.
-在上面的例子中如果每次发生7个请求,5个请求将被发送到backend1.example.com,其他两台将分别得到一个请求,如果有一台服务器不可用,那么
-请求将被转发到下一台服务器,直到所有的服务器检查都通过.如果所有的服务器都无法通过检查,那么将返回给客户端最后一台工作的服务器产生的结果.
-max_fails=number
-  设置在fail_timeout参数设置的时间内最大失败次数,如果在这个时间内,所有针对该服务器的请求
-  都失败了,那么认为该服务器会被认为是停机了,停机时间是fail_timeout设置的时间.默认情况下,
-  不成功连接数被设置为1.被设置为零则表示不进行链接数统计.那些连接被认为是不成功的可以通过
-  proxy_next_upstream, fastcgi_next_upstream,和memcached_next_upstream指令配置.http_404
-  状态不会被认为是不成功的尝试.
-fail_time=time
-  设置 多长时间内失败次数达到最大失败次数会被认为服务器停机了服务器会被认为停机的时间长度 默认情况下,超时时间被设置为10S
-*/
+        /*语法:upstream name { ... }
+        默认值:none
+        使用字段:http
+        这个字段设置一群服务器,可以将这个字段放在proxy_pass和fastcgi_pass指令中作为一个单独的实体,它们可以可以是监听不同端口的服务器,
+        并且也可以是同时监听TCP和Unix socket的服务器.
+        服务器可以指定不同的权重,默认为1.
+        示例配置
+        upstream backend {
+          server backend1.example.com weight=5;
+          server 127.0.0.1:8080       max_fails=3  fail_timeout=30s;
+          server unix:/tmp/backend3;
+          server backup1.example.com:8080 backup;
+        }请求将按照轮询的方式分发到后端服务器,但同时也会考虑权重.
+        在上面的例子中如果每次发生7个请求,5个请求将被发送到backend1.example.com,其他两台将分别得到一个请求,如果有一台服务器不可用,那么
+        请求将被转发到下一台服务器,直到所有的服务器检查都通过.如果所有的服务器都无法通过检查,那么将返回给客户端最后一台工作的服务器产生的结果.
+        max_fails=number
+          设置在fail_timeout参数设置的时间内最大失败次数,如果在这个时间内,所有针对该服务器的请求
+          都失败了,那么认为该服务器会被认为是停机了,停机时间是fail_timeout设置的时间.默认情况下,
+          不成功连接数被设置为1.被设置为零则表示不进行链接数统计.那些连接被认为是不成功的可以通过
+          proxy_next_upstream, fastcgi_next_upstream,和memcached_next_upstream指令配置.http_404
+          状态不会被认为是不成功的尝试.
+        fail_time=time
+          设置 多长时间内失败次数达到最大失败次数会被认为服务器停机了服务器会被认为停机的时间长度 默认情况下,超时时间被设置为10S */
         {ngx_string("upstream"),
          NGX_HTTP_MAIN_CONF | NGX_CONF_BLOCK | NGX_CONF_TAKE1,
          ngx_http_upstream,
          0,
          0,
          NULL},
-        /*
-    语法:server name [parameters];
-    配置块:upstream
-    server配置项指定了一台上游服务器的名字,这个名字可以是域名、IP地址端口、UNIX句柄等,在其后还可以跟下列参数.
-    weight=number:设置向这台上游服务器转发的权重,默认为1. weigth参数表示权值,权值越高被分配到的几率越大
-    max_fails=number:该选项与fail_timeout配合使用,指在fail_timeout时间段内,如果向当前的上游服务器转发失败次数超过number,则认为在当前的fail_timeout时间段内这台上游服务器不可用.max_fails默认为1,如果设置为0,则表示不检查失败次数.
-    fail_timeout=time:fail_timeout表示该时间段内转发失败多少次后就认为上游服务器暂时不可用,用于优化反向代理功能.它与向上游服务器建立连接的超时时间、读取上游服务器的响应超时时间等完全无关.fail_timeout默认为10秒.
-    down:表示所在的上游服务器永久下线,只在使用ip_hash配置项时才有用.
-    backup:在使用ip_hash配置项时它是无效的.它表示所在的上游服务器只是备份服务器,只有在所有的非备份上游服务器都失效后,才会向所在的上游服务器转发请求.
-    例如:
-    upstream  backend  {
-      server   backend1.example.com    weight=5;
-      server   127.0.0.1:8080          max_fails=3  fail_timeout=30s;
-      server   unix:/tmp/backend3;
-    }
+        /*语法:server name [parameters];
+        配置块:upstream
+        server配置项指定了一台上游服务器的名字,这个名字可以是域名、IP地址端口、UNIX句柄等,在其后还可以跟下列参数.
+        weight=number:设置向这台上游服务器转发的权重,默认为1. weigth参数表示权值,权值越高被分配到的几率越大
+        max_fails=number:该选项与fail_timeout配合使用,指在fail_timeout时间段内,如果向当前的上游服务器转发失败次数超过number,则认为在当前的fail_timeout时间段内这台上游服务器不可用.max_fails默认为1,如果设置为0,则表示不检查失败次数.
+        fail_timeout=time:fail_timeout表示该时间段内转发失败多少次后就认为上游服务器暂时不可用,用于优化反向代理功能.它与向上游服务器建立连接的超时时间、读取上游服务器的响应超时时间等完全无关.fail_timeout默认为10秒.
+        down:表示所在的上游服务器永久下线,只在使用ip_hash配置项时才有用.
+        backup:在使用ip_hash配置项时它是无效的.它表示所在的上游服务器只是备份服务器,只有在所有的非备份上游服务器都失效后,才会向所在的上游服务器转发请求.
+        例如:
+        upstream  backend  {
+          server   backend1.example.com    weight=5;
+          server   127.0.0.1:8080          max_fails=3  fail_timeout=30s;
+          server   unix:/tmp/backend3;
+        }
 
-    语法:server name [parameters]
-    默认值:none
-    使用字段:upstream
-    指定后端服务器的名称和一些参数,可以使用域名,IP,端口,或者unix socket.如果指定为域名,则首先将其解析为IP.
-    ·weight = NUMBER - 设置服务器权重,默认为1.
-    ·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
-    ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
-    ·down - 标记服务器处于离线状态,通常和ip_hash一起使用.
-    ·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).
-    示例配置
+        语法:server name [parameters]
+        默认值:none
+        使用字段:upstream
+        指定后端服务器的名称和一些参数,可以使用域名,IP,端口,或者unix socket.如果指定为域名,则首先将其解析为IP.
+        ·weight = NUMBER - 设置服务器权重,默认为1.
+        ·max_fails = NUMBER - 在一定时间内(这个时间在fail_timeout参数中设置)检查这个服务器是否可用时产生的最多失败请求数,默认为1,将其设置为0可以关闭检查,这些错误在proxy_next_upstream或fastcgi_next_upstream(404错误不会使max_fails增加)中定义.
+        ·fail_timeout = TIME - 在这个时间内产生了max_fails所设置大小的失败尝试连接请求后这个服务器可能不可用,同样它指定了服务器不可用的时间(在下一次尝试连接请求发起之前),默认为10秒,fail_timeout与前端响应时间没有直接关系,不过可以使用proxy_connect_timeout和proxy_read_timeout来控制.
+        ·down - 标记服务器处于离线状态,通常和ip_hash一起使用.
+        ·backup - (0.6.7或更高)如果所有的非备份服务器都宕机或繁忙,则使用本服务器(无法和ip_hash指令搭配使用).
+        示例配置
 
-    upstream  backend  {
-      server   backend1.example.com    weight=5;
-      server   127.0.0.1:8080          max_fails=3  fail_timeout=30s;
-      server   unix:/tmp/backend3;
-    }注意:如果你只使用一台上游服务器,nginx将设置一个内置变量为1,即max_fails和fail_timeout参数不会被处理.
-    结果:如果nginx不能连接到上游,请求将丢失.
-    解决:使用多台上游服务器.
-    */
+        upstream  backend  {
+          server   backend1.example.com    weight=5;
+          server   127.0.0.1:8080          max_fails=3  fail_timeout=30s;
+          server   unix:/tmp/backend3;
+        }注意:如果你只使用一台上游服务器,nginx将设置一个内置变量为1,即max_fails和fail_timeout参数不会被处理.
+        结果:如果nginx不能连接到上游,请求将丢失.
+        解决:使用多台上游服务器*/
         {ngx_string("server"),
          NGX_HTTP_UPS_CONF | NGX_CONF_1MORE,
          ngx_http_upstream_server,
@@ -546,20 +540,17 @@ static ngx_http_module_t ngx_http_upstream_module_ctx = {
         NULL                                   /* merge location configuration */
 };
 
-/*
-负载均衡相关配置:
+/*负载均衡相关配置:
 upstream
 server
 ip_hash:根据客户端的IP来做hash,不过如果squid -- nginx -- server(s)则,ip永远是squid服务器ip,因此不管用,需要ngx_http_realip_module或者第三方模块
 keepalive:配置到后端的最大连接数,保持长连接,不必为每一个客户端都重新建立nginx到后端PHP等服务器的连接,需要保持和后端
     长连接,例如fastcgi:fastcgi_keep_conn on;       proxy:  proxy_http_version 1.1;  proxy_set_header Connection "";
 least_conn:根据其权重值,将请求发送到活跃连接数最少的那台服务器
-hash:可以按照uri  ip 等参数进行做hash
-*/
+hash:可以按照uri  ip 等参数进行做hash*/
 
 
-/*
-Nginx不仅仅可以用做Web服务器.upstream机制其实是由ngx_http_upstream_module模块实现的,它是一个HTTP模块,使用upstream机制时客
+/*Nginx不仅仅可以用做Web服务器.upstream机制其实是由ngx_http_upstream_module模块实现的,它是一个HTTP模块,使用upstream机制时客
 户端的请求必须基于HTTP.
 既然upstream是用于访问"上游"服务器的,那么,Nginx需要访问什么类型的"上游"服务器呢?是Apache、Tomcat这样的Web服务器,还
 是memcached、cassandra这样的Key-Value存储系统,又或是mongoDB、MySQL这样的数据库?这就涉及upstream机制的范围了.基于事件驱动
@@ -568,8 +559,7 @@ Nginx不仅仅可以用做Web服务器.upstream机制其实是由ngx_http_upstre
 当nginx接收到一个连接后,读取完客户端发送出来的Header,然后就会进行各个处理过程的调用.之后就是upstream发挥作用的时候了,
 upstream在客户端跟后端比如FCGI/PHP之间,接收客户端的HTTP body,发送给FCGI,然后接收FCGI的结果,发送给客户端.作为一个桥梁的作用.
 同时,upstream为了充分显示其灵活性,至于后端具体是什么协议,什么系统他都不care,我只实现主体的框架,具体到FCGI协议的发送,接收,
-解析,这些都交给后面的插件来处理,比如有fastcgi,memcached,proxy等插件
-*/
+解析,这些都交给后面的插件来处理,比如有fastcgi,memcached,proxy等插件*/
 ngx_module_t ngx_http_upstream_module = { //该模块是访问上游服务器相关模块的基础(例如 FastCGI memcached  uwsgi  scgi proxy都会用到upstream模块  ngx_http_proxy_module  ngx_http_memcached_module)
         NGX_MODULE_V1,
         &ngx_http_upstream_module_ctx,         /* module context */
@@ -682,8 +672,8 @@ ngx_conf_bitmask_t ngx_http_upstream_ignore_headers_masks[] = {
         {ngx_null_string, 0}
 };
 
-//ngx_http_upstream_create创建ngx_http_upstream_t,资源回收用ngx_http_upstream_finalize_request
-//upstream资源回收在ngx_http_upstream_finalize_request   ngx_http_XXX_handler(ngx_http_proxy_handler)中执行
+/*ngx_http_upstream_create创建ngx_http_upstream_t,资源回收用ngx_http_upstream_finalize_request
+upstream资源回收在ngx_http_upstream_finalize_request   ngx_http_XXX_handler(ngx_http_proxy_handler)中执行*/
 ngx_int_t
 ngx_http_upstream_create(ngx_http_request_t *r) { //创建一个ngx_http_upstream_t结构,放到r->upstream里面去.
     ngx_http_upstream_t *u;
@@ -715,16 +705,15 @@ ngx_http_upstream_create(ngx_http_request_t *r) { //创建一个ngx_http_upstrea
     return NGX_OK;
 }
 
-/*
-    1)调用ngx_http_up stream_init方法启动upstream.
+/*1)调用ngx_http_up stream_init方法启动upstream.
     2) upstream模块会去检查文件缓存,如果缓存中已经有合适的响应包,则会直接返回缓存(当然必须是在使用反向代理文件缓存的前提下).
     为了让读者方便地理解upstream机制,本章将不再提及文件缓存.
     3)回调mytest模块已经实现的create_request回调方法.
     4) mytest模块通过设置r->upstream->request_bufs已经决定好发送什么样的请求到上游服务器.
     5) upstream模块将会检查resolved成员,如果有resolved成员的话,就根据它设置好上游服务器的地址r->upstream->peer成员.
     6)用无阻塞的TCP套接字建立连接.
-    7)无论连接是否建立成功,负责建立连接的connect方法都会立刻返回.
-*/
+    7)无论连接是否建立成功,负责建立连接的connect方法都会立刻返回*/
+
 //ngx_http_upstream_init方法将会根据ngx_http_upstream_conf_t中的成员初始化upstream,同时会开始连接上游服务器,以此展开整个upstream处理流程
 void
 ngx_http_upstream_init(ngx_http_request_t *r) { //在读取完浏览器发送来的请求头部字段后,会通过proxy fastcgi等模块读取包体,读取完后执行该函数,例如ngx_http_read_client_request_body(r, ngx_http_upstream_init);
@@ -741,24 +730,21 @@ ngx_http_upstream_init(ngx_http_request_t *r) { //在读取完浏览器发送来
         return;
     }
 #endif
-    /*
-        首先检查请求对应于客户端的连接,这个连接上的读事件如果在定时器中,也就是说,读事件的timer_ set标志位为1,那么调用ngx_del_timer
+    /*首先检查请求对应于客户端的连接,这个连接上的读事件如果在定时器中,也就是说,读事件的timer_ set标志位为1,那么调用ngx_del_timer
     方法把这个读事件从定时器中移除.为什么要做这件事呢?因为一旦启动upstream机制,就不应该对客户端的读操作带有超时时间的处理(超时会关闭客户端连接),
-    请求的主要触发事件将以与上游服务器的连接为主.
-     */
+    请求的主要触发事件将以与上游服务器的连接为主*/
     if (c->read->timer_set) {
         ngx_del_timer(c->read);
     }
 
     if (ngx_event_flags & NGX_USE_CLEAR_EVENT) { //如果epoll使用边缘触发
-        /*
-2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
-2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
-025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
-2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
-实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的,当本次循环退回到ngx_worker_process_cycle ..->ngx_epoll_process_events
-的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection
-*/
+        /*2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
+        2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
+        025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
+        2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
+        实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的,当本次循环退回到ngx_worker_process_cycle ..->ngx_epoll_process_events
+        的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection  */
+
         //这里实际上是触发执行ngx_http_upstream_check_broken_connection
         if (!c->write->active) { //要增加可写事件通知,为啥?因为待会可能就能写了,可能会转发上游服务器的内容给浏览器等客户端
             //实际上是检查和客户端的连接是否异常了
@@ -773,11 +759,11 @@ ngx_http_upstream_init(ngx_http_request_t *r) { //在读取完浏览器发送来
     ngx_http_upstream_init_request(r);
 }
 
-//ngx_http_upstream_init调用这里,此时客户端发送的数据都已经接收完毕了.
+//ngx_http_upstream_init调用这里,此时客户端发送的数据都已经接收完毕了
+
 /*
 1. 调用create_request创建fcgi或者proxy的数据结构.
-2. 调用ngx_http_upstream_connect连接下游服务器.
-*/
+2. 调用ngx_http_upstream_connect连接下游服务器*/
 static void
 ngx_http_upstream_init_request(ngx_http_request_t *r) {
     ngx_str_t *host;
@@ -839,18 +825,15 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
 #endif
 
     u->store = u->conf->store;
-    /*
-  设置Nginx与下游客户端之间TCP连接的检查方法
-  实际上,这两个方法都会通过ngx_http_upstream_check_broken_connection方法检查Nginx与下游的连接是否正常,如果出现错误,就会立即终止连接.
-   */
-/*
-2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
-2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
-2025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
-2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
-实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的,当本次循环退回到ngx_worker_process_cycle ..->ngx_epoll_process_events
-的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection
-*/
+    /*设置Nginx与下游客户端之间TCP连接的检查方法
+    实际上,这两个方法都会通过ngx_http_upstream_check_broken_connection方法检查Nginx与下游的连接是否正常,如果出现错误,就会立即终止连接*/
+
+    /*2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
+    2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
+    2025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
+    2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
+    实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的,当本次循环退回到ngx_worker_process_cycle ..->ngx_epoll_process_events
+    的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection */
     if (!u->store && !r->post_action && !u->conf->ignore_client_abort) {
         //注意这时候的r还是客户端的连接,与上游服务器的连接r还没有建立
         if (r->connection->read->ready) {
@@ -871,13 +854,11 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
     if (r->request_body) {//客户端发送过来的POST数据存放在此,ngx_http_read_client_request_body放的
         u->request_bufs = r->request_body->bufs; //记录客户端发送的数据,下面在create_request的时候拷贝到发送缓冲链接表里面的.
     }
-    /*
-    调用请求中ngx_http_upstream_t结构体里由某个HTTP模块实现的create_request方法,构造发往上游服务器的请求
+    /*调用请求中ngx_http_upstream_t结构体里由某个HTTP模块实现的create_request方法,构造发往上游服务器的请求
     (请求中的内容是设置到request_bufs缓冲区链表中的).如果create_request方法没有返回NGX_OK,则upstream结束
     如果是FCGI.下面组建好FCGI的各种头部,包括请求开始头,请求参数头,请求STDIN头.存放在u->request_bufs链接表里面.
    如果是Proxy模块,ngx_http_proxy_create_request组件反向代理的头部啥的,放到u->request_bufs里面
-   FastCGI memcached  uwsgi  scgi proxy都会用到upstream模块
-    */
+   FastCGI memcached  uwsgi  scgi proxy都会用到upstream模块*/
     if (u->create_request(r) != NGX_OK) { //ngx_http_XXX_create_request   ngx_http_proxy_create_request等
         ngx_http_finalize_request(r, NGX_HTTP_INTERNAL_SERVER_ERROR);
         return;
@@ -937,9 +918,7 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
     cln->handler = ngx_http_upstream_cleanup; //当请求结束时,一定会调用ngx_http_upstream_cleanup方法
     cln->data = r; //指向所指的请求结构体.
     u->cleanup = &cln->handler;
-    /*
-   http://www.pagefault.info/?p=251
-   然后就是这个函数最核心的处理部分,那就是根据upstream的类型来进行不同的操作,这里的upstream就是我们通过XXX_pass传递进来的值,
+    /*然后就是这个函数最核心的处理部分,那就是根据upstream的类型来进行不同的操作,这里的upstream就是我们通过XXX_pass传递进来的值,
    这里的upstream有可能下面几种情况.
    Ngx_http_fastcgi_module.c (src\http\modules):    { ngx_string("fastcgi_pass"),
    Ngx_http_memcached_module.c (src\http\modules):    { ngx_string("memcached_pass"),
@@ -950,8 +929,7 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
    1 XXX_pass中不包含变量.
    2 XXX_pass传递的值包含了一个变量($开始).这种情况也就是说upstream的url是动态变化的,因此需要每次都解析一遍.
    而第二种情况又分为2种,一种是在进入upstream之前,也就是 upstream模块的handler之中已经被resolve的地址(请看ngx_http_XXX_eval函数),
-   一种是没有被resolve,此时就需要upstream模块来进行resolve.接下来的代码就是处理这部分的东西.
-   */
+   一种是没有被resolve,此时就需要upstream模块来进行resolve.接下来的代码就是处理这部分的东西*/
     if (u->resolved == NULL) { //上游的IP地址是否被解析过,ngx_http_fastcgi_handler调用ngx_http_fastcgi_eval会解析. 为NULL说明没有解析过,也就是fastcgi_pas xxx中的xxx参数没有变量
 
         uscf = u->conf->upstream; //upstream赋值在ngx_http_fastcgi_pass
@@ -979,8 +957,8 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
                 goto found; //这个host正好相等
             }
         }
-        //ngx_http_fastcgi_handler 会调用 ngx_http_fastcgi_eval函数,进行fastcgi_pass 后面的URL的简析,解析出unix域,或者socket.
-        // 如果已经是ip地址格式了,就不需要再进行解析
+        /*ngx_http_fastcgi_handler 会调用 ngx_http_fastcgi_eval函数,进行fastcgi_pass 后面的URL的简析,解析出unix域,或者socket.
+         如果已经是ip地址格式了,就不需要再进行解析*/
         if (u->resolved->sockaddr) { //如果地址已经被resolve过了,我IP地址,此时创建round robin peer就行
 
             if (u->resolved->port == 0
@@ -1084,8 +1062,7 @@ ngx_http_upstream_init_request(ngx_http_request_t *r) {
 /*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_upstream_send_response->ngx_http_file_cache_create
 中创建临时文件,然后在ngx_event_pipe_write_chain_to_temp_file把读取的后端数据写入临时文件,最后在
 ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中把临时文件内容rename(相当于mv)到proxy_cache_path指定
-的cache目录下面
-*/
+的cache目录下面*/
 static ngx_int_t
 ngx_http_upstream_cache(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     ngx_int_t rc;
@@ -1140,10 +1117,7 @@ ngx_http_upstream_cache(ngx_http_request_t *r, ngx_http_upstream_t *u) {
         c->body_start = u->conf->buffer_size; //xxx_buffer_size(fastcgi_buffer_size proxy_buffer_size memcached_buffer_size)
         c->min_uses = u->conf->cache_min_uses; //Proxy_cache_min_uses number 默认为1,当客户端发送相同请求达到规定次数后,nginx才对响应数据进行缓存;
         c->file_cache = cache;
-        /*
-          根据配置文件中 ( fastcgi_cache_bypass ) 缓存绕过条件和请求信息,判断是否应该
-          继续尝试使用缓存数据响应该请求:
-          */
+        /*根据配置文件中 ( fastcgi_cache_bypass ) 缓存绕过条件和请求信息,判断是否应该继续尝试使用缓存数据响应该请求:*/
         switch (ngx_http_test_predicates(r, u->conf->cache_bypass)) { //判断是否应该冲缓存中取,还是从后端服务器取
 
             case NGX_ERROR:
@@ -1192,8 +1166,8 @@ ngx_http_upstream_cache(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
             if (((u->conf->cache_use_stale & NGX_HTTP_UPSTREAM_FT_UPDATING)
                  || c->stale_updating) && !r->background) {
-                //如果设置了fastcgi_cache_use_stale updating,表示说虽然该缓存文件失效了,已经有其他客户端请求在获取后端数据,但是现在还没有获取完整,
-                //这时候就可以把以前过期的缓存发送给当前请求的客户端
+                /*如果设置了fastcgi_cache_use_stale updating,表示说虽然该缓存文件失效了,已经有其他客户端请求在获取后端数据,但是现在还没有获取完整,
+                这时候就可以把以前过期的缓存发送给当前请求的客户端*/
                 u->cache_status = rc;
                 rc = NGX_OK;
 
@@ -1277,8 +1251,8 @@ ngx_http_upstream_cache_get(ngx_http_request_t *r, ngx_http_upstream_t *u,
     ngx_http_file_cache_t **caches;
 
     if (u->conf->cache_zone) {
-        //获取proxy_cache设置的共享内存块名,直接返回u->conf->cache_zone->data(这个是在proxy_cache_path fastcgi_cache_path设置的),因此必须同时设置
-        //proxy_cache和proxy_cache_path
+       /* 获取proxy_cache设置的共享内存块名,直接返回u->conf->cache_zone->data(这个是在proxy_cache_path fastcgi_cache_path设置的),因此必须同时设置
+        proxy_cache和proxy_cache_path*/
         *cache = u->conf->cache_zone->data;
         return NGX_OK;
     }
@@ -1318,8 +1292,7 @@ ngx_http_upstream_cache_send(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 
     r->cached = 1;
     c = r->cache;
-    /*
-    root@root:/var/yyz# cat cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f   封包过程见ngx_http_file_cache_set_header
+    /* root@root:/var/yyz# cat cache_xxx/f/27/46492fbf0d9d35d3753c66851e81627f   封包过程见ngx_http_file_cache_set_header
      3hwhdBw
      KEY: /test2.php
 
@@ -1583,8 +1556,8 @@ ngx_http_upstream_resolve_handler(ngx_resolver_ctx_t *ctx) {
     }
 }
 
-//客户端事件处理handler一般(write(read)->handler)一般为ngx_http_request_handler, 和后端的handler一般(write(read)->handler)一般为ngx_http_upstream_handler, 和后端的
-//和后端服务器的读写事件触发后走到这里
+/*客户端事件处理handler(write(read)->handler)一般为ngx_http_request_handler,
+ 后端的handler(write(read)->handler)一般为ngx_http_upstream_handler,后端服务器的读写事件触发后走到这里*/
 static void
 ngx_http_upstream_handler(ngx_event_t *ev) {
     ngx_connection_t *c;
@@ -1617,38 +1590,32 @@ ngx_http_upstream_handler(ngx_event_t *ev) {
     ngx_http_run_posted_requests(c);
 }
 
-/*
-2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
+/*2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
 2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
 025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
 2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
-实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的
-*/
+实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的*/
 static void
 ngx_http_upstream_rd_check_broken_connection(ngx_http_request_t *r) {
     ngx_http_upstream_check_broken_connection(r, r->connection->read);
 }
 
-/*
-2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
+/*2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
 2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
 025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
 2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
-实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的
-*/
+实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的*/
 static void
 ngx_http_upstream_wr_check_broken_connection(ngx_http_request_t *r) {
     ngx_http_upstream_check_broken_connection(r, r->connection->write);
 }
 
-/*
-2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
+/*2025/04/24 05:31:47[             ngx_http_upstream_init,   654]  [debug] 15507#15507: *1 <   ngx_http_upstream_init,   653> epoll NGX_WRITE_EVENT(et) read add
 2025/04/24 05:31:47[                ngx_epoll_add_event,  1400]  [debug] 15507#15507: *1 epoll modify read and write event: fd:11 op:3 ev:80002005
 025/04/24 05:31:47[           ngx_epoll_process_events,  1624]  [debug] 15507#15507: begin to epoll_wait, epoll timer: 60000
 2025/04/24 05:31:47[           ngx_epoll_process_events,  1709]  [debug] 15507#15507: epoll: fd:11 epoll-out(ev:0004) d:B26A00E8
 实际上是通过ngx_http_upstream_init中的mod epoll_ctl添加读写事件触发的,当本次循环退回到ngx_worker_process_cycle ..->ngx_epoll_process_events
-的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection
-*/
+的时候,就会触发epoll_out,从而执行ngx_http_upstream_wr_check_broken_connection  */
 static void
 ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
                                           ngx_event_t *ev) {
@@ -1846,8 +1813,9 @@ ngx_http_upstream_check_broken_connection(ngx_http_request_t *r,
 由于使用了非阻塞的套接字,当方法返回时与上游之间的TCP连接未必会成功建立,可能还需要等待上游服务器返回TCP的SYN/ACK包.因此,
 ngx_http_upstream_connect方法主要负责发起建立连接这个动作,如果这个方法没有立刻返回成功,那么需要在epoll中监控这个套接字,当
 它出现可写事件时,就说明连接已经建立成功了.*/
-//调用socket,connect连接一个后端的peer,然后设置读写事件回调函数,进入发送数据的ngx_http_upstream_send_request里面
-//这里负责连接后端服务,然后设置各个读写事件回调.最后如果连接建立成功,会调用ngx_http_upstream_send_request进行数据发送.
+
+/*调用socket,connect连接一个后端的peer,然后设置读写事件回调函数,进入发送数据的ngx_http_upstream_send_request里面
+这里负责连接后端服务,然后设置各个读写事件回调.最后如果连接建立成功,会调用ngx_http_upstream_send_request进行数据发送.*/
 
 static void
 ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
@@ -1875,8 +1843,8 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     u->state->response_time = (ngx_msec_t) -1;
     u->state->connect_time = (ngx_msec_t) -1;
     u->state->header_time = (ngx_msec_t) -1;
-    //初始赋值见ngx_http_upstream_connect->ngx_event_connect_peer(&u->peer);
-    //可以看出有多少个客户端连接,nginx就要与php服务器建立多少个连接,为什么nginx和php服务器不只建立一个连接呢????????????????
+    /*初始赋值见ngx_http_upstream_connect->ngx_event_connect_peer(&u->peer);
+    可以看出有多少个客户端连接,nginx就要与php服务器建立多少个连接,为什么nginx和php服务器不只建立一个连接呢????????????????*/
     rc = ngx_event_connect_peer(&u->peer);  //建立一个TCP套接字,同时,这个套接字需要设置为非阻塞模式.
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
@@ -1994,8 +1962,7 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
     u->request_body_blocked = 0;
 
     if (rc == NGX_AGAIN) { //这里的定时器在ngx_http_upstream_send_request会删除
-        /*
-           2025/04/24 02:54:29[             ngx_event_connect_peer,    32]  [debug] 14867#14867: *1 socket 12
+        /*2025/04/24 02:54:29[             ngx_event_connect_peer,    32]  [debug] 14867#14867: *1 socket 12
 2025/04/24 02:54:29[           ngx_epoll_add_connection,  1486]  [debug] 14867#14867: *1 epoll add connection: fd:12 ev:80002005
 2025/04/24 02:54:29[             ngx_event_connect_peer,   125]  [debug] 14867#14867: *1 connect to 127.0.0.1:3666, fd:12 #2
 2025/04/24 02:54:29[          ngx_http_upstream_connect,  1549]  [debug] 14867#14867: *1 http upstream connect: -2 //返回NGX_AGAIN
@@ -2028,14 +1995,14 @@ ngx_http_upstream_connect(ngx_http_request_t *r, ngx_http_upstream_t *u) {
 2025/04/24 02:54:29[                ngx_event_del_timer,    39]  [debug] 14867#14867: *1 <ngx_http_upstream_send_request,  2052>  event timer del: 12: 1677807811//这里删除
 2025/04/24 02:54:29[                ngx_event_add_timer,    88]  [debug] 14867#14867: *1 <ngx_http_upstream_send_request,  2075>  event timer add: 12: 60000:1677807813
           */
-        /*
-          若 rc = NGX_AGAIN,表示当前已经发起连接,但是没有收到上游服务器的确认应答报文,即上游连接的写事件不可写,则需调用 ngx_add_timer
+        /*若 rc = NGX_AGAIN,表示当前已经发起连接,但是没有收到上游服务器的确认应答报文,即上游连接的写事件不可写,则需调用 ngx_add_timer
           方法将上游连接的写事件添加到定时器中,管理超时确认应答;
 
           这一步处理非阻塞的连接尚未成功建立时的动作.实际上,在ngx_event_connect_peer中,套接字已经加入到epoll中监控了,因此,
           这一步将调用ngx_add_timer方法把写事件添加到定时器中,超时时间为ngx_http_upstream_conf_t结构体中的connect_timeout
-          成员,这是在设置建立TCP连接的超时时间.
-          */ //这里的定时器在ngx_http_upstream_send_request会删除
+          成员,这是在设置建立TCP连接的超时时间.*/
+
+        //这里的定时器在ngx_http_upstream_send_request会删除
         ngx_add_timer(c->write, u->conf->connect_timeout);
         return; //大部分情况通过这里返回,然后通过ngx_http_upstream_send_request_handler来执行epoll write事件
     }
@@ -2519,14 +2486,13 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
     /* rc == NGX_OK */
     //向后端的数据发送完毕
 
-    //当发往后端服务器的数据包过大,需要分多次发送的时候,在上面的if (rc == NGX_AGAIN)中会添加定时器来触发发送,如果协议栈一直不发送数据出去
-    //就会超时,如果数据最终全部发送出去则需要为最后一次time_write添加删除操作.
+    /*当发往后端服务器的数据包过大,需要分多次发送的时候,在上面的if (rc == NGX_AGAIN)中会添加定时器来触发发送,如果协议栈一直不发送数据出去
+    就会超时,如果数据最终全部发送出去则需要为最后一次time_write添加删除操作.*/
 
-    //如果发往后端的数据长度后小,则一般不会再上门添加定时器,这里的timer_set肯定为0,所以如果拔掉后端网线,通过ngx_http_upstream_test_connect
-    //是判断不出后端服务器掉线的,上面的ngx_http_upstream_send_request_body还是会返回成功的,所以这里有个bug
+    /*如果发往后端的数据长度后小,则一般不会再上门添加定时器,这里的timer_set肯定为0,所以如果拔掉后端网线,通过ngx_http_upstream_test_connect
+    是判断不出后端服务器掉线的,上面的ngx_http_upstream_send_request_body还是会返回成功的,所以这里有个bug*/
     if (c->write->timer_set) { //这里的定时器是ngx_http_upstream_connect中connect返回NGX_AGAIN的时候添加的定时器
-        /*
-2025/04/24 02:54:29[             ngx_event_connect_peer,    32]  [debug] 14867#14867: *1 socket 12
+        /*2025/04/24 02:54:29[             ngx_event_connect_peer,    32]  [debug] 14867#14867: *1 socket 12
 2025/04/24 02:54:29[           ngx_epoll_add_connection,  1486]  [debug] 14867#14867: *1 epoll add connection: fd:12 ev:80002005
 2025/04/24 02:54:29[             ngx_event_connect_peer,   125]  [debug] 14867#14867: *1 connect to 127.0.0.1:3666, fd:12 #2
 2025/04/24 02:54:29[          ngx_http_upstream_connect,  1549]  [debug] 14867#14867: *1 http upstream connect: -2 //返回NGX_AGAIN
@@ -2591,9 +2557,9 @@ ngx_http_upstream_send_request(ngx_http_request_t *r, ngx_http_upstream_t *u,
         if (u->header_sent) {
             return;
         }
-        //这回数据已经发送了,可以准备接收了,设置接收后端应答的超时定时器.
-        /*
-            该定时器在收到后端应答数据后删除,见ngx_event_pipe
+        //这回数据已经发送了,可以准备接收了,设置接收后端应答的超时定时器
+
+        /*该定时器在收到后端应答数据后删除,见ngx_event_pipe
             if (rev->timer_set) {
                 ngx_del_timer(rev, NGX_FUNC_LINE);
             }
@@ -2847,8 +2813,7 @@ ngx_http_upstream_process_header(ngx_http_request_t *r, ngx_http_upstream_t *u) 
         }
 
 #if (NGX_HTTP_CACHE)
-        /*
-       pVpVZ"
+        /*  pVpVZ"
        KEY: /test.php
        //下面是后端实际返回的内容,上面的是预留的头部
        IX-Powered-By: PHP/5.2.13
@@ -2946,8 +2911,8 @@ ngx_http_upstream_process_header(ngx_http_request_t *r, ngx_http_upstream_t *u) 
             return;
         }
     }
-    //到这里,FCGI等格式的数据已经解析为标准HTTP的表示形式了(除了BODY),所以可以进行upstream的process_headers.
-    //上面的 u->process_header(r)已经进行FCGI等格式的解析了.下面将头部数据拷贝到headers_out.headers数组中.
+   /* 到这里,FCGI等格式的数据已经解析为标准HTTP的表示形式了(除了BODY),所以可以进行upstream的process_headers.
+    上面的 u->process_header(r)已经进行FCGI等格式的解析了.下面将头部数据拷贝到headers_out.headers数组中.*/
     if (ngx_http_upstream_process_headers(r, u) != NGX_OK) {
         return;
     }
@@ -3239,14 +3204,13 @@ ngx_http_upstream_process_headers(ngx_http_request_t *r, ngx_http_upstream_t *u)
         //如果头部中使用了X-Accel-Redirect特性,也就是下载文件的特性,则在这里进行文件下载.,重定向.
             /*nginx X-Accel-Redirect实现文件下载权限控制
             对文件下载的权限进行精确控制在很多地方都需要,例如有偿的下载服务、网络硬盘、个人相册、防止本站内容被外站盗链等
-            步骤0,client请求http://downloaddomain.com/download/my.iso,此请求被CGI程序解析(对于 nginx应该是fastcgi).
+            步骤0,client请求http://downloaddomain.com/download/my.iso,此请求被CGI程序解析(对于nginx应该是fastcgi).
             步骤1,CGI程序根据访问者的身份和所请求的资源其是否有下载权限来判定是否有打开的权限.如果有,那么根据此请求得到对应文件的磁盘存放路径,例如是 /var/data/my.iso.
                 那么程序返回时在HTTP header加入X-Accel-Redirect: /protectfile/data/my.iso,并加上head Content-Type:application/octet-stream.
             步骤2,nginx得到cgi程序的回应后发现带有X-Accel-Redirect的header,那么根据这个头记录的路径信息打开磁盘文件.
             步骤3,nginx把打开文件的内容返回给client端.
             这样所有的权限检查都可以在步骤1内完成,而且cgi返回带X-Accel-Redirect的头后,其执行已经终止,剩下的传输文件的工作由nginx 来接管,
-                同时X-Accel-Redirect头的信息被nginx删除,也隐藏了文件实际存储目录,并且由于nginx在打开静态文件上使用了 sendfile(2),其IO效率非常高.
-            */
+                同时X-Accel-Redirect头的信息被nginx删除,也隐藏了文件实际存储目录,并且由于nginx在打开静态文件上使用了 sendfile(2),其I/O效率非常高*/
         ngx_http_upstream_finalize_request(r, u, NGX_DECLINED);
 
         part = &u->headers_in.headers.part; //后端服务器应答的头部行信息全部在该headers链表数组中
@@ -3514,17 +3478,14 @@ ngx_http_upstream_send_response(ngx_http_request_t *r, ngx_http_upstream_t *u) {
         }
 
         n = u->buffer.last - u->buffer.pos;
-        /*
-         不是还没接收包体嘛,为什么就开始发送了呢�
-             这是因为在前面的ngx_http_upstream_process_header接收fastcgi头部行标识包体处理的时候,有可能会把一部分fastcgi包体标识也收过了,
-         因此需要处理
-         */
+        /*不是还没接收包体嘛,为什么就开始发送了呢?
+            这是因为在前面的ngx_http_upstream_process_header接收fastcgi头部行标识包体处理的时候,有可能会把一部分fastcgi包体标识也收过了,因此需要处理*/
         if (n) { //得到将要发送的数据的大小,每次有多少就发送多少.不等待upstream了  因为这是不缓存方式发送包体到客户端
             u->buffer.last = u->buffer.pos;
 
             u->state->response_length += n; //统计请求的返回包体数据(不包括请求行)长度.
-            //下面input_filter只是简单的拷贝buffer上面的数据总共n长度的,到u->out_bufs里面去,以待发送.
-            //ngx_http_xxx_non_buffered_filter(如ngx_http_fastcgi_non_buffered_filter)
+            /*下面input_filter只是简单的拷贝buffer上面的数据总共n长度的,到u->out_bufs里面去,以待发送.
+            ngx_http_xxx_non_buffered_filter(如ngx_http_fastcgi_non_buffered_filter)*/
             if (u->input_filter(u->input_filter_ctx, n) == NGX_ERROR) {
                 ngx_http_upstream_finalize_request(r, u, NGX_ERROR);
                 return;
@@ -4128,16 +4089,17 @@ ngx_http_upstream_process_non_buffered_request(ngx_http_request_t *r,
         if (do_write) { //要立即发送.
             //out_bufs中的数据是从ngx_http_fastcgi_non_buffered_filter获取
             if (u->out_bufs || u->busy_bufs || downstream->buffered) {
-                //如果u->out_bufs不为NULL则说明有需要发送的数据,这是u->input_filter_init(u->input_filter_ctx)(ngx_http_upstream_non_buffered_filter)拷贝到这里的.
-                //u->busy_bufs代表是在读取fastcgi请求头的时候,可能里面会带有包体数据,就是通过这里发送
+                /*如果u->out_bufs不为NULL则说明有需要发送的数据,这是u->input_filter_init(u->input_filter_ctx)(ngx_http_upstream_non_buffered_filter)拷贝到这里的.
+                u->busy_bufs代表是在读取fastcgi请求头的时候,可能里面会带有包体数据,就是通过这里发送*/
                 rc = ngx_http_output_filter(r, u->out_bufs);
 
                 if (rc == NGX_ERROR) {
                     ngx_http_upstream_finalize_request(r, u, NGX_ERROR);
                     return;
                 }
-                //就是把ngx_http_output_filter调用后未发送完毕的数据buf添加到busy_bufs中,如果下次再次调用ngx_http_output_filter后把busy_bufs中上一次没有发送完的发送出去了,则把对应的buf移除添加到free中
-                //下面将out_bufs的元素移动到busy_bufs的后面;将已经发送完毕的busy_bufs链表元素移动到free_bufs里面
+               /* 就是把ngx_http_output_filter调用后未发送完毕的数据buf添加到busy_bufs中,
+                如果下次再次调用ngx_http_output_filter后把busy_bufs中上一次没有发送完的发送出去了,则把对应的buf移除添加到free中
+                下面将out_bufs的元素移动到busy_bufs的后面;将已经发送完毕的busy_bufs链表元素移动到free_bufs里面*/
                 ngx_chain_update_chains(r->pool, &u->free_bufs, &u->busy_bufs,
                                         &u->out_bufs, u->output.tag);
             }
@@ -4173,8 +4135,8 @@ ngx_http_upstream_process_non_buffered_request(ngx_http_request_t *r,
         size = b->end - b->last; //得到当前buf的剩余空间
 
         if (size && upstream->read->ready) {
-            //为什么可能走到这里?因为在ngx_http_upstream_process_header中读取后端数据的时候,buf大小默认为页面大小ngx_pagesize
-            //单有可能后端发送过来的数据比ngx_pagesize大,因此就没有读完,也就是recv中不会吧ready置0,所以这里可以继续读
+           /* 为什么可能走到这里?因为在ngx_http_upstream_process_header中读取后端数据的时候,buf大小默认为页面大小ngx_pagesize
+            单有可能后端发送过来的数据比ngx_pagesize大,因此就没有读完,也就是recv中不会吧ready置0,所以这里可以继续读*/
             n = upstream->recv(upstream, b->last, size);
 
             if (n == NGX_AGAIN) { //说明已经内核缓冲区数据已经读完,退出循环,然后根据epoll事件来继续触发读取后端数据
@@ -4210,8 +4172,8 @@ ngx_http_upstream_process_non_buffered_request(ngx_http_request_t *r,
     }
 
     if (downstream->write->active && !downstream->write->ready) {
-        //例如我把数据把数据写到内核协议栈到写满协议栈缓存,但是对端一直不读取的时候,数据一直发不出去了,也不会触发epoll_wait写事件,
-        //这里加个定时器就是为了避免这种情况发生
+        /*例如我把数据把数据写到内核协议栈到写满协议栈缓存,但是对端一直不读取的时候,数据一直发不出去了,也不会触发epoll_wait写事件,
+        这里加个定时器就是为了避免这种情况发生*/
         ngx_add_timer(downstream->write, clcf->send_timeout);
 
     } else if (downstream->write->timer_set) {
@@ -4494,10 +4456,8 @@ ngx_http_upstream_process_downstream(ngx_http_request_t *r) {
     ngx_http_upstream_process_request(r, u);
 }
 
-/*
-这是在有buffering的情况下使用的函数.
-ngx_http_upstream_send_response调用这里发动一下数据读取.以后有数据可读的时候也会调用这里的读取后端数据.设置到了u->read_event_handler了.
-*/
+/*这是在有buffering的情况下使用的函数.
+ngx_http_upstream_send_response调用这里发动一下数据读取.以后有数据可读的时候也会调用这里的读取后端数据.设置到了u->read_event_handler了*/
 static void //buffring模式通过ngx_http_upstream_process_upstream该函数处理,非buffring模式通过ngx_http_upstream_process_non_buffered_downstream处理
 ngx_http_upstream_process_upstream(ngx_http_request_t *r,
                                    ngx_http_upstream_t *u) { //注意走到这里的时候,后端发送的头部行信息已经在前面的ngx_http_upstream_send_response->ngx_http_send_header已经把头部行部分发送给客户端了
@@ -4538,13 +4498,13 @@ ngx_http_upstream_process_upstream(ngx_http_request_t *r,
             return;
         }
     }
-    //注意走到这里的时候,后端发送的头部行信息已经在前面的ngx_http_upstream_send_response->ngx_http_send_header已经把头部行部分发送给客户端了
-    //该函数处理的只是后端放回过来的网页包体部分
+    /*注意走到这里的时候,后端发送的头部行信息已经在前面的ngx_http_upstream_send_response->ngx_http_send_header已经把头部行部分发送给客户端了
+    该函数处理的只是后端放回过来的网页包体部分*/
     ngx_http_upstream_process_request(r, u);
 }
 
-//ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_file_cache_create中创建临时文件
-//后端缓存文件创建在ngx_http_upstream_send_response,后端应答数据在ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中进行缓存
+/*ngx_http_upstream_init_request->ngx_http_upstream_cache 客户端获取缓存 后端应答回来数据后在ngx_http_file_cache_create中创建临时文件
+后端缓存文件创建在ngx_http_upstream_send_response,后端应答数据在ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_file_cache_update中进行缓存*/
 static void
 ngx_http_upstream_process_request(ngx_http_request_t *r,
                                   ngx_http_upstream_t *u) { //注意走到这里的时候,后端发送的头部行信息已经在前面的ngx_http_upstream_send_response->ngx_http_send_header已经把头部行部分发送给客户端了

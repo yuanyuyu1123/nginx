@@ -35,8 +35,7 @@ typedef struct ngx_thread_pool_s  ngx_thread_pool_t;
 #define NGX_HTTP_AIO_ON                 1 //aio on
 #define NGX_HTTP_AIO_THREADS            2 //aio thread
 
-/*
-相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
+/*相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
 ┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃satisfy的参数 ┃    意义                                                                              ┃
 ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -94,27 +93,26 @@ typedef struct {
     /*如果指令有default参数,那么这个server块将是通过"地址:端口"来进行访问的默认服务器,这对于你想为那些不匹配server_name指令中的
      主机名指定默认server块的虚拟主机(基于域名)非常有用,如果没有指令带有default参数,那么默认服务器将使用第一个server块.*/
     unsigned                   default_server:1; //如果设置了bind 带参数的时候default|default_server,置1,见ngx_http_core_listen
-    /*
-    instructs to make a separate bind() call for a given address:port pair. This is useful because if there are several listen
-directives with the same port but different addresses, and one of the listen directives listens on all addresses for the
-given port (*:port), nginx will bind() only to *:port. It should be noted that the getsockname() system call will be made
-in this case to determine the address that accepted the connection. If the setfib, backlog, rcvbuf, sndbuf, accept_filter,
-deferred, ipv6only, or so_keepalive parameters are used then for a given address:port pair a separate bind() call will always be made.
-*/
-/*
-当有多个server{}块,例如第一个bind 1.1.1.1:1 第二个server bind 2.2.2.2:2  第三个server bind *:80,则如果不加bind参数,则所有的连接
-都会连接到第三个,从而获取到连接后需要使用getsockname来判断,如果每个都加上bind的话,就不用再判断了.如果是连接1.1.1.1:1的会到第一个bind
-2.2.2.2:2的到第二个bind,其他的到第三个.
-一般在设备listen中设置了bind setfib, backlog, rcvbuf, sndbuf, accept_filter, deferred, ipv6only,
-    or so_keepalive(这些选项只有在bind后才能setsockops)这些参数后会把bind和set一起置1 */
-//见ngx_http_core_listen
+
+    /*instructs to make a separate bind() call for a given address:port pair. This is useful because if there are several listen
+        directives with the same port but different addresses, and one of the listen directives listens on all addresses for the
+        given port (*:port), nginx will bind() only to *:port. It should be noted that the getsockname() system call will be made
+        in this case to determine the address that accepted the connection. If the setfib, backlog, rcvbuf, sndbuf, accept_filter,
+        deferred, ipv6only, or so_keepalive parameters are used then for a given address:port pair a separate bind() call will always be made */
+
+    /*当有多个server{}块,例如第一个bind 1.1.1.1:1 第二个server bind 2.2.2.2:2  第三个server bind *:80,则如果不加bind参数,则所有的连接
+    都会连接到第三个,从而获取到连接后需要使用getsockname来判断,如果每个都加上bind的话,就不用再判断了.如果是连接1.1.1.1:1的会到第一个bind
+    2.2.2.2:2的到第二个bind,其他的到第三个.
+    一般在设备listen中设置了bind setfib, backlog, rcvbuf, sndbuf, accept_filter, deferred, ipv6only,
+        or so_keepalive(这些选项只有在bind后才能setsockops)这些参数后会把bind和set一起置1 */
+
+    //见ngx_http_core_listen
     unsigned                   bind:1; //listen *:80;配置项的通配符也可能在ngx_http_init_listening中置1
     unsigned wildcard: 1;
-    /*
-被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议下,例如:
+    /*被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议下,例如:
     listen 80;
     listen 443 default ssl;
-*/
+    */
     unsigned ssl: 1;
     unsigned http2: 1; //listen是否启用http2配置,例如listen 443 ssl http2;
 #if (NGX_HAVE_INET6)
@@ -146,8 +144,7 @@ deferred, ipv6only, or so_keepalive parameters are used then for a given address
 } ngx_http_listen_opt_t;
 
 
-/*
-    NGX_HTTP_TRY_FILES_PHASE阶段:
+/*NGX_HTTP_TRY_FILES_PHASE阶段:
     这是一个核心HTTP阶段,可以说大部分HTTP模块都会在此阶段重新定义Nginx服务器的行为,如第3章中提到的mytest模块.NGX_HTTP_CONTENT_PHASE
 阶段之所以被众多HTTP模块"钟爱",主要基于以下两个原因:
     其一,以上9个阶段主要专注于4件基础性工作:rewrite重写URL、找到location配置块、判断请求是否具备访问权限、try_files功能优先读取静态资源文件,
@@ -177,8 +174,7 @@ NGX_HTTP_CONTENT_PHASE阶段的checker方法是ngx_http_core_content_phase.ngx_h
     在第一种方式下,ngx_http_handler_pt处理方法无论返回任何值,都会直接调用ngx_http_finalize_request方法结束请求.当然,
 ngx_http_finalize_request方法根据返回值的不同未必会直接结束请求,这在第11章中会详细介绍.
     在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法;如果返回其他值,
-则调用ngx_http_finalize_request方法结束请求.
-*/
+则调用ngx_http_finalize_request方法结束请求*/
 
 /*
 ┏━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
@@ -209,21 +205,19 @@ ngx_http_finalize_request方法根据返回值的不同未必会直接结束请�
 NGX_HTTP_SERVER_REWRITEPHASE阶段,和第3阶段NGX_HTTP_REWRITE_PHASE都属于地址重写,也都是针对rewrite模块而设定的阶段,前者用于server上下文里的
 地址重写,而后者用于location上下文里的地址重写.为什么要设置两个地址重写阶段,原因在于rewrite模块的相关指令(比如rewrite、if、set等)既
 可用于server上下文．又可用于location上下文.在客户端请求被Nginx接收后,首先做server查找与定位,在定位到server(如果没
-查找到就是默认server,见ngx_http_init_connection  ngx_http_set_virtual_server)后执行NGX_HTTP_SERVER_REWRITEPHASE阶段上的回调函数
-*/
+查找到就是默认server,见ngx_http_init_connection  ngx_http_set_virtual_server)后执行NGX_HTTP_SERVER_REWRITEPHASE阶段上的回调函数*/
 
-/*
-    注意ngx_http_phases定义的11个阶段是有顺序的,必须按照其定义的顺序执行.同时也要意识到,并不是说一个用户请求最多只能经过11个
+/*注意ngx_http_phases定义的11个阶段是有顺序的,必须按照其定义的顺序执行.同时也要意识到,并不是说一个用户请求最多只能经过11个
 HTTP模块提供的ngx_http_handler_pt方法来处理,NGX_HTTP_POST_READ_PHASE、NGX_HTTP_SERVER_REWRITE_PHASE、NGX_HTTP_REWRITE_PHASE、
 NGX_HTTP_PREACCESS_PHASE、NGX_HTTP_ACCESS_PHASE、NGX HTTP_CONTENT_PHASE、NGX_HTTP_LOG_PHASE这7个阶段可以包括任意多个处理方法,
 它们是可以同时作用于同一个用户请求的.而NGX_HTTP_FIND_CONFIG_PHASE、NGX_HTTP_POSTREWRITE_PHASE、NGX_HTTP_POST_ACCESS_PHASE、
 NGX_HTTP_TRY_FILES_PHASE这4个阶段则不允许HTTP模块加入自己的ngx_http_handler_pt方法处理用户请求,它们仅由HTTP框架实现.
 NGX_HTTP_FIND_CONFIG_PHASE、NGX_HTTP_POSTREWRITE_PHASE、NGX_HTTP_POST_ACCESS_PHASE、NGX_HTTP_TRY_FILES_PHASE这4个阶段则不允许HTTP模块
-加入自己的ngx_http_handler_pt方法处理用户请求,但是他们的会占用cmcf->phase_engine.handlers[]数组中的一个成员,见ngx_http_init_phase_handlers
-*/
+加入自己的ngx_http_handler_pt方法处理用户请求,但是他们的会占用cmcf->phase_engine.handlers[]数组中的一个成员,见ngx_http_init_phase_handlers  */
 typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_handlers           //所有阶段的checker在ngx_http_core_run_phases中调用
-    //在接收到完整的HTTP头部后处理的HTTP阶段   主要是获取客户端真实IP,因为客户端到nginx可能通过了vanish等缓存,
-    //ngx_http_realip_module(ngx_http_realip_init->ngx_http_realip_handler)
+
+    /*在接收到完整的HTTP头部后处理的HTTP阶段   主要是获取客户端真实IP,因为客户端到nginx可能通过了vanish等缓存,
+    ngx_http_realip_module(ngx_http_realip_init->ngx_http_realip_handler)*/
     NGX_HTTP_POST_READ_PHASE = 0, //该阶段方法有:ngx_http_realip_handler  POST有"在....后"的意思,POST_READ应该就是在解析完请求行和头部行后
 
 
@@ -237,21 +231,25 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
     //在NGX_HTTP_FIND_CONFIG_PHASE阶段寻找到匹配的location之后再修改请求的URI  Location内请求地址重写阶段
     /*在NGX_HTTP_FIND_CONFIG_PHASE阶段之后重写URL的意义与NGX_HTTP_SERVER_REWRITE_PHASE阶段显然是不同的,因为这两者会导致查找到不同的location块(location是与URI进行匹配的)*/
     NGX_HTTP_REWRITE_PHASE,//该阶段handler方法有:ngx_http_rewrite_handler
-    /*这一阶段是用于在rewrite重写URL后重新跳到NGX_HTTP_FIND_CONFIG_PHASE阶段,找到与新的URI匹配的location.所以,这一阶段是无法由第三方HTTP模块处理的,而仅由ngx_http_core_module模块使用*/
+
+    /*这一阶段是用于在rewrite重写URL后重新跳到NGX_HTTP_FIND_CONFIG_PHASE阶段,找到与新的URI匹配的location.
+     * 所以,这一阶段是无法由第三方HTTP模块处理的,而仅由ngx_http_core_module模块使用*/
+
     /*这一阶段是用于在rewrite重写URL后,防止错误的nginxconf配置导致死循环(递归地修改URI),因此,这一阶段仅由ngx_http_core_module模块处理.
-目前,控制死循环的方式很简单,首先检查rewrite的次数,如果一个请求超过10次重定向,扰认为进入了rewrite死循环,这时在NGX_HTTP_POSTREWRITE_PHASE
-阶段就会向用户返回500,表示服务器内部错误*/
+        目前,控制死循环的方式很简单,首先检查rewrite的次数,如果一个请求超过10次重定向,扰认为进入了rewrite死循环,这时在NGX_HTTP_POSTREWRITE_PHASE
+        阶段就会向用户返回500,表示服务器内部错误*/
     NGX_HTTP_POST_REWRITE_PHASE,//该阶段handler方法有:无,不允许用户添加hander方法在该阶段
 
     /*NGXHTTPPREACCESSPHASE、NGX_HTTP_ACCESS_PHASE、NGX HTTPPOST_ACCESS_PHASE,很好理解,做访问权限检查的前期、中期、后期工作,
-其中后期工作是固定的,判断前面访问权限检查的结果(状态码存故在字段r->access_code内),如果当前请求没有访问权限,那么直接返回状
-态403错误,所以这个阶段也无法去挂载额外的回调函数.*/
+    其中后期工作是固定的,判断前面访问权限检查的结果(状态码存故在字段r->access_code内),如果当前请求没有访问权限,那么直接返回状
+    态403错误,所以这个阶段也无法去挂载额外的回调函数.*/
 
     //处理NGX_HTTP_ACCESS_PHASE阶段前,HTTP模块可以介入的处理阶段
     NGX_HTTP_PREACCESS_PHASE,//该阶段handler方法有:ngx_http_degradation_handler  ngx_http_limit_conn_handler  ngx_http_limit_req_handler ngx_http_realip_handler
 
     /*这个阶段用于让HTTP模块判断是否允许这个请求访问Nginx服务器*/
     NGX_HTTP_ACCESS_PHASE,//该阶段handler方法有:ngx_http_access_handler  ngx_http_auth_basic_handler  ngx_http_auth_request_handler
+
     /*当NGX_HTTP_ACCESS_PHASE阶段中HTTP模块的handler处理方法返回不允许访问的错误码时(实际是NGX_HTTP_FORBIDDEN或者NGX_HTTP_UNAUTHORIZED),
     这个阶段将负责构造拒绝服务的用户响应.所以,这个阶段实际上用于给NGX_HTTP_ACCESS_PHASE阶段收尾*/
     NGX_HTTP_POST_ACCESS_PHASE,//该阶段handler方法有:无,不允许用户添加hander方法在该阶段
@@ -259,16 +257,16 @@ typedef enum { //各个阶段的http框架check函数见ngx_http_init_phase_hand
     NGX_HTTP_PRECONTENT_PHASE,
 
     /* 其余10个阶段中各HTTP模块的处理方法都是放在全局的ngx_http_core_main_conf_t结构体中的,也就是说,它们对任何一个HTTP请求都是有效的
- NGX_HTTP_CONTENT_PHASE仅仅针对某种请求唯一生效
- ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时(也就是mytest配置项所在的location)才会被调用.
-这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
-段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
-向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
-仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t
-结构体的handler中.
- 注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,
-那么每个请求在NGX_HTTP_CONTENT PHASE阶段只能有一个ngx_http_handler_pt处理方法.而使用第一种方法时是没有这个限制的,NGX_HTTP_CONTENT_PHASE阶
-段可以经由任意个HTTP模块处理.*/
+     NGX_HTTP_CONTENT_PHASE仅仅针对某种请求唯一生效
+     ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时(也就是mytest配置项所在的location)才会被调用.
+    这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
+    段来处理用户请求时,如果希望这个ngx_http_handler_pt方法应用于所有的用户请求,则应该在ngx_http_module_t接口的postconfiguration方法中,
+    向ngx_http_core_main_conf_t结构体的phases[NGX_HTTP_CONTENT_PHASE]动态数组中添加ngx_http_handler_pt处理方法;反之,如果希望这个方式
+    仅应用于URI匹配丁某些location的用户请求,则应该在一个location下配置项的回调方法中,把ngx_http_handler_pt方法设置到ngx_http_core_loc_conf_t结构体的handler中.
+
+       注意ngx_http_core_loc_conf_t结构体中仅有一个handler指针,它不是数组,这也就意味着如果采用上述的第二种方法添加ngx_http_handler_pt处理方法,
+    那么每个请求在NGX_HTTP_CONTENT PHASE阶段只能有一个ngx_http_handler_pt处理方法.而使用第一种方法时是没有这个限制的,NGX_HTTP_CONTENT_PHASE阶
+    段可以经由任意个HTTP模块处理.*/
 
     //用于处理HTTP请求内容的阶段,这是大部分HTTP模块最喜欢介入的阶段  //CONTENT_PHASE阶段的处理回调函数ngx_http_handler_pt比较特殊,见ngx_http_core_content_phase
     NGX_HTTP_CONTENT_PHASE, //该阶段handler方法有:ngx_http_autoindex_handler  ngx_http_dav_handler ngx_http_gzip_static_handler  ngx_http_index_handler ngx_http_random_index_handler ngx_http_static_handler
@@ -286,46 +284,50 @@ typedef ngx_int_t (*ngx_http_phase_handler_pt)(ngx_http_request_t *r,
 一个http{}块解析完毕后将会根据nginx.conf中的配置产生由ngx_http_phase_handler_t组成的数组,在处理HTTP请求时,一般情况下这些阶段是顺序
 向后执行的,但ngx_http_phase_handler_t中的next成员使得它们也可以非顺序执行.ngx_http_phase_engine_t结构体就是所有ngx_http_phase_handler_t组成的数组*/
 
-//注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers中,见ngx_http_init_phase_handlers
-//注意:ngx_http_phase_handler_s结构体仅表示处理阶段中的一个处理方法
+/*注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers中,见ngx_http_init_phase_handlers
+注意:ngx_http_phase_handler_s结构体仅表示处理阶段中的一个处理方法*/
 struct ngx_http_phase_handler_s { //ngx_http_phase_engine_t结构体就是所有ngx_http_phase_handler_t组成的数组,也就是ngx_http_phase_handler_s结构存储在ngx_http_phase_handler_t
-    /*在处理到某一个HTTP阶段时,HTTP框架将会在checker方法已实现的前提下首先调用checker方法来处理请求,而不会直接调用任何阶段中的handler方
-法,只有在checker方法中才会去调用handler方法.因此,事实上所有的checker方法都是由框架中的ngx_http_core module模块实现的,且普通的HTTP模块无
-法重定义checker方法*/
 
-/*  HTTP框架为11个阶段实现的checker方法  赋值见ngx_http_init_phase_handlers  //所有阶段的checker在ngx_http_core_run_phases中调用
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
-┃    阶段名称                  ┃    checker方法                   ┃
-┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
-┃   NGX_HTTP_POST_READ_PHASE   ┃ngx_http_core_generic_phase       ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP SERVER REWRITE PHASE ┃ngx_http_core_rewrite_phase       ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP FIND CONFIG PHASE    ┃ngx_http_core find config_phase   ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP REWRITE PHASE        ┃ngx_http_core_rewrite_phase       ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP POST REWRITE PHASE   ┃ngx_http_core_post_rewrite_phase  ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP PREACCESS PHASE      ┃ngx_http_core_generic_phase       ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP ACCESS PHASE         ┃ngx_http_core_access_phase        ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP POST ACCESS PHASE    ┃ngx_http_core_post_access_phase   ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP TRY FILES PHASE      ┃ngx_http_core_try_files_phase     ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP CONTENT PHASE        ┃ngx_http_core_content_phase       ┃
-┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
-┃NGX HTTP LOG PHASE            ┃ngx_http_core_generic_phase       ┃
-┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛
-*/
-    //处于同一ngx_http_phases阶段的所有ngx_http_phase_handler_t的checker指向相同的函数,见ngx_http_init_phase_handlers
-    //ngx_http_phases阶段中的每一个阶段都有对应的checker函数,通过该checker函数来执行各自对应的.该checker函数在ngx_http_core_run_phases中执行
+    /*在处理到某一个HTTP阶段时,HTTP框架将会在checker方法已实现的前提下首先调用checker方法来处理请求,而不会直接调用任何阶段中的handler方
+    法,只有在checker方法中才会去调用handler方法.因此,事实上所有的checker方法都是由框架中的ngx_http_core module模块实现的,且普通的HTTP模块无
+    法重定义checker方法*/
+
+    /*  HTTP框架为11个阶段实现的checker方法  赋值见ngx_http_init_phase_handlers  //所有阶段的checker在ngx_http_core_run_phases中调用
+    ┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+    ┃    阶段名称                  ┃    checker方法                   ┃
+    ┏━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+    ┃   NGX_HTTP_POST_READ_PHASE   ┃ngx_http_core_generic_phase       ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP SERVER REWRITE PHASE ┃ngx_http_core_rewrite_phase       ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP FIND CONFIG PHASE    ┃ngx_http_core find config_phase   ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP REWRITE PHASE        ┃ngx_http_core_rewrite_phase       ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP POST REWRITE PHASE   ┃ngx_http_core_post_rewrite_phase  ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP PREACCESS PHASE      ┃ngx_http_core_generic_phase       ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP ACCESS PHASE         ┃ngx_http_core_access_phase        ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP POST ACCESS PHASE    ┃ngx_http_core_post_access_phase   ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP TRY FILES PHASE      ┃ngx_http_core_try_files_phase     ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP CONTENT PHASE        ┃ngx_http_core_content_phase       ┃
+    ┣━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━┫
+    ┃NGX HTTP LOG PHASE            ┃ngx_http_core_generic_phase       ┃
+    ┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛
+    */
+
+    /*处于同一ngx_http_phases阶段的所有ngx_http_phase_handler_t的checker指向相同的函数,见ngx_http_init_phase_handlers
+    ngx_http_phases阶段中的每一个阶段都有对应的checker函数,通过该checker函数来执行各自对应的.该checker函数在ngx_http_core_run_phases中执行*/
     ngx_http_phase_handler_pt  checker; //各个阶段的初始化赋值在ngx_http_init_phase_handlers中的checker函数中执行各自的handler方法,cheker是http框架函数,handler是对应的用户具体模块函数
-    //除ngx_http_core module模块以外的HTTP模块,只能通过定义handler方法才能介入某一个HTTP处理阶段以处理请求
-    //ngx_http_init_phase_handlers中ngx_http_phase_handler_s->handle指向了ngx_http_phase_t->handlers[i]
+
+    /*除ngx_http_core module模块以外的HTTP模块,只能通过定义handler方法才能介入某一个HTTP处理阶段以处理请求
+    ngx_http_init_phase_handlers中ngx_http_phase_handler_s->handle指向了ngx_http_phase_t->handlers[i]  */
     ngx_http_handler_pt        handler; //只有在checker方法中才会去调用handler方法,见ngx_http_core_run_phases
+
     /*将要执行的下一个HTTP处理阶段的序号
     next的设计使得处理阶段不必按顺序依次执行,既可以向后跳跃数个阶段继续执行,也可以跳跃到之前曾经执行过的某个阶段重新执行.通常,
     next表示下一个处理阶段中的第1个ngx_http_phase_handler_s处理方法*/
@@ -338,13 +340,14 @@ struct ngx_http_phase_handler_s { //ngx_http_phase_engine_t结构体就是所有
 /*注意通常,在任意一个ngx_http_phases阶段,都可以拥有零个或多个ngx_http_phase_handler_s结构体,其含义更接近于某个HTTP模块的处理方法.
 一个http{}块解析完毕后将会根据nginx.conf中的配置产生由ngx_http_phase_handler_t组成的数组,在处理HTTP请求时,一般情况下这些阶段是顺序
 向后执行的,但ngx_http_phase_handler_t中的next成员使得它们也可以非顺序执行.ngx_http_phase_engine_t结构体就是所有ngx_http_phase_handler_t组成的数组
-ngx_http_phase_engine_t中保存了在当前nginx.conf配置下,一个用户请求可能经历的所有ngx_http_handler_pt处理方法,这是所有HTTP模块可以合作处理用户请求
-的关键！这个ngx_http_phase_engine_t结构体是保存在全局的ngx_http_core_main_conf_t结构体中的
+ngx_http_phase_engine_t中保存了在当前nginx.conf配置下,一个用户请求可能经历的所有ngx_http_handler_pt处理方法,这是所有HTTP模块可以合作处理用户请求的关键！
+这个ngx_http_phase_engine_t结构体是保存在全局的ngx_http_core_main_conf_t结构体中的
 在HTTP框架的初始化过程中,任何HTTP模块都可以在ngx_http_module_t接口的postconfiguration方法中将自定义的方法添加到handler动态数组中,这样,这个方法就会最
 终添加到ngx_http_core_main_conf_t->phase_engine中*/
 
 //空间创建及赋值参考ngx_http_init_phase_handlers
 typedef struct { //ngx_http_phase_engine_t结构体是保存在全局的ngx_http_core_main_conf_t结构体中的
+
     /* handlers是由ngx_http_phase_handler_t构成的数组首地址,它表示一个请求可能经历的所有ngx_http_handler_pt处理方法,
     配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段)*/
     ngx_http_phase_handler_t  *handlers;
@@ -352,18 +355,18 @@ typedef struct { //ngx_http_phase_engine_t结构体是保存在全局的ngx_http
     /* 表示NGX_HTTP_SERVER_REWRITE_PHASE阶段第1个ngx_http_phase_handler_t处理方法在handlers数组中的序号,用于在执行HTTP请求
     的任何阶段中快速跳转到NGX_HTTP_SERVER_REWRITE_PHASE阶段处理请求 */
     ngx_uint_t                 server_rewrite_index; //赋值参考ngx_http_init_phase_handlers
-    /*
-    表示NGX_HTTP_REWRITE_PHASE阶段第1个ngx_http_phase_handler_t处理方法在handlers数组中的序号,用于在执行HTTP请求的任何阶段中
-    快速跳转到NGX_HTTP_REWRITE_PHASE阶段处理请求
-     */
+
+    /*表示NGX_HTTP_REWRITE_PHASE阶段第1个ngx_http_phase_handler_t处理方法在handlers数组中的序号,用于在执行HTTP请求的任何阶段中
+    快速跳转到NGX_HTTP_REWRITE_PHASE阶段处理请求*/
     ngx_uint_t                 location_rewrite_index; //赋值参考ngx_http_init_phase_handlers
 } ngx_http_phase_engine_t;
 
 
 typedef struct { //存储在ngx_http_core_main_conf_t->phases[]
-    //handlers动态数组保存着每一个HTTP模块初始化时添加到当前阶段的处理方法
-    //注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers, 见ngx_http_init_phase_handlers
-    //各个模块通过postconfiguration()接口加入到各自阶段的该数组中,例如参考ngx_http_realip_init
+
+    /*handlers动态数组保存着每一个HTTP模块初始化时添加到当前阶段的处理方法
+    注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers, 见ngx_http_init_phase_handlers
+    各个模块通过postconfiguration()接口加入到各自阶段的该数组中,例如参考ngx_http_realip_init*/
     ngx_array_t                handlers; //数组中存储的是ngx_http_handler_pt   ngx_http_init_phase_handlers中ngx_http_phase_handler_s->handle指向了ngx_http_phase_t->handlers[i]
 } ngx_http_phase_t;
 
@@ -372,11 +375,10 @@ typedef struct { //存储在ngx_http_core_main_conf_t->phases[]
 ngx_http_core_loc_conf_s(ngx_http_core_create_loc_conf创建) */
 
 typedef struct {//初始化赋值参考ngx_http_core_module_ctx
-/*
-servers动态数组中的每一个元素都是一个指针,它指向用于表示server块的ngx_http_core_srv_conf_t结构体的地址(属于ngx_http_core_module模块).
+/*servers动态数组中的每一个元素都是一个指针,它指向用于表示server块的ngx_http_core_srv_conf_t结构体的地址(属于ngx_http_core_module模块).
 ngx_http_core_srv_conf_t结构体中有1个ctx指针,它指向解析server块时新生成的ngx_http_conf_ctx_t结构体,因此只要获取到http{}的上下文ctx,就能找到http{}
-中server{}块的上下文ctx.图形化理解参考图10-3
- */
+中server{}块的上下文ctx*/
+
     /*
      http {
         server {
@@ -385,43 +387,49 @@ ngx_http_core_srv_conf_t结构体中有1个ctx指针,它指向解析server块时
         server {
             xxx;
         }
-     } */ //servers里面存储的是当解析到http{}中server{}行的时候,该server对应的ngx_http_core_srv_conf_t,参考ngx_http_core_server中的ngx_array_push附近代码可以看出
+     } */
+
+    //servers里面存储的是当解析到http{}中server{}行的时候,该server对应的ngx_http_core_srv_conf_t,参考ngx_http_core_server中的ngx_array_push附近代码可以看出
     ngx_array_t                servers;  /* ngx_http_core_srv_conf_t */ //在ngx_http_core_create_main_conf中创建server项
 
     /*在HTTP框架的初始化过程中,任何HTTP模块都可以在ngx_http_module_t接口的postconfiguration方法中将自定义的方法添加到ngx_http_phase_t->handler动态数组中,
     这样,这个方法就会最终添加到ngx_http_core_main_conf_t->phase_engine中*/
-    //由下面各阶段处理方法构成的phases数组构建的阶段引擎才是流水式处理HTTP请求的实际数据结构
-    //注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers中,见ngx_http_init_phase_handlers
+
+    /*由下面各阶段处理方法构成的phases数组构建的阶段引擎才是流水式处理HTTP请求的实际数据结构
+    注意:每一个阶段中最后加入到handlers[]中的会首先添加到cmcf->phase_engine.handlers中,见ngx_http_init_phase_handlers*/
     ngx_http_phase_engine_t    phase_engine; //在ngx_http_core_main_conf_t中关于HTTP阶段有两个成员:phase_engine和phases
     //ngx_http_headers_in中的全部成员都在该hash表中,见ngx_http_init_headers_in_hash
     ngx_hash_t                 headers_in_hash;//见ngx_http_headers_in  ngx_http_init_headers_in_hash
 
-    //core http变量相关的三个结构体variables_hash   variables   variables_keys
-    //最终模块内部以及通过set等在配置文件中设置的变量(variables_keys中的)最终存放到variables_hash中,set配置的变量存放到variables中,variables_keys最终置空
-    //从ngx_http_variables_init_vars中可以看出并不是所有的变量都会放入variables_hash,只有variables_keys中的变量才会全部放入variables_hash
-    //variables中的变量可能在variables_keys中,也可能不在variables_keys中
+    /*core http变量相关的三个结构体variables_hash   variables   variables_keys
+    最终模块内部以及通过set等在配置文件中设置的变量(variables_keys中的)最终存放到variables_hash中,set配置的变量存放到variables中,variables_keys最终置空
+    从ngx_http_variables_init_vars中可以看出并不是所有的变量都会放入variables_hash,只有variables_keys中的变量才会全部放入variables_hash
+    variables中的变量可能在variables_keys中,也可能不在variables_keys中*/
+
     /*NGX HTTP_VAR_INDEXED、NGXHTTP_VARNOHASH、变量cmcf->variables_hash以及取值函数ngx_http_get_variable等,它们都是为SSI模块实现而设计的*/
     ngx_hash_t                 variables_hash;//赋值见ngx_http_variables_init_vars  //key为ngx_http_variable_t->name, value为ngx_http_variable_t
 
     /*在解析配置文件中的时候,遇到set等配置变量的时候,会把对应的变量(模块自有变量外的)添加到variables数组,但是在解析配置文件过程
     中或者解析配置文件前,并没有把模块中自带的变量加入variables数组,而variables_keys中则存储了模块中自定义的以及set等在配置文件中解析到的变量*/
+
     //variables在ngx_http_variables_init_vars中会获取到对应的ngx_http_variable_t成员值
 
-/*Nginx在配置文件的解析过程中会遇到用户使用变量的情况,所有这些被用户在配置文件里使用的变量都会先通过
-ngx_http_get_variable_index0而添加到cmcf->variables内.如果配置文件中出现:set $file ta;,在这里这个$file变量既是定义,又是使用,
-先定义它,然后把字符串"ta"赋值给它,这也是一种使用,所以它会被加入到cmcf->variables内,可以简单地认为Nginx在解析配置文件的过程
-中遇到的所有变量都会被加入到cmcf->variables内.有些变量虽然没有出现在配置文件内,但是以Nginx默认设置的形式出现在源代码里,比如
-ngx_http_log_module模块内的ngx_http_combined_fmt全局静态变量里就出现了一些Nginx变量.
-    虽然Nginx默认提供的变量有很多,但只需把我们在配置文件里真正用到了的变量给挑出来,当配置文件解析完后,所有用到的变量也被集中起来了*/
+    /*Nginx在配置文件的解析过程中会遇到用户使用变量的情况,所有这些被用户在配置文件里使用的变量都会先通过
+    ngx_http_get_variable_index0而添加到cmcf->variables内.如果配置文件中出现:set $file ta;,在这里这个$file变量既是定义,又是使用,
+    先定义它,然后把字符串"ta"赋值给它,这也是一种使用,所以它会被加入到cmcf->variables内,可以简单地认为Nginx在解析配置文件的过程
+    中遇到的所有变量都会被加入到cmcf->variables内.有些变量虽然没有出现在配置文件内,但是以Nginx默认设置的形式出现在源代码里,比如
+    ngx_http_log_module模块内的ngx_http_combined_fmt全局静态变量里就出现了一些Nginx变量.
+        虽然Nginx默认提供的变量有很多,但只需把我们在配置文件里真正用到了的变量给挑出来,当配置文件解析完后,所有用到的变量也被集中起来了*/
 
-/*ngx_http_core_main_conf_t->variabels数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variabels数组成员结构是
-ngx_variable_value_t这两个结构的关系很密切,一个所谓变量,一个所谓变量值
-r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
-相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
-量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值*/
+    /*ngx_http_core_main_conf_t->variabels数组成员的结构式ngx_http_variable_s, ngx_http_request_s->variabels数组成员结构是
+    ngx_variable_value_t这两个结构的关系很密切,一个所谓变量,一个所谓变量值
+    r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与var_value对,所以两个数组里的同一个下标位置元素刚好就是
+    相互对应的变量名和变量值,而我们在使用某个变量时总会先通过函数ngx_http_get_variable_index获得它在变量名数组里的index下标,也就是变
+    量名里的index字段值,然后利用这个index下标进而去变量值数组里取对应的值*/
 
-//用户需要使用的变量才加入到variables,variables_keys中的变量时包含使用的和不使用的都在里面.
-//变量ngx_http_script_var_code_t->index表示Nginx变量$file在ngx_http_core_main_conf_t->variables数组内的下标,对应每个请求的变量值存储空间就为r->variables[code->index],参考ngx_http_script_set_var_code
+    /*用户需要使用的变量才加入到variables,variables_keys中的变量时包含使用的和不使用的都在里面.
+    变量ngx_http_script_var_code_t->index表示Nginx变量$file在ngx_http_core_main_conf_t->variables数组内的下标,
+     对应每个请求的变量值存储空间就为r->variables[code->index],参考ngx_http_script_set_var_code*/
     ngx_array_t                variables;       /* ngx_http_variable_t */  //ngx_http_get_variable_index中分配空间 注意和 ngx_http_request_s->variables的区别
     ngx_array_t prefix_variables;  /* ngx_http_variable_t */
     ngx_uint_t ncaptures;
@@ -432,13 +440,14 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
     ngx_uint_t                 variables_hash_max_size; //默认值见ngx_http_core_init_main_conf
     ngx_uint_t                 variables_hash_bucket_size; //默认值见ngx_http_core_init_main_conf
 
-    //core http变量相关的三个结构体variables_hash   variables   variables_keys
-    //解析完配置参数后,variables_keys中存放的是模块中自带的变量或者set在配置文件中设置的变量,见ngx_http_add_variable
-    //ngx_http_variables_add_core_vars把ngx_http_core_variables中的各种变量信息存放到cmcf->variables_keys中
-    //注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建
-    //variables数组中只包含从配置文件中通过set配置的模块中自定义变量外的变量,variables_keys包括模块自定义的和set等配置项配置的变量,
-    //variables中的变量可能在variables_keys中,也可能不在variables_keys中,见ngx_http_variables_init_vars
-    //最终该variables_keys表中的成员会加入到variables_hash中,见ngx_http_variables_init_vars,所以variables_keys算是一个临时变量
+    /*core http变量相关的三个结构体variables_hash   variables   variables_keys
+    解析完配置参数后,variables_keys中存放的是模块中自带的变量或者set在配置文件中设置的变量,见ngx_http_add_variable
+    ngx_http_variables_add_core_vars把ngx_http_core_variables中的各种变量信息存放到cmcf->variables_keys中.
+
+    注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建
+    variables数组中只包含从配置文件中通过set配置的模块中自定义变量外的变量,variables_keys包括模块自定义的和set等配置项配置的变量,
+    variables中的变量可能在variables_keys中,也可能不在variables_keys中,见ngx_http_variables_init_vars
+    最终该variables_keys表中的成员会加入到variables_hash中,见ngx_http_variables_init_vars,所以variables_keys算是一个临时变量*/
 
     /*除了http核心模块ngx_http_core_module以外,其他模块都会这么直接或间接地把自身支持的内部变量加到cmcf->variables_keys内,再比如
     ngx_http_proxy_module模块,其相关执行过程如下.ngx_http_proxy_add_variables()  一>ngx_http_add_variable()  一>ngx_hash_add_key()
@@ -446,11 +455,12 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
         所有这些变量需要检查其是否合法,因为Nginx不能让用户在配置文件里使用一个非法的变量,这就需要cmcf->variables_keys的帮忙.见ngx_http_variables_init_vars*/
     ngx_hash_keys_arrays_t    *variables_keys; //key为ngx_http_variable_t->name, value为ngx_http_variable_t
 
-    //这里是个数组的原因是:如果配置中有listen 1.1.1.1:50  2.2.2.2:50,则端口都是50,但监听IP不一样,他们存储在该数组中,如果端口一样.如果端口和IP地址一样,则会以第一条为准,算一条
-    //则放入到同一个ngx_http_conf_port_t节点中,如果有其他端口地址,则放到下一个ngx_http_conf_port_t节点中,不同端口存储在该结构体的不同节点
-    //所有http中的listen,包括在不同server{]种的listen,他们的listen头添加到ngx_http_core_main_conf_t->ports,见ngx_http_add_listen
-    //将addrs排序,带通配符的地址排在后面, (listen 1.2.2.2:30 bind) > listen 1.1.1.1:30  > listen *:30,见ngx_http_block
+    /*这里是个数组的原因是:如果配置中有listen 1.1.1.1:50  2.2.2.2:50,则端口都是50,但监听IP不一样,他们存储在该数组中,如果端口一样.如果端口和IP地址一样,则会以第一条为准,算一条
+    则放入到同一个ngx_http_conf_port_t节点中,如果有其他端口地址,则放到下一个ngx_http_conf_port_t节点中,不同端口存储在该结构体的不同节点
+    所有http中的listen,包括在不同server{]种的listen,他们的listen头添加到ngx_http_core_main_conf_t->ports,见ngx_http_add_listen
+    将addrs排序,带通配符的地址排在后面, (listen 1.2.2.2:30 bind) > listen 1.1.1.1:30  > listen *:30,见ngx_http_block*/
     ngx_array_t               *ports;//没解析到一个listen配置项,就添加一个ngx_http_conf_port_t  赋值见ngx_http_add_listen,存储的是ngx_http_conf_port_t结构
+
     /*在ngx_http_core_main_conf_t中关于HTTP阶段有两个成员:phase_engine和phases,其中phase_engine控制运行过程中一个HTTP请求所要
     经过的HTTP处理阶段,它将配合ngx_http_request_t结构体中的phase_handler成员使用(phase_handler指定了当前请求应当执行哪一个HTTP阶段);
     而phases数组更像一个临时变量,它实际上仅会在Nginx启动过程中用到,它的唯一使命是按照11个阶段的概念初始化phase_engine中的handlers数组*/
@@ -461,9 +471,9 @@ r->variables这个变量和cmcf->variables是一一对应的,形成var_ name与v
      许HTTP模块加入自己的ngx_http_handler_pt方法处理用户请求,它们仅由HTTP框架实现.其他7个阶段允许我们加入ngx_http_handler_pt方法
     因此最后加入到phases[]各个阶段的ngx_http_handler_pt方法不会出现这四种,因此最终ngx_http_phase_engine_t->handlers数组中也不会出现这四个阶段的处理方法*/
 
-    //phases数组更像一个临时变量,它实际上仅会在Nginx启动过程中用到,它的唯一使命是按照11个阶段的概念初始化phase_engine中的handlers数组
-    //在ngx_http_block中在执行每个模块module->postconfiguration接口的时候向phases数组添加ngx_http_handler_pt处理方法,例如可以参考函数ngx_http_rewrite_init等
-    //空间创建和初始化见ngx_http_init_phases
+    /*phases数组更像一个临时变量,它实际上仅会在Nginx启动过程中用到,它的唯一使命是按照11个阶段的概念初始化phase_engine中的handlers数组
+    在ngx_http_block中在执行每个模块module->postconfiguration接口的时候向phases数组添加ngx_http_handler_pt处理方法,例如可以参考函数ngx_http_rewrite_init等
+    空间创建和初始化见ngx_http_init_phases*/
     ngx_http_phase_t phases[NGX_HTTP_LOG_PHASE + 1];
 } ngx_http_core_main_conf_t;
 
@@ -473,10 +483,10 @@ ngx_http_core_loc_conf_s(ngx_http_core_create_loc_conf创建) */
 
 typedef struct {
     /* array of the ngx_http_server_name_t, "server_name" directive */
-    /*
-用于设置监听socket的指令主要有两个:server_name和listen.server_name指令用于实现虚拟主机的功能,会设置每个server块的虚拟主机名,
+    /*用于设置监听socket的指令主要有两个:server_name和listen.server_name指令用于实现虚拟主机的功能,会设置每个server块的虚拟主机名,
 在处理请求时会根据请求行中的host来转发请求,listen配置最终存放在ngx_http_core_main_conf_t->ports
 当前server块的虚拟主机名,如果存在的话,则会与HTTP请求中的Host头部做匹配,匹配上后再由当前ngx_http_core_srv_conf_t处理请求 */
+
     /*
      server {
          listen       80;
@@ -487,10 +497,11 @@ typedef struct {
     ngx_array_t server_names; //可以参考ngx_http_core_server_name
 
     /* server ctx */
-    /*
-    指向当前server{}中开辟ngx_http_conf_ctx_t空间的上下文,参考ngx_http_core_server, ngx_http_core_srv_conf_t结构空间都是由
-    ngx_http_conf_ctx_t中的srv_conf创建
-    */ //指向当前server块所属的ngx_http_conf_ctx_t结构体
+
+    /*指向当前server{}中开辟ngx_http_conf_ctx_t空间的上下文,参考ngx_http_core_server, ngx_http_core_srv_conf_t结构空间都是由
+    ngx_http_conf_ctx_t中的srv_conf创建*/
+
+    //指向当前server块所属的ngx_http_conf_ctx_t结构体
     ngx_http_conf_ctx_t        *ctx; //执行对应的server{}解析的时候开辟的ngx_http_conf_ctx_t
 
     u_char *file_name;
@@ -502,13 +513,13 @@ typedef struct {
     size_t                      request_pool_size; //默认4096,见ngx_http_core_merge_srv_conf
     size_t client_header_buffer_size;
 
-    //client_header_buffer_size为读取客户端数据时默认分配的空间,如果该空间不够存储http头部行和请求行,则会调用large_client_header_buffers
-    //从新分配空间,并把之前的空间内容拷贝到新空间中,所以,这意味着可变长度的HTTP请求行加上HTTP头部的长度总和不能超过large_client_ header_
-    //buffers指定的字节数,否则Nginx将会报错.
+    /*client_header_buffer_size为读取客户端数据时默认分配的空间,如果该空间不够存储http头部行和请求行,则会调用large_client_header_buffers
+    从新分配空间,并把之前的空间内容拷贝到新空间中,所以,这意味着可变长度的HTTP请求行加上HTTP头部的长度总和不能超过large_client_ header_
+    buffers指定的字节数,否则Nginx将会报错.*/
     ngx_bufs_t                  large_client_header_buffers;
-    //timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次,从而可以从epoll中返回,并跟新时间,判断哪些事件有超时,执行超时事件,例如客户端继上次
-    //发请求过来,隔了client_header_timeout时间后还没有新请求过来,这会关闭连接
-    //注意,在解析到完整的头部行和请求行后,会在ngx_http_process_request中会把读事件超时定时器删除
+    /* timer_resolution这个参数加上可以保证定时器每个这么多秒中断一次,从而可以从epoll中返回,并跟新时间,判断哪些事件有超时,执行超时事件,例如客户端继上次
+    发请求过来,隔了client_header_timeout时间后还没有新请求过来,这会关闭连接
+    注意,在解析到完整的头部行和请求行后,会在ngx_http_process_request中会把读事件超时定时器删除*/
     ngx_msec_t                  client_header_timeout; //默认60秒,如果不设置的话      注意和上面的large_client_header_buffers配合解释
 
     ngx_flag_t                  ignore_invalid_headers; //默认为1
@@ -531,10 +542,9 @@ typedef struct {
            }
        */
 
-    /*
-   ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
-     static_locations把locations中的节点从新组成新的static_locations三叉树
-     */
+    /*ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
+     static_locations把locations中的节点从新组成新的static_locations三叉树*/
+
     //ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
     ngx_http_core_loc_conf_t  **named_locations; //指向server{}中所有location中所有的名称name  location @name,见ngx_http_init_locations
 } ngx_http_core_srv_conf_t;
@@ -562,13 +572,15 @@ typedef struct { //创建空间和赋值见ngx_http_add_addrs
 } ngx_http_virtual_names_t;
 
 
-//如果http{}中有未精确配置的listen(bind = 0)切存在通配符listen(listen *:0)则这些未精确配置项的ngx_http_addr_conf_s成员取值就是通配符配置项
-//对应的ngx_http_conf_addr_t中的相关成员,见ngx_http_add_addrs
-//ngx_http_port_t->ngx_http_in_addr_t->ngx_http_addr_conf_s
-//这里面存储有server_name配置信息以及该ip:port对应的上下文信息
+/*如果http{}中有未精确配置的listen(bind = 0)切存在通配符listen(listen *:0)则这些未精确配置项的ngx_http_addr_conf_s成员取值就是通配符配置项
+对应的ngx_http_conf_addr_t中的相关成员,见ngx_http_add_addrs
+ngx_http_port_t->ngx_http_in_addr_t->ngx_http_addr_conf_s
+这里面存储有server_name配置信息以及该ip:port对应的上下文信息*/
 struct ngx_http_addr_conf_s {//创建空间赋值在ngx_http_add_addrs. 该结构体是ngx_http_in_addr_t中的conf成员
-//此外,ngx_http_connection_t->addr_conf也指向该结构
+    //此外,ngx_http_connection_t->addr_conf也指向该结构
+
     /* the default server configuration for this address:port */
+
     /* 相同listen ip:port出现在不同的server中,那么opt指向最后解析的listen配置中带有default_server选项所对应的server{}上下文ctx,如果几个listen
        都没有加default参数,则该值为解析到的第一个ip:port所在server{}见ngx_http_add_addresses
            如果ip:port只处于一个server{}中,则默认初始化的时候直接指向listen ip:port所在server{},见ngx_http_add_address*/
@@ -588,8 +600,8 @@ struct ngx_http_addr_conf_s {//创建空间赋值在ngx_http_add_addrs. 该结�
 typedef struct {//该结构存放在ngx_http_port_t
     in_addr_t                  addr; //该listen的地址, = sin->sin_addr.s_addr;见ngx_http_add_addrs
 
-    //如果http{}中有未精确配置的listen(bind = 0)切存在通配符listen(listen *:0)则这些未精确配置项的ngx_http_addr_conf_s成员取值就是通配符配置项
-    //对应的ngx_http_conf_addr_t中的相关成员,见ngx_http_add_addrs
+    /*如果http{}中有未精确配置的listen(bind = 0)切存在通配符listen(listen *:0)则这些未精确配置项的ngx_http_addr_conf_s成员取值就是通配符配置项
+    对应的ngx_http_conf_addr_t中的相关成员,见ngx_http_add_addrs*/
     ngx_http_addr_conf_t       conf;//这里面存储有server_name配置信息以及该ip:port对应的上下文信息
 } ngx_http_in_addr_t;//创建空间赋值在ngx_http_add_addrs,是从ngx_http_conf_addr_t获取到的
 
@@ -603,9 +615,9 @@ typedef struct {
 
 #endif
 
-//ngx_http_port_t->ngx_http_in_addr_t->ngx_http_addr_conf_s
-//见ngx_http_add_addrs
-//ngx_connection_t->listening->servers指向该结构,见ngx_http_init_connection
+/*ngx_http_port_t->ngx_http_in_addr_t->ngx_http_addr_conf_s
+见ngx_http_add_addrs
+ngx_connection_t->listening->servers指向该结构,见ngx_http_init_connection*/
 typedef struct {//该结构最终由ngx_conf_t->cycle->listening->servers存储该空间,见ngx_http_init_listening
     /* ngx_http_in_addr_t or ngx_http_in6_addr_t */
     void                      *addrs; //创建空间在ngx_http_add_addrs  这是个数组结构
@@ -615,8 +627,7 @@ typedef struct {//该结构最终由ngx_conf_t->cycle->listening->servers存储�
 } ngx_http_port_t; //这里面的值都是从ngx_http_conf_port_t->ngx_http_conf_addr_t里面获取到的, ngx_http_add_addrs -> ngx_http_add_addrs,是从ngx_http_conf_port_t->ngx_http_conf_addr_t[]获取到的
 
 
-/*
-ngx_http_core_main_conf_t
+/*ngx_http_core_main_conf_t
     |---> prots: 监听的端口号的数组
                 |---> ngx_http_conf_port_t:端口号的配置信息 (ngx_http_port_t内容也是从该结构中获取->ngx_http_in_addr_t)
                                |---> addrs:在该端口号上,监听的所有地址的数组 该addrs下的所有端口相同
@@ -628,22 +639,23 @@ ngx_http_core_main_conf_t
                                                            |---> wc_head:同hash,server_name含前缀通配符.
                                                            |---> wc_tail:同hash,server_name含后缀通配符.
 */
-//所有http中的listen,包括在不同server{]种的listen,他们的listen头添加到ngx_http_core_main_conf_t->ports,见ngx_http_add_listen
-//该结构存储在ngx_http_core_main_conf_t中的ports,它用来存储listen配置项的相关信息
-//所有listen的端口相同,IP不同的listen信息全部存储在该结构中,不同的ip地址放入addrs数组中.监听端口配置信息,addrs是在该端口上所有监听地址的数组.
+
+/*所有http中的listen,包括在不同server{]种的listen,他们的listen头添加到ngx_http_core_main_conf_t->ports,见ngx_http_add_listen
+该结构存储在ngx_http_core_main_conf_t中的ports,它用来存储listen配置项的相关信息
+所有listen的端口相同,IP不同的listen信息全部存储在该结构中,不同的ip地址放入addrs数组中.监听端口配置信息,addrs是在该端口上所有监听地址的数组.*/
 typedef struct { //见ngx_http_add_listen     (ngx_http_port_t->ngx_http_in_addr_t内容也是从该结构中获取)
     ngx_int_t                  family; //协议族
     in_port_t                  port; //listen命令配置监听的端口
-//对于每一个端口信息(ngx_http_conf_port_t),里面有一个字段为addrs,这个字段是一个数组,这个数组内存放的全是地址信息(ngx_http_conf_addr_t),一个地址信息
-//(ngx_http_conf_addr_t)对应着一个ip:port
-    //相同port不同IP,那么就用这个区分,他们有不同的ngx_http_conf_addr_t信息.如果两个server{}有相同的listen ip:port,则会创建两个ngx_http_conf_addr_t,见ngx_http_add_addresses
-    //两个在不同server{]中的相同IP:port,其在addrs中也是存在的两个ngx_http_conf_addr_t,各自有各自的
+
+    /*对于每一个端口信息(ngx_http_conf_port_t),里面有一个字段为addrs,这个字段是一个数组,这个数组内存放的全是地址信息(ngx_http_conf_addr_t),
+     一个地址信息(ngx_http_conf_addr_t)对应着一个ip:port;
+    相同port不同IP,那么就用这个区分,他们有不同的ngx_http_conf_addr_t信息.如果两个server{}有相同的listen ip:port,则会创建两个ngx_http_conf_addr_t,见ngx_http_add_addresses
+    两个在不同server{]中的相同IP:port,其在addrs中也是存在的两个ngx_http_conf_addr_t,各自有各自的*/
     ngx_array_t                addrs;     /* array of ngx_http_conf_addr_t */  //见ngx_http_add_address分配空间
 } ngx_http_conf_port_t;
 
 
-/*
-ngx_http_core_main_conf_t
+/*ngx_http_core_main_conf_t
     |---> prots: 监听的端口号的数组
                 |---> ngx_http_conf_port_t:端口号的配置信息 (ngx_http_port_t->ngx_http_in_addr_t内容也是从该结构中获取->ngx_http_in_addr_t)
                                |---> addrs:在该端口号上,监听的所有地址的数组,该addrs下的所有端口相同  该addrs下的所有端口相同
@@ -655,22 +667,22 @@ ngx_http_core_main_conf_t
                                                            |---> wc_head:同hash,server_name含前缀通配符.
                                                            |---> wc_tail:同hash,server_name含后缀通配符.
 */
-//listen的相关配置项会存储在该结构中,然后把他们全部放到ngx_http_core_main_conf_t中的ports
-//该结构存储在ngx_http_conf_port_t中的addrs中
-/*
-监听地址配置信息,包含了所有在该addr:port监听的所有server块的ngx_http_core_srv_conf_t结构,以及hash、wc_head和wc_tail这些hash结构,
-保存了以server name为key,ngx_http_core_srv_conf_t为value的哈希表,用于快速查找对应虚拟主机的配置信息.
-*/
+
+/*listen的相关配置项会存储在该结构中,然后把他们全部放到ngx_http_core_main_conf_t中的ports
+该结构存储在ngx_http_conf_port_t中的addrs中*/
+
+/*监听地址配置信息,包含了所有在该addr:port监听的所有server块的ngx_http_core_srv_conf_t结构,以及hash、wc_head和wc_tail这些hash结构,
+保存了以server name为key,ngx_http_core_srv_conf_t为value的哈希表,用于快速查找对应虚拟主机的配置信息*/
 typedef struct { //赋值见ngx_http_add_address    (ngx_http_port_t->ngx_http_in_addr_t内容也是从该结构中获取)
+
     //指向"listen"解析出的配置信息,如果相同listen ip:port出现在不同的server中,那么opt指向最后解析的listen结构ngx_http_listen_opt_t,见ngx_http_add_addresses
     ngx_http_listen_opt_t      opt;
 
-    /*
-      下面这三个赋值见ngx_http_server_names,他们是进行server_name字符串排序并hash后的存储地址,他们的来源是相同IP:port对应的
-      所有server{}块的server_name配置,见ngx_http_server_names
-    */
-    //这三个成员记录的是listen ip:PORT这条配置所在的server{}中的server_name配置信息
-    //把一个ngx_http_conf_addr_t成员对应的server{}中的server_name配置信息添加到这三个hash表中
+    /*下面这三个赋值见ngx_http_server_names,他们是进行server_name字符串排序并hash后的存储地址,他们的来源是相同IP:port对应的
+      所有server{}块的server_name配置,见ngx_http_server_names */
+
+    /*这三个成员记录的是listen ip:PORT这条配置所在的server{}中的server_name配置信息
+    把一个ngx_http_conf_addr_t成员对应的server{}中的server_name配置信息添加到这三个hash表中*/
     ngx_hash_t                 hash; //以server_name为key,ngx_http_core_srv_conf_t为value的hash表,并且server_name不含通配符.
     ngx_hash_wildcard_t       *wc_head; //同hash,server_name含前缀通配符.
     ngx_hash_wildcard_t       *wc_tail; //同hash,server_name含后缀通配符.
@@ -681,12 +693,14 @@ typedef struct { //赋值见ngx_http_add_address    (ngx_http_port_t->ngx_http_i
 #endif
 
     /* the default server configuration for this address:port */
+
     /* 相同listen ip:port出现在不同的server中,那么opt指向最后解析的listen配置中带有default_server选项所对应的server{}上下文ctx,如果几个listen
        都没有加default参数,则该值为解析到的第一个ip:port所在server{}见ngx_http_add_addresses
            如果ip:port只处于一个server{}中,则默认初始化的时候直接指向listen ip:port所在server{},见ngx_http_add_address*/
     ngx_http_core_srv_conf_t  *default_server;
-    //存储的是该listen命令配置所在server{}对应的ngx_http_core_srv_conf_t,赋值见ngx_http_add_server
-    //例如不同server{}中有相同的listen ip:port,他们都在同一个ngx_http_conf_addr_t中,但servers指向各自不同的ngx_http_core_srv_conf_t存储在该servers数组中
+
+    /*存储的是该listen命令配置所在server{}对应的ngx_http_core_srv_conf_t,赋值见ngx_http_add_server
+    例如不同server{}中有相同的listen ip:port,他们都在同一个ngx_http_conf_addr_t中,但servers指向各自不同的ngx_http_core_srv_conf_t存储在该servers数组中*/
 
     /* 如果listen ip:port是唯一的ip:port,则指向自己的server{}上下文,如果是存在通配符listen,并且有未加bind的其listen,则
     在不同的server{}中,每个ip:port对应的server{}上下文存储在该servers数组中,见ngx_http_add_addresses->ngx_http_add_server */
@@ -697,11 +711,9 @@ typedef struct { //赋值见ngx_http_add_address    (ngx_http_port_t->ngx_http_i
 
 typedef struct { //赋值参考ngx_http_core_error_page    生效见ngx_http_send_error_page
     ngx_int_t                  status;
-    /*
-    error_page 404 =200 /empty.gif;,表示以200作为新的返回码,用户可以通过"="来更改返回的错误码,此时overwrite为200
+    /*error_page 404 =200 /empty.gif;,表示以200作为新的返回码,用户可以通过"="来更改返回的错误码,此时overwrite为200
     error_page 404 = /empty.gif; 表示返回码由重定向后实际处理的真实结果来决定,这时,只要把"="后面没有返回码号  此时overwrite=0
-    没有=,就是以error_page   404   /404.html;中的404作为返回码   此时overwrite=-1
-     */
+    没有=,就是以error_page   404   /404.html;中的404作为返回码   此时overwrite=-1  */
     ngx_int_t overwrite;
     ngx_http_complex_value_t value;
     ngx_str_t args;
@@ -712,15 +724,14 @@ typedef struct { //赋值参考ngx_http_core_error_page    生效见ngx_http_sen
 struct ngx_http_core_loc_conf_s {
     //ngx_http_add_location中把精确匹配 正则表达式 name  noname配置以外的其他配置都算做前缀匹配  例如//location ^~  xxx{}      location /XXX {}
     ngx_str_t     name;          /* location name */ //location后面跟的的uri字符串  不包括^~  = 等, 例如location ^~  xxx{},则name为xxx
-//ngx_http_add_location中把精确匹配 正则表达式 name  noname配置以外的其他配置都算做前缀匹配  例如//location ^~  xxx{}      location /XXX {}
+    //ngx_http_add_location中把精确匹配 正则表达式 name  noname配置以外的其他配置都算做前缀匹配  例如//location ^~  xxx{}      location /XXX {}
     ngx_str_t escaped_name;
 
 #if (NGX_PCRE)
     ngx_http_regex_t *regex; //非NULL,表示为正则匹配
 #endif
 
-    /*
-        按HTTP方法名限制用户请求
+    /*按HTTP方法名限制用户请求
         语法:limit_except method ... {...}
         配置块:location
         Nginx通过limit_except后面指定的方法名来限制用户请求.方法名可取值包括:GET、HEAD、POST、PUT、DELETE、MKCOL、COPY、MOVE、OPTIONS、PROPFIND、PROPPATCH、LOCK、UNLOCK或者PATCH.例如:
@@ -735,21 +746,22 @@ struct ngx_http_core_loc_conf_s {
 
         */
 
-    //ngx_http_init_locations这里拆分出的noname放入tail后,如果locations中包含named location,则noname和name放一起(cscf->named_locations),如果没有named但是有regex,
-    //则和regex放一起(pclcf->regex_locations),如果name和regex和都没有,则和普通locations放一起(pclcf->locations)
-    //"if"配置 或者 limit_except配置置位,  if和limit_except都是当做noname的location解析
+    /*ngx_http_init_locations这里拆分出的noname放入tail后,如果locations中包含named location,则noname和name放一起(cscf->named_locations),如果没有named但是有regex,
+    则和regex放一起(pclcf->regex_locations),如果name和regex和都没有,则和普通locations放一起(pclcf->locations)
+    "if"配置 或者 limit_except配置置位,  if和limit_except都是当做noname的location解析*/
     unsigned      noname:1;   /* "if () {}" block or limit_except */ //nginx会把if 指令配置也看做一个location,即noname类型.
 
     unsigned      lmt_excpt:1; //limit_except配置置位
     /*
-location / {
- try_files index.html index.htm @fallback;
-}
-location @fallback {
- root /var/www/error;
- index index.html;
-}
+    location / {
+     try_files index.html index.htm @fallback;
+    }
+    location @fallback {
+     root /var/www/error;
+     index index.html;
+    }
     */
+
     // @  表示为一个location进行命名,即自定义一个location,这个location不能被外界所访问,只能用于Nginx产生的子请求,主要为error_page和try_files.
     unsigned      named:1; //以’@’开头的命名location,如location @test {}
 
@@ -764,23 +776,25 @@ location @fallback {
 #endif
     /*首先从locations链表中去掉那些正则匹配,还有named和nonamed的location节点.那么location链表中只剩下精准匹配和前缀匹配的那些location节点了,
      从这些节点中产生static location tree.
-     //ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
+     ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
      static_locations把locations中的节点从新组成新的static_locations三叉树*/
     ngx_http_location_tree_node_t *static_locations; //在ngx_http_init_static_location_trees中对server{}块内的location{}(包括exact/inclusive/noregex)进行三叉排序
+
 #if (NGX_PCRE) //ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
     ngx_http_core_loc_conf_t **regex_locations;  /* 所有的location 正则表达式 {}这种ngx_http_core_loc_conf_t全部指向regex_locations */
 #endif
 
     /* pointer to the modules' loc_conf */
+
     //执行location{} ctx的ctx->loc_conf
     void        **loc_conf; //赋值见ngx_http_core_location,指向ngx_http_conf_ctx_t->loc_conf
 
     uint32_t      limit_except; //"limit_except"配置
     void **limit_except_loc_conf;
 
-    //以mytest为例,模块注册的handler是在ngx_http_core_content_phase执行的,事实上ngx_http_finalize_request决定了ngx_http_mytest_handler如何起作用.
-    //该函数在ngx_http_core_content_phase中的ngx_http_finalize_request(r, r->content_handler(r));里面的r->content_handler(r)执行
-    //在ngx_http_update_location_config中赋值给r->content_handler = clcf->handler;
+    /*以mytest为例,模块注册的handler是在ngx_http_core_content_phase执行的,事实上ngx_http_finalize_request决定了ngx_http_mytest_handler如何起作用.
+    该函数在ngx_http_core_content_phase中的ngx_http_finalize_request(r, r->content_handler(r));里面的r->content_handler(r)执行
+    在ngx_http_update_location_config中赋值给r->content_handler = clcf->handler;*/
 
     /*ngx_http_handler_pt处理方法不再应用于所有的HTTP请求,仅仅当用户请求的URI匹配了location时(也就是mytest配置项所在的location)才会被调用.
     这也就意味着它是一种完全不同于其他阶段的使用方式. 因此,当HTTP模块实现了某个ngx_http_handler_pt处理方法并希望介入NGX_HTTP_CONTENT_PHASE阶
@@ -854,14 +868,12 @@ location @fallback {
     ngx_uint_t keepalive_requests;      /* keepalive_requests */
     ngx_uint_t keepalive_disable;       /* keepalive_disable */
     ngx_uint_t satisfy;                 /* satisfy */ //取值NGX_HTTP_SATISFY_ALL或者NGX_HTTP_SATISFY_ANY  见ngx_http_core_access_phase
-    /*
-    lingering_close
+    /*lingering_close
     语法:lingering_close off | on | always;
     默认:lingering_close on;
     配置块:http、server、location
     该配置控制Nginx关闭用户连接的方式.always表示关闭用户连接前必须无条件地处理连接上所有用户发送的数据.off表示关闭连接时完全不管连接
-    上是否已经有准备就绪的来自用户的数据.on是中间值,一般情况下在关闭连接前都会处理连接上的用户发送的数据,除了有些情况下在业务上认定这之后的数据是不必要的.
-    */
+    上是否已经有准备就绪的来自用户的数据.on是中间值,一般情况下在关闭连接前都会处理连接上的用户发送的数据,除了有些情况下在业务上认定这之后的数据是不必要的*/
     ngx_uint_t lingering_close;         /* lingering_close */
     //if_modified_since [off|exact|before];进行配置 //生效见ngx_http_test_if_modified
     ngx_uint_t if_modified_since;       /* if_modified_since */
@@ -870,8 +882,9 @@ location @fallback {
 
     ngx_flag_t client_body_in_single_buffer; //client_body_in_single_buffer on | off;设置
     /* client_body_in_singe_buffer */
-    //在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
-    //生效地方见ngx_http_core_find_config_phase
+
+    /*在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
+    生效地方见ngx_http_core_find_config_phase*/
     ngx_flag_t    internal;                /* internal */ //见"internal"配置,ngx_http_core_internal置1
     ngx_flag_t    sendfile;                /* sendfile */ //sendfile on | off
     //aio解析赋值见ngx_http_core_set_aio
@@ -917,9 +930,9 @@ location @fallback {
     ngx_uint_t disable_symlinks;        /* disable_symlinks */
     ngx_http_complex_value_t *disable_symlinks_from; //disable_symlinks on | if_not_owner [from=part];中from携带的参数part
 #endif
-    //由error_page进行配置,创建空间和赋值见ngx_http_core_error_page
-    //clcf->error_pages赋值参考ngx_http_core_error_page    生效见ngx_http_special_response_handler  ngx_http_send_error_page(error_pages内容是从ngx_http_error_pages中取的)
-    //error_page 401 404 =200 /empty.gif;  =前面有两个编码号,因此占用两个数组成员,成员类型ngx_http_err_page_t,见ngx_http_core_error_page
+   /* 由error_page进行配置,创建空间和赋值见ngx_http_core_error_page
+    clcf->error_pages赋值参考ngx_http_core_error_page生效见ngx_http_special_response_handler  ngx_http_send_error_page(error_pages内容是从ngx_http_error_pages中取的)
+    error_page 401 404 =200 /empty.gif;  =前面有两个编码号,因此占用两个数组成员,成员类型ngx_http_err_page_t,见ngx_http_core_error_page*/
     ngx_array_t *error_pages;             /* error_page */
 
     ngx_path_t *client_body_temp_path;   /* client_body_temp_path */ //"client_body_temp_path"设置
@@ -937,6 +950,7 @@ location @fallback {
 
     /* 全局中配置的error_log xxx存储在ngx_cycle_s->new_log,http{}、server{}、local{}配置的error_log保存在ngx_http_core_loc_conf_t->error_log,
    见ngx_log_set_log,如果只配置全局error_log,不配置http{}、server{}、local{}则在ngx_http_core_merge_loc_conf conf->error_log = &cf->cycle->new_log;  */
+
     //ngx_log_insert插入,在ngx_log_error_core找到对应级别的日志配置进行输出,因为可以配置error_log不同级别的日志存储在不同的日志文件中
     ngx_log_t    *error_log;
 
@@ -945,8 +959,9 @@ location @fallback {
 
     /*每一个server块可以对应着多个location块,而一个location块还可以继续嵌套多个location块.每一批location块是通过双向链表与它的父配置块(要
     么属于server块,要么属于location块{}关联起来的*/
-    //头部是ngx_queue_t,next开始的成员为ngx_http_location_queue_t
-    //location{}中的配置存储连接在父级server{}上下文的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中
+
+    /*头部是ngx_queue_t,next开始的成员为ngx_http_location_queue_t
+    location{}中的配置存储连接在父级server{}上下文的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中*/
 
     /*ngx_http_init_locations中把name location加入到named_locations,正则表达式location加入到regex_locations  完全匹配和前缀匹配location存入locations
      static_locations把locations中的节点从新组成新的static_locations三叉树*/
@@ -959,8 +974,8 @@ location @fallback {
 };
 
 
-//初始化赋值见ngx_http_add_location
-//拆分以提高http请求,见ngx_http_init_locations
+/*初始化赋值见ngx_http_add_location
+拆分以提高http请求,见ngx_http_init_locations*/
 typedef struct {
     ngx_queue_t                      queue;//所有的loc配置通过该队列链接在一起
 
@@ -978,11 +993,13 @@ typedef struct {
 
 /*对于精确匹配的location不会放在公共前缀节点的tree节点中,会单拉出来一个node和前缀节点平行.也就是说对于精确匹
     配 ＝/abcd 和前缀匹配的/abc两个location配置,=/abcd不会是/abc节点的tree节点.=/abcd 只能是／abc的right节点*/
-//ngx_http_init_locations中name noname regex以外的location(exact/inclusive 完全匹配/前缀匹配)
-//参考ngx_http_core_find_static_location
+
+/*ngx_http_init_locations中name noname regex以外的location(exact/inclusive 完全匹配/前缀匹配)
+参考ngx_http_core_find_static_location*/
 struct ngx_http_location_tree_node_s {
-/*static location tree大大优化了精准匹配和前缀匹配的location的查找过程,线性递归查找效率低下,三叉树的左节点代表当前比node节点的name小的节点,
-右节点代表比当前node节点name大的节点,tree节点表示拥有相同前缀的节点.*/
+
+    /*static location tree大大优化了精准匹配和前缀匹配的location的查找过程,线性递归查找效率低下,三叉树的左节点代表当前比node节点的name小的节点,
+    右节点代表比当前node节点name大的节点,tree节点表示拥有相同前缀的节点.*/
     ngx_http_location_tree_node_t   *left; //左节点代表当前比node节点的name小的节点
     ngx_http_location_tree_node_t   *right; //右节点代表比当前node节点name大的节点
     ngx_http_location_tree_node_t   *tree; //tree节点表示拥有相同前缀的节点.  普通location中某节点的list成员形成的数  无法完全匹配的location组成的树
@@ -1070,6 +1087,7 @@ ngx_http_cleanup_t *ngx_http_cleanup_add(ngx_http_request_t *r, size_t size);
 /*注意对于HTTP过滤模块来说,在ngx_modules数组中的位置越靠后,在实陈执行请
 求时就越优先执行.因为在初始化HTTP过滤模块时,每一个http过滤模块都是将自己插入
 到整个单链表的首部的.*/
+
 //每个过滤模块处理HTTP头部的方法,它仅接收1个参数r,也就是当前的请求
 typedef ngx_int_t (*ngx_http_output_header_filter_pt)(ngx_http_request_t *r); //见ngx_http_top_header_filter
 //每个过滤模块处理HTTP包体的方法原型,它接收两个参数-r和chain,共中r是当前的请求,chain是要发送的HTTP包体

@@ -767,8 +767,7 @@ ngx_http_script_init_arrays(ngx_http_script_compile_t *sc) {
     return NGX_OK;
 }
 
-/*
-ngx_http_script_compile_t:/脚本化辅助结构体 - 作为脚本化包含变量的参数时的统一输入.
+/*ngx_http_script_compile_t:/脚本化辅助结构体 - 作为脚本化包含变量的参数时的统一输入.
 ngx_http_script_copy_code_t - 负责将配置参数项中的固定字符串原封不动的拷贝到最终字符串.
 ngx_http_script_var_code_t - 负责将配置参数项中的变量取值后添加到最终字符串.
 脚本引擎相关函数
@@ -777,8 +776,7 @@ ngx_http_script_compile - 将包含变量的参数脚本化,以便需要对参�
 ngx_http_script_done - 添加结束标志之类的收尾工作.
 ngx_http_script_run -
 ngx_http_script_add_var_code - 为变量创建取值需要的脚本.在实际变量取值过程中,为了确定包含变量的参数在参数取值后需要的内存块大小,
-Nginx 将取值过程分成两个脚本,一个负责计算变量的值长度,另一个负责取出对应的值.
-*/
+Nginx 将取值过程分成两个脚本,一个负责计算变量的值长度,另一个负责取出对应的值*/
 static ngx_int_t
 ngx_http_script_done(ngx_http_script_compile_t *sc) { //添加结束标志之类的收尾工作.
     ngx_str_t zero;
@@ -938,8 +936,7 @@ ngx_http_script_copy_code(ngx_http_script_engine_t *e) {
                    "http script copy: \"%*s\"", e->pos - p, p);
 }
 
-/*
-ngx_http_script_compile_t:/脚本化辅助结构体 - 作为脚本化包含变量的参数时的统一输入.
+/*ngx_http_script_compile_t:/脚本化辅助结构体 - 作为脚本化包含变量的参数时的统一输入.
 ngx_http_script_copy_code_t - 负责将配置参数项中的固定字符串原封不动的拷贝到最终字符串.
 ngx_http_script_var_code_t - 负责将配置参数项中的变量取值后添加到最终字符串.
 脚本引擎相关函数
@@ -949,11 +946,10 @@ ngx_http_script_done - 添加结束标志之类的收尾工作.
 ngx_http_script_run -
 ngx_http_script_add_copy_code - 处理参数中的固定字符串.这些字符串要和变量的值拼接出最终参数值.
 ngx_http_script_add_var_code - 为变量创建取值需要的脚本.在实际变量取值过程中,为了确定包含变量的参数在参数取值后需要的内存块大小,
-Nginx 将取值过程分成两个脚本,一个负责计算变量的值长度,另一个负责取出对应的值.
-*/
+Nginx 将取值过程分成两个脚本,一个负责计算变量的值长度,另一个负责取出对应的值.*/
 
-//通过name查找到variables中的小标,然后从数组中获取ngx_http_script_var_code_t节点,把index和code赋值给他
-//配置中的$name这种变量字符串调用ngx_http_script_add_var_code,普通的字符串调用ngx_http_script_add_copy_code
+/*通过name查找到variables中的小标,然后从数组中获取ngx_http_script_var_code_t节点,把index和code赋值给他
+配置中的$name这种变量字符串调用ngx_http_script_add_var_code,普通的字符串调用ngx_http_script_add_copy_code*/
 
 /*如果是set $xxx $bbb该函数配合ngx_http_script_complex_value_code读取,ngx_http_script_complex_value_code根据code->lengths(ngx_http_script_copy_var_len_code)
 来确定变量字符串的长度,然后开辟对应的e->buf空间,最后在ngx_http_script_copy_var_code中把变量名拷贝到e->buf空间中*/
@@ -976,8 +972,8 @@ ngx_http_script_add_var_code(ngx_http_script_compile_t *sc, ngx_str_t *name) { /
 
         *p = index;
     }
-    /* 从 lengths 内存块中开辟 sizeof(ngx_http_script_var_code_t) 字节
-         的空间存放用于获取变量对应的值长度的脚本*/
+    /* 从 lengths 内存块中开辟 sizeof(ngx_http_script_var_code_t) 字节的空间存放用于获取变量对应的值长度的脚本*/
+
     //lengths数组中的每个成员就一字节
     code = ngx_http_script_add_code(*sc->lengths,
                                     sizeof(ngx_http_script_var_code_t), NULL); //lengths中的节点在ngx_http_script_complex_value_code执行
@@ -1027,6 +1023,7 @@ ngx_http_script_copy_var_len_code(ngx_http_script_engine_t *e) {
 }
 
 /* ngx_http_script_copy_var_code 用于获取 index 对应的变量取值 */
+
 // 获取变量值,ngx_http_script_copy_code为拷贝变量到p buf中,ngx_http_script_copy_var_code为拷贝变量对应的value
 void
 ngx_http_script_copy_var_code(ngx_http_script_engine_t *e) {
@@ -1209,8 +1206,8 @@ ngx_http_script_regex_start_code(ngx_http_script_engine_t *e) {
         if (code->break_cycle) { //rewrite最后的参数是break,将rewrite后的地址在当前location标签中执行
             r->valid_location = 0;
             r->uri_changed = 0; //将uri_changed设置为0后,也就标志说URL没有变化,那么,
-            //在ngx_http_core_post_rewrite_phase中就不会执行里面的if语句,也就不会再次走到find config的过程了,而是继续处理后面的.
-            //不然正常情况,rewrite成功后是会重新来一次的,相当于一个全新的请求.
+            /*在ngx_http_core_post_rewrite_phase中就不会执行里面的if语句,也就不会再次走到find config的过程了,而是继续处理后面的.
+            不然正常情况,rewrite成功后是会重新来一次的,相当于一个全新的请求.*/
 
         } else {
             r->uri_changed = 1; //需要rewrite从新循环,见ngx_http_core_post_rewrite_phase  重新进行重定向查找过程
@@ -1231,9 +1228,10 @@ ngx_http_script_regex_start_code(ngx_http_script_engine_t *e) {
             e->buf.len += r->captures[n + 1] - r->captures[n];
         }
 
-    } else { /*一个个去处理复杂表达式,但是这里其实只是算一下大小的,
+    } else {
+        /*一个个去处理复杂表达式,但是这里其实只是算一下大小的,
         真正的数据拷贝在上层的code获取.比如 rewrite ^(.*)$ http://$http_host.mp4 break;
-        //下面会分步的,拼装出后面的url,对于上面的例子,为
+        下面会分步的,拼装出后面的url,对于上面的例子,为
 			ngx_http_script_copy_len_code		7
 			ngx_http_script_copy_var_len_code 	18
 			ngx_http_script_copy_len_code		4	=== 29
@@ -1569,8 +1567,8 @@ ngx_http_script_full_name_code(ngx_http_script_engine_t *e) {
     e->ip += sizeof(ngx_http_script_full_name_code_t);
 }
 
-//根据return code;配置发送响应.
-//和ngx_http_rewrite_handler(ngx_http_request_t *r) 配合阅读,e->ip = rlcf->codes->elts;
+/*根据return code;配置发送响应.
+和ngx_http_rewrite_handler(ngx_http_request_t *r) 配合阅读,e->ip = rlcf->codes->elts;*/
 void
 ngx_http_script_return_code(ngx_http_script_engine_t *e) {
     ngx_http_script_return_code_t *code;
@@ -1823,6 +1821,7 @@ ngx_http_script_file_code(ngx_http_script_engine_t *e) {
 }
 
 //ngx_http_rewrite_handler中执行
+
 /*如果value值是$name变量参数,则该函数配合ngx_http_script_add_var_code读取,ngx_http_script_complex_value_code根据code->lengths(ngx_http_script_copy_var_len_code)
 来确定变量字符串的长度,然后开辟对应的e->buf空间,最后在ngx_http_script_copy_var_code中把变量名拷贝到e->buf空间中
 如果参数中带有?,则最终会在执行ngx_http_script_add_args_code
@@ -1899,8 +1898,8 @@ ngx_http_script_set_var_code(ngx_http_script_engine_t *e) //e是从ngx_http_rewr
     e->ip += sizeof(ngx_http_script_var_code_t);
 
     r = e->request;
-    // e->sp是通过解析得到的变量处理结果的一个数组,变量的放置顺序跟ip中的顺序一致,而且随着处理而递增,所以为了保持中处理的一致性(这样
-    // 就可以保证许多地方使用一致的处理方式).这里sp—就可以得到之前的处理值,得到我们想要的结果了.
+   /*  e->sp是通过解析得到的变量处理结果的一个数组,变量的放置顺序跟ip中的顺序一致,而且随着处理而递增,所以为了保持中处理的一致性(这样
+     就可以保证许多地方使用一致的处理方式).这里sp—就可以得到之前的处理值,得到我们想要的结果了.*/
     e->sp--;
     //一般_value_code和set_var是一对,所以这里要回到前面的sp,要不set_var就暂用一个sp节点了,而sp是不会获取值的,所以不应该占用一个节点,可以确保只在value_code中增加
 

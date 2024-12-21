@@ -253,14 +253,12 @@ static ngx_command_t ngx_http_core_commands[] = {
          0,
          0,
          NULL},
-        /*
-    connection_pool_size
-    语法:connection_pool_size size;
-    默认:connection_pool_size 256;
-    配置块:http、server
-    Nginx对于每个建立成功的TCP连接会预先分配一个内存池,上面的size配置项将指定这个内存池的初始大小(即ngx_connection_t结构体中的pool内存池初始大小,
-    9.8.1节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.需慎重设置,因为更大的size会使服务器消耗的内存增多,而更小的size则会引发更多的内存分配次数.
-    */
+        /*connection_pool_size
+        语法:connection_pool_size size;
+        默认:connection_pool_size 256;
+        配置块:http、server
+        Nginx对于每个建立成功的TCP连接会预先分配一个内存池,上面的size配置项将指定这个内存池的初始大小(即ngx_connection_t结构体中的pool内存池初始大小,
+        9.8.1节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.需慎重设置,因为更大的size会使服务器消耗的内存增多,而更小的size则会引发更多的内存分配次数.*/
         {ngx_string("connection_pool_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
@@ -268,50 +266,43 @@ static ngx_command_t ngx_http_core_commands[] = {
          offsetof(ngx_http_core_srv_conf_t, connection_pool_size),
          &ngx_http_core_pool_size_p},
 
-        /*
-        语法:request_pool_size size;
+        /*语法:request_pool_size size;
         默认:request_pool_size 4k;
         配置块:http、server
         Nginx开始处理HTTP请求时,将会为每个请求都分配一个内存池,size配置项将指定这个内存池的初始大小(即ngx_http_request_t结构体中的pool内存池初始大小,
         11.3节将介绍这个内存池是何时分配的),用于减少内核对于小块内存的分配次数.TCP连接关闭时会销毁connection_pool_size指定的连接内存池,HTTP请求结束
-        时会销毁request_pool_size指定的HTTP请求内存池,但它们的创建、销毁时间并不一致,因为一个TCP连接可能被复用于多个HTTP请求.
-        */
+        时会销毁request_pool_size指定的HTTP请求内存池,但它们的创建、销毁时间并不一致,因为一个TCP连接可能被复用于多个HTTP请求*/
         {ngx_string("request_pool_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, request_pool_size),
          &ngx_http_core_pool_size_p},
-        /*
-            读取HTTP头部的超时时间
+        /*读取HTTP头部的超时时间
             语法:client_header_timeout time(默认单位:秒);
             默认:client_header_timeout 60;
             配置块:http、server、location
             客户端与服务器建立连接后将开始接收HTTP头部,在这个过程中,如果在一个时间间隔(超时时间)内没有读取到客户端发来的字节,则认为超时,
-            并向客户端返回408 ("Request timed out")响应.
-            */
+            并向客户端返回408 ("Request timed out")响应.*/
         {ngx_string("client_header_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, client_header_timeout),
          NULL},
-        /*
-        语法:  client_header_buffer_size size;
+        /*语法:  client_header_buffer_size size;
         默认值:  client_header_buffer_size 1k;
         上下文:  http, server
         设置读取客户端请求头部的缓冲容量. 对于大多数请求,1K的缓冲足矣. 但如果请求中含有的cookie很长,或者请求来自WAP的客户端,可能
         请求头不能放在1K的缓冲中. 如果从请求行,或者某个请求头开始不能完整的放在这块空间中,那么nginx将按照 large_client_header_buffers
-        指令的配置分配更多更大的缓冲来存放.
-        */
+        指令的配置分配更多更大的缓冲来存放*/
         {ngx_string("client_header_buffer_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, client_header_buffer_size),
          NULL},
-        /*
-        存储超大HTTP头部的内存buffer大小
+        /*存储超大HTTP头部的内存buffer大小
         语法:large_client_header_buffers number size;
         默认:large_client_header_buffers 4 8k;
         配置块:http、server
@@ -320,8 +311,7 @@ static ngx_command_t ngx_http_core_commands[] = {
         否则会返回"Bad request" (400).当然,请求行和请求头部的总和也不可以超过buffer个数*buffer大小.
         设置读取客户端请求超大请求的缓冲最大number(数量)和每块缓冲的size(容量). HTTP请求行的长度不能超过一块缓冲的容量,否则nginx返回错误414
         (Request-URI Too Large)到客户端. 每个请求头的长度也不能超过一块缓冲的容量,否则nginx返回错误400 (Bad Request)到客户端. 缓冲仅在必需
-        是才分配,默认每块的容量是8K字节. 即使nginx处理完请求后与客户端保持入长连接,nginx也会释放这些缓冲.
-        */
+        是才分配,默认每块的容量是8K字节. 即使nginx处理完请求后与客户端保持入长连接,nginx也会释放这些缓冲*/
 
         //当client_header_buffer_size不够存储头部行的时候,用large_client_header_buffers再次分配空间存储
         {ngx_string("large_client_header_buffers"),
@@ -330,70 +320,63 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, large_client_header_buffers),
          NULL},
-        /*
-        忽略不合法的HTTP头部
+        /*忽略不合法的HTTP头部
         语法:ignore_invalid_headers on | off;
         默认:ignore_invalid_headers on;
         配置块:http、server
-        如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400(Bad Request)错误.如果将其设置为on,则会忽略此HTTP头部.
-        */
+        如果将其设置为off,那么当出现不合法的HTTP头部时,Nginx会拒绝服务,并直接向用户发送400(Bad Request)错误.如果将其设置为on,则会忽略此HTTP头部*/
         {ngx_string("ignore_invalid_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, ignore_invalid_headers),
          NULL},
-        /*
-        merge_slashes
+        /*merge_slashes
         语法:merge_slashes on | off;
         默认:merge_slashes on;
         配置块:http、server、location
-        此配置项表示是否合并相邻的"/",例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt;如果配置为off,则不会匹配,URI将仍然是//test///a.txt.
-        */
+        此配置项表示是否合并相邻的"/",例如,//test///a.txt,在配置为on时,会将其匹配为location /test/a.txt;如果配置为off,则不会匹配,URI将仍然是//test///a.txt  */
         {ngx_string("merge_slashes"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, merge_slashes),
          NULL},
-        /*
-        HTTP头部是否允许下画线
+        /*HTTP头部是否允许下画线
         语法:underscores_in_headers on | off;
         默认:underscores_in_headers off;
         配置块:http、server
-        默认为off,表示HTTP头部的名称中不允许带"_"(下画线).
-        */
+        默认为off,表示HTTP头部的名称中不允许带"_"(下画线) */
         {ngx_string("underscores_in_headers"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_SRV_CONF_OFFSET,
          offsetof(ngx_http_core_srv_conf_t, underscores_in_headers),
          NULL},
-        /*
-      location [= ~ ~* ^~ @ ] /uri/ {....} location会尝试根据用户请求中url来匹配上面的/url表达式,如果可以匹配
-      就选择location{}块中的配置来处理用户请求.当然,匹配方式是多样的,如下:
-      1) = 表示把url当做字符串,以便于参数中的url做完全匹配.例如
-          localtion = / {
-              #只有当用户请求是/时,才会使用该location下的配置.
-          }
-      2) ~表示匹配url时是字母大小写敏感的.
-      3) ~*表示匹配url时忽略字母大小写问题
-      4) ^~表示匹配url时指需要其前半部分与url参数匹配即可,例如:
-          location ^~ /images/ {
-              #以/images/开通的请求都会被匹配上
-          }
-      5) @表示仅用于nginx服务器内部请求之间的重定向,带有@的location不直接处理用户请求.当然,在url参数里是可以用
-          正则表达式的,例如:
-          location ~* \.(gif|jpg|jpeg)$ {
-              #匹配以.gif .jpg .jpeg结尾的请求.
-          }
-      上面这些方式表达为"如果匹配,则...",如果要实现"如果不匹配,则....",可以在最后一个location中使用/作为参数,它会匹配所有
-      的HTTP请求,这样就可以表示如果不能匹配前面的所有location,则由"/"这个location处理.例如:
-          location / {
-              # /可以匹配所有请求.
-          }
-       完全匹配 > 前缀匹配 > 正则表达式 > /
-  */
+        /*  location [= ~ ~* ^~ @ ] /uri/ {....} location会尝试根据用户请求中url来匹配上面的/url表达式,如果可以匹配
+          就选择location{}块中的配置来处理用户请求.当然,匹配方式是多样的,如下:
+          1) = 表示把url当做字符串,以便于参数中的url做完全匹配.例如
+              localtion = / {
+                  #只有当用户请求是/时,才会使用该location下的配置.
+              }
+          2) ~表示匹配url时是字母大小写敏感的.
+          3) ~*表示匹配url时忽略字母大小写问题
+          4) ^~表示匹配url时指需要其前半部分与url参数匹配即可,例如:
+              location ^~ /images/ {
+                  #以/images/开通的请求都会被匹配上
+              }
+          5) @表示仅用于nginx服务器内部请求之间的重定向,带有@的location不直接处理用户请求.当然,在url参数里是可以用
+              正则表达式的,例如:
+              location ~* \.(gif|jpg|jpeg)$ {
+                  #匹配以.gif .jpg .jpeg结尾的请求.
+              }
+          上面这些方式表达为"如果匹配,则...",如果要实现"如果不匹配,则....",可以在最后一个location中使用/作为参数,它会匹配所有
+          的HTTP请求,这样就可以表示如果不能匹配前面的所有location,则由"/"这个location处理.例如:
+              location / {
+                  # /可以匹配所有请求.
+              }
+           完全匹配 > 前缀匹配 > 正则表达式 > /
+      */
 
         //location {}配置查找可以参考ngx_http_core_find_config_phase->ngx_http_core_find_location
         {ngx_string("location"),
@@ -410,68 +393,64 @@ static ngx_command_t ngx_http_core_commands[] = {
          0,
          NULL},
         /* server_name www.a.com www.b.com,可以跟多个服务器域名
-    在开始处理一个HTTP请求是,nginx会取出header头中的Host,与每个server的server_name进行匹配,一次决定到底由那一个server
-    块来处理这个请求.有可能一个host与多个server块中的多个server_name匹配,这是就会根据匹配优先级来选择实际处理的server块.
-    server_name与HOst的匹配优先级如下:
-    1 首先匹配字符串完全匹配的servername,如www.aaa.com
-    2 其次选择通配符在前面的servername,如*.aaa.com
-    3 再次选择通配符在后面的servername,如www.aaa.*
-    4 最新选择使用正则表达式才匹配的servername.
-    如果都不匹配,按照下面顺序选择处理server块:
-    1 优先选择在listen配置项后加入[default|default_server]的server块.
-    2 找到匹配listen端口的第一个server块
-    如果server_name后面跟着空字符串,如server_name ""表示匹配没有host这个HTTP头部的请求
-    该参数默认为server_name ""
-    server_name_in_redirect on | off 该配置需要配合server_name使用.在使用on打开后,表示在重定向请求时会使用
-    server_name里的第一个主机名代替原先请求中的Host头部,而使用off关闭时,表示在重定向请求时使用请求本身的HOST头部
-    */
+        在开始处理一个HTTP请求是,nginx会取出header头中的Host,与每个server的server_name进行匹配,一次决定到底由那一个server
+        块来处理这个请求.有可能一个host与多个server块中的多个server_name匹配,这是就会根据匹配优先级来选择实际处理的server块.
+        server_name与HOst的匹配优先级如下:
+        1 首先匹配字符串完全匹配的servername,如www.aaa.com
+        2 其次选择通配符在前面的servername,如*.aaa.com
+        3 再次选择通配符在后面的servername,如www.aaa.*
+        4 最新选择使用正则表达式才匹配的servername.
+        如果都不匹配,按照下面顺序选择处理server块:
+        1 优先选择在listen配置项后加入[default|default_server]的server块.
+        2 找到匹配listen端口的第一个server块
+        如果server_name后面跟着空字符串,如server_name ""表示匹配没有host这个HTTP头部的请求
+        该参数默认为server_name ""
+        server_name_in_redirect on | off 该配置需要配合server_name使用.在使用on打开后,表示在重定向请求时会使用
+        server_name里的第一个主机名代替原先请求中的Host头部,而使用off关闭时,表示在重定向请求时使用请求本身的HOST头部*/
         {ngx_string("server_name"),
          NGX_HTTP_SRV_CONF | NGX_CONF_1MORE,
          ngx_http_core_server_name,
          NGX_HTTP_SRV_CONF_OFFSET,
          0,
          NULL},
-        /*
-        types_hash_max_size
+        /*types_hash_max_size
         语法:types_hash_max_size size;
         默认:types_hash_max_size 1024;
         配置块:http、server、location
-        types_hash_max_size影响散列表的冲突率.types_hash_max_size越大,就会消耗更多的内存,但散列key的冲突率会降低,检索速度就更快.types_hash_max_size越小,消耗的内存就越小,但散列key的冲突率可能上升.
-        */
+        types_hash_max_size影响散列表的冲突率.types_hash_max_size越大,就会消耗更多的内存,但散列key的冲突率会降低,检索速度就更快.
+         types_hash_max_size越小,消耗的内存就越小,但散列key的冲突率可能上升*/
         {ngx_string("types_hash_max_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, types_hash_max_size),
          NULL},
-        /*
-        types_hash_bucket_size
+        /*types_hash_bucket_size
         语法:types_hash_bucket_size size;
         默认:types_hash_bucket_size 32|64|128;
         配置块:http、server、location
-        为了快速寻找到相应MIME type,Nginx使用散列表来存储MIME type与文件扩展名.types_hash_bucket_size 设置了每个散列桶占用的内存大小.
-        */
+        为了快速寻找到相应MIME type,Nginx使用散列表来存储MIME type与文件扩展名.types_hash_bucket_size 设置了每个散列桶占用的内存大小*/
         {ngx_string("types_hash_bucket_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, types_hash_bucket_size),
          NULL},
-        /*
-    下面是MIME类型的设置配置项.
-    MIME type与文件扩展的映射
-    语法:type {...};
-    配置块:http、server、location
-    定义MIME type到文件扩展名的映射.多个扩展名可以映射到同一个MIME type.例如:
-    types {
-     text/html    html;
-     text/html    conf;
-     image/gif    gif;
-     image/jpeg   jpg;
-    }
-    */
-        //types和default_type对应
-        //types {}配置ngx_http_core_type首先存在与该数组中,然后在ngx_http_core_merge_loc_conf存入types_hash中,真正生效见ngx_http_set_content_type
+        /*下面是MIME类型的设置配置项.
+        MIME type与文件扩展的映射
+        语法:type {...};
+        配置块:http、server、location
+        定义MIME type到文件扩展名的映射.多个扩展名可以映射到同一个MIME type.例如:
+        types {
+         text/html    html;
+         text/html    conf;
+         image/gif    gif;
+         image/jpeg   jpg;
+        }
+        */
+
+        /*types和default_type对应
+        types {}配置ngx_http_core_type首先存在与该数组中,然后在ngx_http_core_merge_loc_conf存入types_hash中,真正生效见ngx_http_set_content_type*/
         {ngx_string("types"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF
          | NGX_CONF_BLOCK | NGX_CONF_NOARGS,
@@ -479,13 +458,12 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-        默认MIME type
+        /*默认MIME type
         语法:default_type MIME-type;
         默认:default_type text/plain;
         配置块:http、server、location
-        当找不到相应的MIME type与文件扩展名之间的映射时,使用默认的MIME type作为HTTP header中的Content-Type.
-        */
+        当找不到相应的MIME type与文件扩展名之间的映射时,使用默认的MIME type作为HTTP header中的Content-Type */
+
         //types和default_type对应
         {ngx_string("default_type"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -493,8 +471,8 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, default_type),
          NULL},
-        /*
-       nginx指定文件路径有两种方式root和alias,这两者的用法区别,使用方法总结了下,方便大家在应用过程中,快速响应.root与alias主要区别在于nginx如何解释location后面的uri,这会使两者分别以不同的方式将请求映射到服务器文件上.
+        /*nginx指定文件路径有两种方式root和alias,这两者的用法区别,使用方法总结了下,方便大家在应用过程中,快速响应.
+         root与alias主要区别在于nginx如何解释location后面的uri,这会使两者分别以不同的方式将请求映射到服务器文件上.
        [root]
        语法:root path
        默认值:root html
@@ -531,8 +509,7 @@ static ngx_command_t ngx_http_core_commands[] = {
         location /download/ {
             root /opt/web/html/;
         }
-        如果有一个请求的url是/download/index/aa.html,那么WEB将会返回服务器上/opt/web/html/download/index/aa.html文件的内容
-    */
+        如果有一个请求的url是/download/index/aa.html,那么WEB将会返回服务器上/opt/web/html/download/index/aa.html文件的内容*/
         {ngx_string("root"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_CONF_TAKE1,
@@ -540,70 +517,67 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-    以alias方式设置资源路径
-    语法:alias path;
-    配置块:location
+        /*以alias方式设置资源路径
+        语法:alias path;
+        配置块:location
 
-    alias也是用来设置文件资源路径的,它与root的不同点主要在于如何解读紧跟location后面的uri参数,这将会致使alias与root以不同的方式将用户请求映射到真正的磁盘文件上.例如,如果有一个请求的URI是/conf/nginx.conf,而用户实际想访问的文件在/usr/local/nginx/conf/nginx.conf,那么想要使用alias来进行设置的话,可以采用如下方式:
-    location /conf {
-       alias /usr/local/nginx/conf/;
-    }
+        alias也是用来设置文件资源路径的,它与root的不同点主要在于如何解读紧跟location后面的uri参数,这将会致使alias与root以不同的方式将用户请求映射到真正的磁盘文件上.例如,如果有一个请求的URI是/conf/nginx.conf,而用户实际想访问的文件在/usr/local/nginx/conf/nginx.conf,那么想要使用alias来进行设置的话,可以采用如下方式:
+        location /conf {
+           alias /usr/local/nginx/conf/;
+        }
 
-    如果用root设置,那么语句如下所示:
-    location /conf {
-       root /usr/local/nginx/;
-    }
+        如果用root设置,那么语句如下所示:
+        location /conf {
+           root /usr/local/nginx/;
+        }
 
-    使用alias时,在URI向实际文件路径的映射过程中,已经把location后配置的/conf这部分字符串丢弃掉,
-    因此,/conf/nginx.conf请求将根据alias path映射为path/nginx.conf.root则不然,它会根据完整的URI
-    请求来映射,因此,/conf/nginx.conf请求会根据root path映射为path/conf/nginx.conf.这也是root
-    可以放置到http、server、location或if块中,而alias只能放置到location块中的原因.
+        使用alias时,在URI向实际文件路径的映射过程中,已经把location后配置的/conf这部分字符串丢弃掉,
+        因此,/conf/nginx.conf请求将根据alias path映射为path/nginx.conf.root则不然,它会根据完整的URI
+        请求来映射,因此,/conf/nginx.conf请求会根据root path映射为path/conf/nginx.conf.这也是root
+        可以放置到http、server、location或if块中,而alias只能放置到location块中的原因.
 
-    alias后面还可以添加正则表达式,例如:
-    location ~ ^/test/(\w+)\.(\w+)$ {
-        alias /usr/local/nginx/$2/$1.$2;
-    }
+        alias后面还可以添加正则表达式,例如:
+        location ~ ^/test/(\w+)\.(\w+)$ {
+            alias /usr/local/nginx/$2/$1.$2;
+        }
 
-    这样,请求在访问/test/nginx.conf时,Nginx会返回/usr/local/nginx/conf/nginx.conf文件中的内容.
-    nginx指定文件路径有两种方式root和alias,这两者的用法区别,使用方法总结了下,方便大家在应用过程中,快速响应.root与alias主要区别在于nginx如何解释location后面的uri,这会使两者分别以不同的方式将请求映射到服务器文件上.
-    [root]
-    语法:root path
-    默认值:root html
-    配置段:http、server、location、if
-    [alias]
-    语法:alias path
-    配置段:location
-    实例:
-    location ~ ^/weblogs/ {
-     root /data/weblogs/www.ttlsa.com;
-     autoindex on;
-     auth_basic            "Restricted";
-     auth_basic_user_file  passwd/weblogs;
-    }
-    如果一个请求的URI是/weblogs/httplogs/www.ttlsa.com-access.log时,web服务器将会返回服务器上的/data/weblogs/www.ttlsa.com/weblogs/httplogs/www.ttlsa.com-access.log的文件.
-    [info]root会根据完整的URI请求来映射,也就是/path/uri.[/info]
-    因此,前面的请求映射为path/weblogs/httplogs/www.ttlsa.com-access.log.
-    location ^~ /binapp/ {
-     limit_conn limit 4;
-     limit_rate 200k;
-     internal;
-     alias /data/statics/bin/apps/;
-    }
-    alias会把location后面配置的路径丢弃掉,把当前匹配到的目录指向到指定的目录.如果一个请求的URI是/binapp/a.ttlsa.com/favicon时,web服务器将会返回服务器上的/data/statics/bin/apps/a.ttlsa.com/favicon.jgp的文件.
-    [warning]1. 使用alias时,目录名后面一定要加"/".
-    2. alias可以指定任何名称.
-    3. alias在使用正则匹配时,必须捕捉要匹配的内容并在指定的内容处使用.
-    4. alias只能位于location块中.[/warning]
-        */
+        这样,请求在访问/test/nginx.conf时,Nginx会返回/usr/local/nginx/conf/nginx.conf文件中的内容.
+        nginx指定文件路径有两种方式root和alias,这两者的用法区别,使用方法总结了下,方便大家在应用过程中,快速响应.root与alias主要区别在于nginx如何解释location后面的uri,这会使两者分别以不同的方式将请求映射到服务器文件上.
+        [root]
+        语法:root path
+        默认值:root html
+        配置段:http、server、location、if
+        [alias]
+        语法:alias path
+        配置段:location
+        实例:
+        location ~ ^/weblogs/ {
+         root /data/weblogs/www.ttlsa.com;
+         autoindex on;
+         auth_basic            "Restricted";
+         auth_basic_user_file  passwd/weblogs;
+        }
+        如果一个请求的URI是/weblogs/httplogs/www.ttlsa.com-access.log时,web服务器将会返回服务器上的/data/weblogs/www.ttlsa.com/weblogs/httplogs/www.ttlsa.com-access.log的文件.
+        [info]root会根据完整的URI请求来映射,也就是/path/uri.[/info]
+        因此,前面的请求映射为path/weblogs/httplogs/www.ttlsa.com-access.log.
+        location ^~ /binapp/ {
+         limit_conn limit 4;
+         limit_rate 200k;
+         internal;
+         alias /data/statics/bin/apps/;
+        }
+        alias会把location后面配置的路径丢弃掉,把当前匹配到的目录指向到指定的目录.如果一个请求的URI是/binapp/a.ttlsa.com/favicon时,web服务器将会返回服务器上的/data/statics/bin/apps/a.ttlsa.com/favicon.jgp的文件.
+        [warning]1. 使用alias时,目录名后面一定要加"/".
+        2. alias可以指定任何名称.
+        3. alias在使用正则匹配时,必须捕捉要匹配的内容并在指定的内容处使用.
+        4. alias只能位于location块中.[/warning] */
         {ngx_string("alias"),
          NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_http_core_root,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-        按HTTP方法名限制用户请求
+        /*按HTTP方法名限制用户请求
         语法:  limit_except method ... { ... }
         默认值:  —
         上下文:  location
@@ -623,50 +597,43 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-        HTTP请求包体的最大值
+        /*HTTP请求包体的最大值
         语法:client_max_body_size size;
         默认:client_max_body_size 1m;
         配置块:http、server、location
         浏览器在发送含有较大HTTP包体的请求时,其头部会有一个Content-Length字段,client_max_body_size是用来限制Content-Length所示值的大小的.因此,
         这个限制包体的配置非常有用处,因为不用等Nginx接收完所有的HTTP包体—这有可能消耗很长时间—就可以告诉用户请求过大不被接受.例如,用户试图
-        上传一个10GB的文件,Nginx在收完包头后,发现Content-Length超过client_max_body_size定义的值,就直接发送413 ("Request Entity Too Large")响应给客户端.
-        */
+        上传一个10GB的文件,Nginx在收完包头后,发现Content-Length超过client_max_body_size定义的值,就直接发送413 ("Request Entity Too Large")响应给客户端*/
         {ngx_string("client_max_body_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_off_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_max_body_size),
          NULL},
-        /*
-        存储HTTP头部的内存buffer大小
+        /*存储HTTP头部的内存buffer大小
         语法:client_header_buffer_size size;
         默认:client_header_buffer_size 1k;
         配置块:http、server
         上面配置项定义了正常情况下Nginx接收用户请求中HTTP header部分(包括HTTP行和HTTP头部)时分配的内存buffer大小.有时,
-        请求中的HTTP header部分可能会超过这个大小,这时large_client_header_buffers定义的buffer将会生效.
-        */
+        请求中的HTTP header部分可能会超过这个大小,这时large_client_header_buffers定义的buffer将会生效*/
         {ngx_string("client_body_buffer_size"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_size_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_body_buffer_size),
          NULL},
-        /*
-          读取HTTP包体的超时时间
+        /*读取HTTP包体的超时时间
           语法:client_body_timeout time(默认单位:秒);
           默认:client_body_timeout 60;
           配置块:http、server、location
-          此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效.
-          */
+          此配置项与client_header_timeout相似,只是这个超时时间只在读取HTTP包体时才有效*/
         {ngx_string("client_body_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_body_timeout),
          NULL},
-        /*
-        HTTP包体的临时存放目录
+        /*HTTP包体的临时存放目录
         语法:client_body_temp_path dir-path [ level1 [ level2 [ level3 ]]]
         默认:client_body_temp_path client_body_temp;
         配置块:http、server、location
@@ -675,57 +642,51 @@ static ngx_command_t ngx_http_core_commands[] = {
         因此使用了level参数,这样可以按照临时文件名最多再加三层目录.例如:
         client_body_temp_path  /opt/nginx/client_temp 1 2;
         如果新上传的HTTP 包体使用00000123456作为临时文件名,就会被存放在这个目录中.
-        /opt/nginx/client_temp/6/45/00000123456
-        */
+        /opt/nginx/client_temp/6/45/00000123456  */
         {ngx_string("client_body_temp_path"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1234,
          ngx_conf_set_path_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_body_temp_path),
          NULL},
-        /*
-          HTTP包体只存储到磁盘文件中
+        /*HTTP包体只存储到磁盘文件中
           语法:client_body_in_file_only on | clean | off;
           默认:client_body_in_file_only off;
           配置块:http、server、location
           当值为非off时,用户请求中的HTTP包体一律存储到磁盘文件中,即使只有0字节也会存储为文件.当请求结束时,如果配置为on,则这个文件不会
-          被删除(该配置一般用于调试、定位问题),但如果配置为clean,则会删除该文件.
-         */
+          被删除(该配置一般用于调试、定位问题),但如果配置为clean,则会删除该文件*/
         {ngx_string("client_body_in_file_only"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_body_in_file_only),
          &ngx_http_core_request_body_in_file},
-        /*
-        HTTP包体尽量写入到一个内存buffer中
+        /*HTTP包体尽量写入到一个内存buffer中
         语法:client_body_in_single_buffer on | off;
         默认:client_body_in_single_buffer off;
         配置块:http、server、location
-        用户请求中的HTTP包体一律存储到内存唯一同一个buffer中.当然,如果HTTP包体的大小超过了下面client_body_buffer_size设置的值,包体还是会写入到磁盘文件中.
-        */
+        用户请求中的HTTP包体一律存储到内存唯一同一个buffer中.当然,如果HTTP包体的大小超过了下面client_body_buffer_size设置的值,包体还是会写入到磁盘文件中.*/
         {ngx_string("client_body_in_single_buffer"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, client_body_in_single_buffer),
          NULL},
-        /*
-        sendfile系统调用
+        /*sendfile系统调用
         语法:sendfile on | off;
         默认:sendfile off;
         配置块:http、server、location
         可以启用Linux上的sendfile系统调用来发送文件,它减少了内核态与用户态之间的两次内存复制,这样就会从磁盘中读取文件后直接在内核态发送到网卡设备,
-        提高了发送文件的效率.
-        */
-        /*
-        When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
+        提高了发送文件的效率*/
+
+        /*When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
         directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
         如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
         则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
         生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
-        不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
-        */ //ngx_output_chain_as_is  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点  ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
+        不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准*/
+
+        //ngx_output_chain_as_is  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点  ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
         {ngx_string("sendfile"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_CONF_FLAG,
@@ -749,63 +710,62 @@ static ngx_command_t ngx_http_core_commands[] = {
          offsetof(ngx_http_core_loc_conf_t, subrequest_output_buffer_size),
          NULL},
 
+            /*AIO系统调用
+            语法:aio on | off;
+            默认:aio off;
+            配置块:http、server、location
+            此配置项表示是否在FreeBSD或Linux系统上启用内核级别的异步文件I/O功能.注意,它与sendfile功能是互斥的.
+            Syntax:  aio on | off | threads[=pool];
+
+            Default:  aio off;
+            Context:  http, server, location
+
+            Enables or disables the use of asynchronous file I/O (AIO) on FreeBSD and Linux:
+            location /video/ {
+                aio            on;
+                output_buffers 1 64k;
+            }
+            On FreeBSD, AIO can be used starting from FreeBSD 4.3. AIO can either be linked statically into a kernel:
+            options VFS_AIO
+            or loaded dynamically as a kernel loadable module:
+            kldload aio
+            On Linux, AIO can be used starting from kernel version 2.6.22. Also, it is necessary to enable directio, or otherwise reading will be blocking:
+            location /video/ {
+                aio            on;
+                directio       512;
+                output_buffers 1 128k;
+            }
+            On Linux, directio can only be used for reading blocks that are aligned on 512-byte boundaries (or 4K for XFS). File’s unaligned end is
+            read in blocking mode. The same holds true for byte range requests and for FLV requests not from the beginning of a file: reading of
+            unaligned data at the beginning and end of a file will be blocking.
+            When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the directio
+            directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+            location /video/ {
+                sendfile       on;
+                aio            on;
+                directio       8m;
+            }
+            Finally, files can be read and sent using multi-threading (1.7.11), without blocking a worker process:
+            location /video/ {
+                sendfile       on;
+                aio            threads;
+            }
+            Read and send file operations are offloaded to threads of the specified pool. If the pool name is omitted, the pool with the name "default"
+            is used. The pool name can also be set with variables:
+            aio threads=pool$disk;
+            By default, multi-threading is disabled, it should be enabled with the --with-threads configuration parameter. Currently, multi-threading is
+            compatible only with the epoll, kqueue, and eventport methods. Multi-threaded sending of files is only supported on Linux.
+            */
             /*
-    AIO系统调用
-    语法:aio on | off;
-    默认:aio off;
-    配置块:http、server、location
-    此配置项表示是否在FreeBSD或Linux系统上启用内核级别的异步文件I/O功能.注意,它与sendfile功能是互斥的.
-    Syntax:  aio on | off | threads[=pool];
-
-    Default:  aio off;
-    Context:  http, server, location
-
-    Enables or disables the use of asynchronous file I/O (AIO) on FreeBSD and Linux:
-    location /video/ {
-        aio            on;
-        output_buffers 1 64k;
-    }
-    On FreeBSD, AIO can be used starting from FreeBSD 4.3. AIO can either be linked statically into a kernel:
-    options VFS_AIO
-    or loaded dynamically as a kernel loadable module:
-    kldload aio
-    On Linux, AIO can be used starting from kernel version 2.6.22. Also, it is necessary to enable directio, or otherwise reading will be blocking:
-    location /video/ {
-        aio            on;
-        directio       512;
-        output_buffers 1 128k;
-    }
-    On Linux, directio can only be used for reading blocks that are aligned on 512-byte boundaries (or 4K for XFS). File’s unaligned end is
-    read in blocking mode. The same holds true for byte range requests and for FLV requests not from the beginning of a file: reading of
-    unaligned data at the beginning and end of a file will be blocking.
-    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the directio
-    directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-    location /video/ {
-        sendfile       on;
-        aio            on;
-        directio       8m;
-    }
-    Finally, files can be read and sent using multi-threading (1.7.11), without blocking a worker process:
-    location /video/ {
-        sendfile       on;
-        aio            threads;
-    }
-    Read and send file operations are offloaded to threads of the specified pool. If the pool name is omitted, the pool with the name "default"
-    is used. The pool name can also be set with variables:
-    aio threads=pool$disk;
-    By default, multi-threading is disabled, it should be enabled with the --with-threads configuration parameter. Currently, multi-threading is
-    compatible only with the epoll, kqueue, and eventport methods. Multi-threaded sending of files is only supported on Linux.
-    */
-    /*
-    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
-    directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-    如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
-    则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
-    生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
-    不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
-    */
-    //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
-    // ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
+            When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
+            directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+            如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
+            则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
+            生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
+            不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
+            */
+        /*ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
+         ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点*/
         { ngx_string("aio"),
         //一般大缓存文件用aio发送,小文件用sendfile,因为aio是异步的,不影响其他流程,但是sendfile是同步的,太大的话可能需要多次sendfile才能发送完,有种阻塞感觉
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
@@ -828,27 +788,24 @@ static ngx_command_t ngx_http_core_commands[] = {
          offsetof(ngx_http_core_loc_conf_t, read_ahead),
          NULL},
 
-            /*
-    语法:directio size | off;
-    默认:directio off;
-    配置块:http、server、location
-    当文件大小大于该值的时候,可以此配置项在FreeBSD和Linux系统上使用O_DIRECT选项去读取文件,通常对大文件的读取速度有优化作用.注意,它与sendfile功能是互斥的.
-    */
-    /*
-    When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
-    directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
-    如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
-    则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
-    生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
-    不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
-    当读入长度大于等于指定size的文件时,开启DirectIO功能.具体的做法是,在FreeBSD或Linux系统开启使用O_DIRECT标志,在MacOS X系统开启
-    使用F_NOCACHE标志,在Solaris系统开启使用directio()功能.这条指令自动关闭sendfile(0.7.15版).它在处理大文件时
-    */
+            /*语法:directio size | off;
+            默认:directio off;
+            配置块:http、server、location
+            当文件大小大于该值的时候,可以此配置项在FreeBSD和Linux系统上使用O_DIRECT选项去读取文件,通常对大文件的读取速度有优化作用.注意,它与sendfile功能是互斥的*/
 
-    //ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
-    // ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点
+            /*When both AIO and sendfile are enabled on Linux, AIO is used for files that are larger than or equal to the size specified in the
+            directio directive, while sendfile is used for files of smaller sizes or when directio is disabled.
+            如果aio on; sendfile都配置了,并且执行了b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
+            则当文件大小大于等于directio指定size(默认512)的时候使用aio,当小于size或者directio off的时候使用sendfile
+            生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on } 以及ngx_output_chain_copy_buf
+            不过不满足上面的条件,如果aio on; sendfile都配置了,则还是以sendfile为准
+            当读入长度大于等于指定size的文件时,开启DirectIO功能.具体的做法是,在FreeBSD或Linux系统开启使用O_DIRECT标志,在MacOS X系统开启
+            使用F_NOCACHE标志,在Solaris系统开启使用directio()功能.这条指令自动关闭sendfile(0.7.15版).它在处理大文件时*/
 
-    //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
+            /*ngx_output_chain_as_is  ngx_output_chain_align_file_buf  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
+             ngx_linux_sendfile_chain是sendfile发送和普通write发送的分界点*/
+
+            //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
 
         /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio(并且of.is_directio要为1)这几个模块,
             并且文件大小大于directio xxx中的大小才才会生效,见ngx_output_chain_align_file_buf  ngx_output_chain_as_is */
@@ -859,15 +816,14 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-    directio_alignment
-    语法:directio_alignment size;
-    默认:directio_alignment 512;  它与directio配合使用,指定以directio方式读取文件时的对齐方式
-    配置块:http、server、location
-    它与directio配合使用,指定以directio方式读取文件时的对齐方式.一般情况下,512B已经足够了,但针对一些高性能文件系统,如Linux下的XFS文件系统,
-    可能需要设置到4KB作为对齐方式.
-    */
-        // 默认512   在ngx_output_chain_get_buf生效,表示分配内存空间的时候,空间起始地址需要按照这个值对齐
+        /*directio_alignment
+        语法:directio_alignment size;
+        默认:directio_alignment 512;  它与directio配合使用,指定以directio方式读取文件时的对齐方式
+        配置块:http、server、location
+        它与directio配合使用,指定以directio方式读取文件时的对齐方式.一般情况下,512B已经足够了,但针对一些高性能文件系统,如Linux下的XFS文件系统,
+        可能需要设置到4KB作为对齐方式*/
+
+        // 默认512,在ngx_output_chain_get_buf生效,表示分配内存空间的时候,空间起始地址需要按照这个值对齐
         {ngx_string("directio_alignment"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_off_slot,
@@ -881,15 +837,14 @@ static ngx_command_t ngx_http_core_commands[] = {
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, tcp_nopush),
          NULL},
-        /*
-    在元数据操作等小包传送时,发现性能不好,通过调试发现跟socket的TCP_NODELAY有很大关系.
+        /*在元数据操作等小包传送时,发现性能不好,通过调试发现跟socket的TCP_NODELAY有很大关系.
     TCP_NODELAY 和 TCP_CORK,
     这两个选项都对网络连接的行为具有重要的作用.许多UNIX系统都实现了TCP_NODELAY选项,但是,TCP_CORK则是Linux系统所独有的而且相对较新;它首先在内核版本2.4上得以实现.
     此外,其他UNIX系统版本也有功能类似的选项,值得注意的是,在某种由BSD派生的系统上的 TCP_NOPUSH选项其实就是TCP_CORK的一部分具体实现.
     TCP_NODELAY和TCP_CORK基本上控制了包的"Nagle化",Nagle化在这里的含义是采用Nagle算法把较小的包组装为更大的帧. John Nagle是Nagle算法的发明人,
     后者就是用他的名字来命名的,他在1984年首次用这种方法来尝试解决福特汽车公司的网络拥塞问题(欲了解详情请参看IETF RFC 896).他解决的问题就是所谓的silly
     window syndrome ,中文称"愚蠢窗口症候群",具体含义是,因为普遍终端应用程序每产生一次击键操作就会发送一个包,而典型情况下一个包会拥有
-    一个字节的数据载荷以及40 个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞,. Nagle化后来成了一种标准并且立即在因特网上得以实现.
+    一个字节的数据载荷以及40 个字节长的包头,于是产生4000%的过载,很轻易地就能令网络发生拥塞. Nagle化后来成了一种标准并且立即在因特网上得以实现.
     它现在已经成为缺省配置了,但在我们看来,有些场合下把这一选项关掉也是合乎需要的.
     现在让我们假设某个应用程序发出了一个请求,希望发送小块数据.我们可以选择立即发送数据或者等待产生更多的数据然后再一次发送两种策略.如果我们马上发送数据,
     那么交互性的以及客户/服务器型的应用程序将极大地受益.例如,当我们正在发送一个较短的请求并且等候较大的响应时,相关过载与传输的数据总量相比就会比较低,
@@ -945,16 +900,14 @@ static ngx_command_t ngx_http_core_commands[] = {
     而是直接向用户发送RST重置包,不再等待用户的应答,直接释放Nginx服务器上关于这个套接字使用的所有缓存(如TCP滑动窗口).相比正常的关闭方式,
     它使得服务器避免产生许多处于FIN_WAIT_1、FIN_WAIT_2、TIME_WAIT状态的TCP连接.
 
-    注意,使用RST重置包关闭连接会带来一些问题,默认情况下不会开启.
-*/
-        /*
-        发送响应的超时时间
+    注意,使用RST重置包关闭连接会带来一些问题,默认情况下不会开启*/
+
+        /*发送响应的超时时间
         语法:send_timeout time;
         默认:send_timeout 60;
         配置块:http、server、location
         这个超时时间是发送响应的超时时间,即Nginx服务器向客户端发送了数据包,但客户端一直没有去接收这个数据包.如果某个连接超过
-        send_timeout定义的超时时间,那么Nginx将会关闭这个连接
-        */
+        send_timeout定义的超时时间,那么Nginx将会关闭这个连接*/
         {ngx_string("send_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -977,21 +930,19 @@ static ngx_command_t ngx_http_core_commands[] = {
          offsetof(ngx_http_core_loc_conf_t, postpone_output),
          NULL},
 
-        /*
-语法:  limit_rate rate;
-默认值:  limit_rate 0;
-上下文:  http, server, location, if in location
-限制向客户端传送响应的速率限制.参数rate的单位是字节/秒,设置为0将关闭限速. nginx按连接限速,所以如果某个客户端同时开启了两个连接,
-那么客户端的整体速率是这条指令设置值的2倍.
-也可以利用$limit_rate变量设置流量限制.如果想在特定条件下限制响应传输速率,可以使用这个功能:
-server {
-    if ($slow) {
-        set $limit_rate 4k;
-    }
-    ...
-}
-此外,也可以通过"X-Accel-Limit-Rate"响应头来完成速率限制. 这种机制可以用proxy_ignore_headers指令和 fastcgi_ignore_headers指令关闭.
-*/
+        /*语法:  limit_rate rate;
+        默认值:  limit_rate 0;
+        上下文:  http, server, location, if in location
+        限制向客户端传送响应的速率限制.参数rate的单位是字节/秒,设置为0将关闭限速. nginx按连接限速,所以如果某个客户端同时开启了两个连接,
+        那么客户端的整体速率是这条指令设置值的2倍.
+        也可以利用$limit_rate变量设置流量限制.如果想在特定条件下限制响应传输速率,可以使用这个功能:
+        server {
+            if ($slow) {
+                set $limit_rate 4k;
+            }
+            ...
+        }
+        此外,也可以通过"X-Accel-Limit-Rate"响应头来完成速率限制. 这种机制可以用proxy_ignore_headers指令和 fastcgi_ignore_headers指令关闭*/
         { ngx_string("limit_rate"), //limit_rate限制包体的发送速度,limit_req限制连接请求连理速度
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_CONF_TAKE1,
@@ -999,19 +950,18 @@ server {
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, limit_rate),
          NULL},
-        /*
-语法:  limit_rate_after size;
-默认值:  limit_rate_after 0;
-上下文:  http, server, location, if in location
+        /*语法:  limit_rate_after size;
+        默认值:  limit_rate_after 0;
+        上下文:  http, server, location, if in location
 
-设置不限速传输的响应大小.当传输量大于此值时,超出部分将限速传送.
-比如:
-location /flv/ {
-    flv;
-    limit_rate_after 500k;
-    limit_rate       50k;
-}
-*/
+        设置不限速传输的响应大小.当传输量大于此值时,超出部分将限速传送.
+        比如:
+        location /flv/ {
+            flv;
+            limit_rate_after 500k;
+            limit_rate       50k;
+        }
+         */
         {ngx_string("limit_rate_after"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_CONF_TAKE1,
@@ -1026,49 +976,44 @@ location /flv/ {
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, keepalive_time),
          NULL},
-        /*
-      keepalive超时时间
+        /*keepalive超时时间
       语法:keepalive_timeout time(默认单位:秒);
       默认:keepalive_timeout 75;
       配置块:http、server、location
       一个keepalive 连接在闲置超过一定时间后(默认的是75秒),服务器和浏览器都会去关闭这个连接.当然,keepalive_timeout配置项是用
-      来约束Nginx服务器的,Nginx也会按照规范把这个时间传给浏览器,但每个浏览器对待keepalive的策略有可能是不同的.
-      */ //注意和ngx_http_upstream_keepalive_commands中keepalive的区别
+      来约束Nginx服务器的,Nginx也会按照规范把这个时间传给浏览器,但每个浏览器对待keepalive的策略有可能是不同的*/
+
+        //注意和ngx_http_upstream_keepalive_commands中keepalive的区别
         {ngx_string("keepalive_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE12,
          ngx_http_core_keepalive,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-一个keepalive长连接上允许承载的请求最大数
-语法:keepalive_requests n;
-默认:keepalive_requests 100;
-配置块:http、server、location
-一个keepalive连接上默认最多只能发送100个请求. 设置通过一个长连接可以处理的最大请求数. 请求数超过此值,长连接将关闭.
-*/
+        /*一个keepalive长连接上允许承载的请求最大数
+        语法:keepalive_requests n;
+        默认:keepalive_requests 100;
+        配置块:http、server、location
+        一个keepalive连接上默认最多只能发送100个请求. 设置通过一个长连接可以处理的最大请求数. 请求数超过此值,长连接将关闭*/
         {ngx_string("keepalive_requests"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, keepalive_requests),
          NULL},
-        /*
-对某些浏览器禁用keepalive功能
-语法:keepalive_disable [ msie6 | safari | none ]...
-默认:keepalive_disable  msie6 safari
-配置块:http、server、location
-HTTP请求中的keepalive功能是为了让多个请求复用一个HTTP长连接,这个功能对服务器的性能提高是很有帮助的.但有些浏览器,如IE 6和Safari,
-它们对于使用keepalive功能的POST请求处理有功能性问题.因此,针对IE 6及其早期版本、Safari浏览器默认是禁用keepalive功能的.
-*/
+        /*对某些浏览器禁用keepalive功能
+        语法:keepalive_disable [ msie6 | safari | none ]...
+        默认:keepalive_disable  msie6 safari
+        配置块:http、server、location
+        HTTP请求中的keepalive功能是为了让多个请求复用一个HTTP长连接,这个功能对服务器的性能提高是很有帮助的.但有些浏览器,如IE 6和Safari,
+        它们对于使用keepalive功能的POST请求处理有功能性问题.因此,针对IE 6及其早期版本、Safari浏览器默认是禁用keepalive功能的*/
         {ngx_string("keepalive_disable"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE12,
          ngx_conf_set_bitmask_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, keepalive_disable),
          &ngx_http_core_keepalive_disable},
-        /*
-       相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
+        /*相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
        ┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
        ┃satisfy的参数 ┃    意义                                                                              ┃
        ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -1102,8 +1047,7 @@ HTTP请求中的keepalive功能是为了让多个请求复用一个HTTP长连接
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, auth_delay),
          NULL},
-        /*
-    internal
+        /*internal
     语法:internal
     默认值:no
     使用字段: location
@@ -1122,51 +1066,46 @@ HTTP请求中的keepalive功能是为了让多个请求复用一个HTTP长连接
     }
     */
         /* 该location{}必须是内部重定向(index重定向 、error_pages等重定向调用ngx_http_internal_redirect)后匹配的location{},否则不让访问该location */
-        //在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
-        //生效地方见ngx_http_core_find_config_phase
+
+        /*在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
+        生效地方见ngx_http_core_find_config_phase*/
         {ngx_string("internal"),
          NGX_HTTP_LOC_CONF | NGX_CONF_NOARGS,
          ngx_http_core_internal,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-lingering_close
-语法:lingering_close off | on | always;
-默认:lingering_close on;
-配置块:http、server、location
-该配置控制Nginx关闭用户连接的方式.always表示关闭用户连接前必须无条件地处理连接上所有用户发送的数据.off表示关闭连接时完全不管连接
-上是否已经有准备就绪的来自用户的数据.on是中间值,一般情况下在关闭连接前都会处理连接上的用户发送的数据,除了有些情况下在业务上认定这之后的数据是不必要的.
-*/
+        /*lingering_close
+        语法:lingering_close off | on | always;
+        默认:lingering_close on;
+        配置块:http、server、location
+        该配置控制Nginx关闭用户连接的方式.always表示关闭用户连接前必须无条件地处理连接上所有用户发送的数据.off表示关闭连接时完全不管连接
+        上是否已经有准备就绪的来自用户的数据.on是中间值,一般情况下在关闭连接前都会处理连接上的用户发送的数据,除了有些情况下在业务上认定这之后的数据是不必要的*/
         {ngx_string("lingering_close"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, lingering_close),
          &ngx_http_core_lingering_close},
-        /*
-  lingering_time
-  语法:lingering_time time;
-  默认:lingering_time 30s;
-  配置块:http、server、location
-  lingering_close启用后,这个配置项对于上传大文件很有用.上文讲过,当用户请求的Content-Length大于max_client_body_size配置时,
-  Nginx服务会立刻向用户发送413(Request entity too large)响应.但是,很多客户端可能不管413返回值,仍然持续不断地上传HTTP body,
-  这时,经过了lingering_time设置的时间后,Nginx将不管用户是否仍在上传,都会把连接关闭掉.
-  */
+        /*lingering_time
+          语法:lingering_time time;
+          默认:lingering_time 30s;
+          配置块:http、server、location
+          lingering_close启用后,这个配置项对于上传大文件很有用.上文讲过,当用户请求的Content-Length大于max_client_body_size配置时,
+          Nginx服务会立刻向用户发送413(Request entity too large)响应.但是,很多客户端可能不管413返回值,仍然持续不断地上传HTTP body,
+          这时,经过了lingering_time设置的时间后,Nginx将不管用户是否仍在上传,都会把连接关闭掉.*/
         {ngx_string("lingering_time"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, lingering_time),
          NULL},
-        /*
-lingering_timeout
-语法:lingering_timeout time;
-默认:lingering_timeout 5s;
-配置块:http、server、location
-lingering_close生效后,在关闭连接前,会检测是否有用户发送的数据到达服务器,如果超过lingering_timeout时间后还没有数据可读,
-就直接关闭连接;否则,必须在读取完连接缓冲区上的数据并丢弃掉后才会关闭连接.
-*/
+        /*lingering_timeout
+        语法:lingering_timeout time;
+        默认:lingering_timeout 5s;
+        配置块:http、server、location
+        lingering_close生效后,在关闭连接前,会检测是否有用户发送的数据到达服务器,如果超过lingering_timeout时间后还没有数据可读,
+        就直接关闭连接;否则,必须在读取完连接缓冲区上的数据并丢弃掉后才会关闭连接*/
         {ngx_string("lingering_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -1188,7 +1127,7 @@ lingering_close生效后,在关闭连接前,会检测是否有用户发送的数
          offsetof(ngx_http_core_loc_conf_t, absolute_redirect),
          NULL},
         /*  server_name_in_redirect on | off 该配置需要配合server_name使用.在使用on打开后,表示在重定向请求时会使用
-    server_name里的第一个主机名代替原先请求中的Host头部,而使用off关闭时,表示在重定向请求时使用请求本身的HOST头部 */
+            server_name里的第一个主机名代替原先请求中的Host头部,而使用off关闭时,表示在重定向请求时使用请求本身的HOST头部 */
         {ngx_string("server_name_in_redirect"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -1216,13 +1155,11 @@ lingering_close生效后,在关闭连接前,会检测是否有用户发送的数
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, msie_refresh),
          NULL},
-        /*
-文件未找到时是否记录到error日志
-语法:log_not_found on | off;
-默认:log_not_found on;
-配置块:http、server、location
-此配置项表示当处理用户请求且需要访问文件时,如果没有找到文件,是否将错误日志记录到error.log文件中.这仅用于定位问题.
-*/
+        /*文件未找到时是否记录到error日志
+        语法:log_not_found on | off;
+        默认:log_not_found on;
+        配置块:http、server、location
+        此配置项表示当处理用户请求且需要访问文件时,如果没有找到文件,是否将错误日志记录到error.log文件中.这仅用于定位问题.*/
         {ngx_string("log_not_found"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -1236,45 +1173,41 @@ lingering_close生效后,在关闭连接前,会检测是否有用户发送的数
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, log_subrequest),
          NULL},
-        /*
- 是否允许递归使用error_page
- 语法:recursive_error_pages [on | off];
- 默认:recursive_error_pages off;
- 配置块:http、server、location
- 确定是否允许递归地定义error_page.
- */
+        /*是否允许递归使用error_page
+         语法:recursive_error_pages [on | off];
+         默认:recursive_error_pages off;
+         配置块:http、server、location
+         确定是否允许递归地定义error_page.*/
         {ngx_string("recursive_error_pages"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, recursive_error_pages),
          NULL},
-        /*
-返回错误页面时是否在Server中注明Nginx版本
-语法:server_tokens on | off;
-默认:server_tokens on;
-配置块:http、server、location
-表示处理请求出错时是否在响应的Server头部中标明Nginx版本,这是为了方便定位问题.
-*/
+        /*返回错误页面时是否在Server中注明Nginx版本
+        语法:server_tokens on | off;
+        默认:server_tokens on;
+        配置块:http、server、location
+        表示处理请求出错时是否在响应的Server头部中标明Nginx版本,这是为了方便定位问题.*/
         {ngx_string("server_tokens"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, server_tokens),
          &ngx_http_core_server_tokens},
-        /*
-对If-Modified-Since头部的处理策略
-语法:if_modified_since [off|exact|before];
-默认:if_modified_since exact;
-配置块:http、server、location
-出于性能考虑,Web浏览器一般会在客户端本地缓存一些文件,并存储当时获取的时间.这样,下次向Web服务器获取缓存过的资源时,
-就可以用If-Modified-Since头部把上次获取的时间捎带上,而if_modified_since将根据后面的参数决定如何处理If-Modified-Since头部.
-相关参数说明如下.
-off:表示忽略用户请求中的If-Modified-Since头部.这时,如果获取一个文件,那么会正常地返回文件内容.HTTP响应码通常是200.
-exact:将If-Modified-Since头部包含的时间与将要返回的文件上次修改的时间做精确比较,如果没有匹配上,则返回200和文件的实际内容,如果匹配上,
-则表示浏览器缓存的文件内容已经是最新的了,没有必要再返回文件从而浪费时间与带宽了,这时会返回304 Not Modified,浏览器收到后会直接读取自己的本地缓存.
-before:是比exact更宽松的比较.只要文件的上次修改时间等于或者早于用户请求中的If-Modified-Since头部的时间,就会向客户端返回304 Not Modified.
-*/ //生效见ngx_http_test_if_modified
+        /*对If-Modified-Since头部的处理策略
+        语法:if_modified_since [off|exact|before];
+        默认:if_modified_since exact;
+        配置块:http、server、location
+        出于性能考虑,Web浏览器一般会在客户端本地缓存一些文件,并存储当时获取的时间.这样,下次向Web服务器获取缓存过的资源时,
+        就可以用If-Modified-Since头部把上次获取的时间捎带上,而if_modified_since将根据后面的参数决定如何处理If-Modified-Since头部.
+        相关参数说明如下.
+        off:表示忽略用户请求中的If-Modified-Since头部.这时,如果获取一个文件,那么会正常地返回文件内容.HTTP响应码通常是200.
+        exact:将If-Modified-Since头部包含的时间与将要返回的文件上次修改的时间做精确比较,如果没有匹配上,则返回200和文件的实际内容,如果匹配上,
+        则表示浏览器缓存的文件内容已经是最新的了,没有必要再返回文件从而浪费时间与带宽了,这时会返回304 Not Modified,浏览器收到后会直接读取自己的本地缓存.
+        before:是比exact更宽松的比较.只要文件的上次修改时间等于或者早于用户请求中的If-Modified-Since头部的时间,就会向客户端返回304 Not Modified */
+
+        //生效见ngx_http_test_if_modified
         {ngx_string("if_modified_since"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_enum_slot,
@@ -1302,35 +1235,35 @@ before:是比exact更宽松的比较.只要文件的上次修改时间等于或�
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, etag),
          NULL},
-        /*
-    根据HTTP返回码重定向页面
-    语法:error_page code [ code... ] [ = | =answer-code ] uri | @named_location
-    配置块:http、server、location、if
+        /*根据HTTP返回码重定向页面
+        语法:error_page code [ code... ] [ = | =answer-code ] uri | @named_location
+        配置块:http、server、location、if
 
-    当对于某个请求返回错误码时,如果匹配上了error_page中设置的code,则重定向到新的URI中.例如:
-    error_page   404          /404.html;
-    error_page   502 503 504  /50x.html;
-    error_page   403          http://example.com/forbidden.html;
-    error_page   404          = @fetch;
+        当对于某个请求返回错误码时,如果匹配上了error_page中设置的code,则重定向到新的URI中.例如:
+        error_page   404          /404.html;
+        error_page   502 503 504  /50x.html;
+        error_page   403          http://example.com/forbidden.html;
+        error_page   404          = @fetch;
 
-    注意,虽然重定向了URI,但返回的HTTP错误码还是与原来的相同.用户可以通过"="来更改返回的错误码,例如:
-    error_page 404 =200 /empty.gif;
-    error_page 404 =403 /forbidden.gif;
+        注意,虽然重定向了URI,但返回的HTTP错误码还是与原来的相同.用户可以通过"="来更改返回的错误码,例如:
+        error_page 404 =200 /empty.gif;
+        error_page 404 =403 /forbidden.gif;
 
-    也可以不指定确切的返回错误码,而是由重定向后实际处理的真实结果来决定,这时,只要把"="后面的错误码去掉即可,例如:
-    error_page 404 = /empty.gif;
+        也可以不指定确切的返回错误码,而是由重定向后实际处理的真实结果来决定,这时,只要把"="后面的错误码去掉即可,例如:
+        error_page 404 = /empty.gif;
 
-    如果不想修改URI,只是想让这样的请求重定向到另一个location中进行处理,那么可以这样设置:
-    location / (
-        error_page 404 @fallback;
-    )
+        如果不想修改URI,只是想让这样的请求重定向到另一个location中进行处理,那么可以这样设置:
+        location / (
+            error_page 404 @fallback;
+        )
 
-    location @fallback (
-        proxy_pass http://backend;
-    )
+        location @fallback (
+            proxy_pass http://backend;
+        )
 
-    这样,返回404的请求会被反向代理到http://backend上游服务器中处理
-    */ //try_files和error_page都有重定向功能  //error_page错误码必须must be between 300 and 599,并且不能为499,见ngx_http_core_error_page
+        这样,返回404的请求会被反向代理到http://backend上游服务器中处理*/
+
+        //try_files和error_page都有重定向功能  //error_page错误码必须must be between 300 and 599,并且不能为499,见ngx_http_core_error_page
         {ngx_string("error_page"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_HTTP_LIF_CONF
          | NGX_CONF_2MORE,
@@ -1354,38 +1287,34 @@ before:是比exact更宽松的比较.只要文件的上次修改时间等于或�
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-打开文件缓存
-语法:open_file_cache max = N [inactive = time] | off;
-默认:open_file_cache off;
-配置块:http、server、location
-文件缓存会在内存中存储以下3种信息:
-文件句柄、文件大小和上次修改时间.
-已经打开过的目录结构.
-没有找到的或者没有权限操作的文件信息.
-这样,通过读取缓存就减少了对磁盘的操作.
-该配置项后面跟3种参数.
-max:表示在内存中存储元素的最大个数.当达到最大限制数量后,将采用LRU(Least Recently Used)算法从缓存中淘汰最近最少使用的元素.
-inactive:表示在inactive指定的时间段内没有被访问过的元素将会被淘汰.默认时间为60秒.
-off:关闭缓存功能.
-例如:
-open_file_cache max=1000 inactive=20s; //如果20s内有请求到该缓存,则该缓存继续生效,如果20s内都没有请求该缓存,则20s外请求,会重新获取原文件并生成缓存
-*/
+        /*打开文件缓存
+        语法:open_file_cache max = N [inactive = time] | off;
+        默认:open_file_cache off;
+        配置块:http、server、location
+        文件缓存会在内存中存储以下3种信息:
+        文件句柄、文件大小和上次修改时间.
+        已经打开过的目录结构.
+        没有找到的或者没有权限操作的文件信息.
+        这样,通过读取缓存就减少了对磁盘的操作.
+        该配置项后面跟3种参数.
+        max:表示在内存中存储元素的最大个数.当达到最大限制数量后,将采用LRU(Least Recently Used)算法从缓存中淘汰最近最少使用的元素.
+        inactive:表示在inactive指定的时间段内没有被访问过的元素将会被淘汰.默认时间为60秒.
+        off:关闭缓存功能.
+        例如:
+        open_file_cache max=1000 inactive=20s; //如果20s内有请求到该缓存,则该缓存继续生效,如果20s内都没有请求该缓存,则20s外请求,会重新获取原文件并生成缓存*/
 
-/*
-   注意open_file_cache inactive=20s和fastcgi_cache_valid 20s的区别,前者指的是如果客户端在20s内没有请求到来,则会把该缓存文件对应的fd stat属性信息
-   从ngx_open_file_cache_t->rbtree(expire_queue)中删除(客户端第一次请求该uri对应的缓存文件的时候会把该文件对应的stat信息节点ngx_cached_open_file_s添加到
-   ngx_open_file_cache_t->rbtree(expire_queue)中),从而提高获取缓存文件的效率
-   fastcgi_cache_valid指的是何时缓存文件过期,过期则删除,定时执行ngx_cache_manager_process_handler->ngx_http_file_cache_manager
-*/
+        /*注意open_file_cache inactive=20s和fastcgi_cache_valid 20s的区别,前者指的是如果客户端在20s内没有请求到来,则会把该缓存文件对应的fd stat属性信息
+           从ngx_open_file_cache_t->rbtree(expire_queue)中删除(客户端第一次请求该uri对应的缓存文件的时候会把该文件对应的stat信息节点ngx_cached_open_file_s添加到
+           ngx_open_file_cache_t->rbtree(expire_queue)中),从而提高获取缓存文件的效率
+           fastcgi_cache_valid指的是何时缓存文件过期,过期则删除,定时执行ngx_cache_manager_process_handler->ngx_http_file_cache_manager  */
 
-/*
-   如果没有配置open_file_cache max=1000 inactive=20s;,也就是说没有缓存cache缓存文件对应的文件stat信息,则每次都要从新打开文件获取文件stat信息,
-   如果有配置open_file_cache,则会把打开的cache缓存文件stat信息按照ngx_crc32_long做hash后添加到ngx_cached_open_file_t->rbtree中,这样下次在请求该
-   uri,则就不用再次open文件后在stat获取文件属性了,这样可以提高效率,参考ngx_open_cached_file
-   创建缓存文件stat节点node后,每次新来请求的时候都会更新accessed时间,因此只要inactive时间内有请求,就不会删除缓存stat节点,见ngx_expire_old_cached_files
-   inactive时间内没有新的请求则会从红黑树中删除该节点,同时关闭该文件见ngx_open_file_cleanup  ngx_close_cached_file  ngx_expire_old_cached_files
-   */ //可以参考ngx_open_file_cache_t  参考ngx_open_cached_file
+        /*如果没有配置open_file_cache max=1000 inactive=20s;,也就是说没有缓存cache缓存文件对应的文件stat信息,则每次都要从新打开文件获取文件stat信息,
+           如果有配置open_file_cache,则会把打开的cache缓存文件stat信息按照ngx_crc32_long做hash后添加到ngx_cached_open_file_t->rbtree中,这样下次在请求该
+           uri,则就不用再次open文件后在stat获取文件属性了,这样可以提高效率,参考ngx_open_cached_file
+           创建缓存文件stat节点node后,每次新来请求的时候都会更新accessed时间,因此只要inactive时间内有请求,就不会删除缓存stat节点,见ngx_expire_old_cached_files
+           inactive时间内没有新的请求则会从红黑树中删除该节点,同时关闭该文件见ngx_open_file_cleanup  ngx_close_cached_file  ngx_expire_old_cached_files  */
+
+        //可以参考ngx_open_file_cache_t  参考ngx_open_cached_file
 
         {ngx_string("open_file_cache"),
                 //open_file_cache inactive 30主要用于是否在30s内有新请求,没有则删除缓存,而open_file_cache_min_uses表示只要缓存在红黑树中,并且遍历该文件次数达到指定次数,则不会close文件,也就不会从新获取stat信息
@@ -1394,54 +1323,53 @@ open_file_cache max=1000 inactive=20s; //如果20s内有请求到该缓存,则�
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, open_file_cache),
          NULL},
-        /*
-检验缓存中元素有效性的频率
-语法:open_file_cache_valid time;
-默认:open_file_cache_valid 60s;
-配置块:http、server、location
-设置检查open_file_cache缓存stat信息的元素的时间间隔.
-*/
-//表示60s后来的第一个请求要对文件stat信息做一次检查,检查是否发送变化,如果发送变化则从新获取文件stat信息或者从新创建该阶段,
+        /*检验缓存中元素有效性的频率
+        语法:open_file_cache_valid time;
+        默认:open_file_cache_valid 60s;
+        配置块:http、server、location
+        设置检查open_file_cache缓存stat信息的元素的时间间隔.*/
+
+        //表示60s后来的第一个请求要对文件stat信息做一次检查,检查是否发送变化,如果发送变化则从新获取文件stat信息或者从新创建该阶段,
         //生效在ngx_open_cached_file中的(&& now - file->created < of->valid )
         {ngx_string("open_file_cache_valid"),
-                //open_file_cache_min_uses后者是判断是否需要close描述符,然后重新打开获取fd和stat信息,open_file_cache_valid只是定期对stat(超过该配置时间后,在来一个的时候会进行判断)进行更新
+                /*open_file_cache_min_uses后者是判断是否需要close描述符,然后重新打开获取fd和stat信息,
+                 open_file_cache_valid只是定期对stat(超过该配置时间后,在来一个的时候会进行判断)进行更新*/
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_sec_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, open_file_cache_valid),
          NULL},
 
-        /*
-不被淘汰的最小访问次数
-语法:open_file_cache_min_uses number;
-默认:open_file_cache_min_uses 1;
-配置块:http、server、location
+        /*不被淘汰的最小访问次数
+        语法:open_file_cache_min_uses number;
+        默认:open_file_cache_min_uses 1;
+        配置块:http、server、location
 
-设置在由open_file_cache指令的inactive参数配置的超时时间内,文件应该被访问的最小number(次数).如果访问次数大于等于此值,文件描
-述符会保留在缓存中,否则从缓存中删除.
-*/  //例如open_file_cache max=102400 inactive=20s; 只要该缓存文件被遍历次数超过open_file_cache_min_uses次请求,则缓存中的文件更改信息不变,不会close文件
-        //这时候的情况是:请求带有If-Modified-Since,得到的是304且Last-Modified时间没变
-/*
-file->uses >= min_uses表示只要在inactive时间内该ngx_cached_open_file_s file节点被遍历到的次数达到min_uses次,则永远不会关闭文件(也就是不用重新获取文件stat信息),
-除非该cache node失效,缓存超时inactive后会从红黑树中删除该file node节点,同时关闭文件等见ngx_open_file_cleanup  ngx_close_cached_file  ngx_expire_old_cached_files
-*/    { ngx_string("open_file_cache_min_uses"),
-//只要缓存匹配次数达到这么多次,就不会重新关闭close该文件缓存,下次也就不会从新打开文件获取文件描述符,除非缓存时间inactive内都没有新请求,则会删除节点并关闭文件
-//open_file_cache inactive 30主要用于是否在30s内有新请求,没有则删除缓存,而open_file_cache_min_uses表示只要缓存在红黑树中,并且遍历该文件次数达到指定次数,则不会close文件,也就不会从新获取stat信息
+        设置在由open_file_cache指令的inactive参数配置的超时时间内,文件应该被访问的最小number(次数).如果访问次数大于等于此值,文件描
+        述符会保留在缓存中,否则从缓存中删除*/
 
-//open_file_cache_min_uses后者是判断是否需要close描述符,然后重新打开获取fd和stat信息,open_file_cache_valid只是定期对stat(超过该配置时间后,在来一个的时候会进行判断)进行更新
+        /*例如open_file_cache max=102400 inactive=20s; 只要该缓存文件被遍历次数超过open_file_cache_min_uses次请求,则缓存中的文件更改信息不变,不会close文件
+        这时候的情况是:请求带有If-Modified-Since,得到的是304且Last-Modified时间没变*/
+
+        /*file->uses >= min_uses表示只要在inactive时间内该ngx_cached_open_file_s file节点被遍历到的次数达到min_uses次,则永远不会关闭文件(也就是不用重新获取文件stat信息),
+        除非该cache node失效,缓存超时inactive后会从红黑树中删除该file node节点,同时关闭文件等见ngx_open_file_cleanup  ngx_close_cached_file  ngx_expire_old_cached_files  */
+{ ngx_string("open_file_cache_min_uses"),
+        /*只要缓存匹配次数达到这么多次,就不会重新关闭close该文件缓存,下次也就不会从新打开文件获取文件描述符,除非缓存时间inactive内都没有新请求,则会删除节点并关闭文件
+        open_file_cache inactive 30主要用于是否在30s内有新请求,没有则删除缓存,而open_file_cache_min_uses表示只要缓存在红黑树中,
+         并且遍历该文件次数达到指定次数,则不会close文件,也就不会从新获取stat信息*/
+
+        //open_file_cache_min_uses后者是判断是否需要close描述符,然后重新打开获取fd和stat信息,open_file_cache_valid只是定期对stat(超过该配置时间后,在来一个的时候会进行判断)进行更新
 
         NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_num_slot,
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, open_file_cache_min_uses),
          NULL},
-        /*
-是否缓存打开文件错误的信息
-语法:open_file_cache_errors on | off;
-默认:open_file_cache_errors off;
-配置块:http、server、location
-此配置项表示是否在文件缓存中缓存打开文件时出现的找不到路径、没有权限等错误信息.
-*/
+        /*是否缓存打开文件错误的信息
+        语法:open_file_cache_errors on | off;
+        默认:open_file_cache_errors off;
+        配置块:http、server、location
+        此配置项表示是否在文件缓存中缓存打开文件时出现的找不到路径、没有权限等错误信息*/
         {ngx_string("open_file_cache_errors"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_FLAG,
          ngx_conf_set_flag_slot,
@@ -1455,26 +1383,22 @@ file->uses >= min_uses表示只要在inactive时间内该ngx_cached_open_file_s 
          NGX_HTTP_LOC_CONF_OFFSET,
          offsetof(ngx_http_core_loc_conf_t, open_file_cache_events),
          NULL},
-        /*
-DNS解析地址
-语法:resolver address ...;
-配置块:http、server、location
-设置DNS名字解析服务器的地址,例如:
-resolver 127.0.0.1 192.0.2.1;
-*/
+        /*DNS解析地址
+        语法:resolver address ...;
+        配置块:http、server、location
+        设置DNS名字解析服务器的地址,例如:
+        resolver 127.0.0.1 192.0.2.1;*/
         {ngx_string("resolver"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_1MORE,
          ngx_http_core_resolver,
          NGX_HTTP_LOC_CONF_OFFSET,
          0,
          NULL},
-        /*
-DNS解析的超时时间
-语法:resolver_timeout time;
-默认:resolver_timeout 30s;
-配置块:http、server、location
-此配置项表示DNS解析的超时时间.
-*/ //考:http://theantway.com/2013/09/understanding_the_dns_resolving_in_nginx/         Nginx的DNS解析过程分析
+        /*DNS解析的超时时间
+        语法:resolver_timeout time;
+        默认:resolver_timeout 30s;
+        配置块:http、server、location
+        此配置项表示DNS解析的超时时间*/
         {ngx_string("resolver_timeout"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1,
          ngx_conf_set_msec_slot,
@@ -1515,30 +1439,28 @@ DNS解析的超时时间
 #endif
 
 #if (NGX_HAVE_OPENAT)
-        /*
-语法:  disable_symlinks off;
-disable_symlinks on | if_not_owner [from=part];
+        /*语法:  disable_symlinks off;
+        disable_symlinks on | if_not_owner [from=part];
 
-默认值:  disable_symlinks off;
-上下文:  http, server, location
+        默认值:  disable_symlinks off;
+        上下文:  http, server, location
 
-决定nginx打开文件时如何处理符号链接:
-off
-默认行为,允许路径中出现符号链接,不做检查.
-on
-如果文件路径中任何组成部分中含有符号链接,拒绝访问该文件.
-if_not_owner
-如果文件路径中任何组成部分中含有符号链接,且符号链接和链接目标的所有者不同,拒绝访问该文件.
-from=part
-当nginx进行符号链接检查时(参数on和参数if_not_owner),路径中所有部分默认都会被检查.而使用from=part参数可以避免对路径开始部分进行符号链接检查,
-而只检查后面的部分路径.如果某路径不是以指定值开始,整个路径将被检查,就如同没有指定这个参数一样.如果某路径与指定值完全匹配,将不做检查.这
-个参数的值可以包含变量.
-比如:
-disable_symlinks on from=$document_root;
-这条指令只在有openat()和fstatat()接口的系统上可用.当然,现在的FreeBSD、Linux和Solaris都支持这些接口.
-参数on和if_not_owner会带来处理开销.
-只在那些不支持打开目录查找文件的系统中,使用这些参数需要工作进程有这些被检查目录的读权限.
-*/
+        决定nginx打开文件时如何处理符号链接:
+        off
+        默认行为,允许路径中出现符号链接,不做检查.
+        on
+        如果文件路径中任何组成部分中含有符号链接,拒绝访问该文件.
+        if_not_owner
+        如果文件路径中任何组成部分中含有符号链接,且符号链接和链接目标的所有者不同,拒绝访问该文件.
+        from=part
+        当nginx进行符号链接检查时(参数on和参数if_not_owner),路径中所有部分默认都会被检查.而使用from=part参数可以避免对路径开始部分进行符号链接检查,
+        而只检查后面的部分路径.如果某路径不是以指定值开始,整个路径将被检查,就如同没有指定这个参数一样.如果某路径与指定值完全匹配,将不做检查.这
+        个参数的值可以包含变量.
+        比如:
+        disable_symlinks on from=$document_root;
+        这条指令只在有openat()和fstatat()接口的系统上可用.当然,现在的FreeBSD、Linux和Solaris都支持这些接口.
+        参数on和if_not_owner会带来处理开销.
+        只在那些不支持打开目录查找文件的系统中,使用这些参数需要工作进程有这些被检查目录的读权限.*/
         {ngx_string("disable_symlinks"),
          NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE12,
          ngx_http_disable_symlinks,
@@ -1551,8 +1473,7 @@ disable_symlinks on from=$document_root;
         ngx_null_command
 };
 
-/*
-任何一个HTTP模块的server相关的配置项都是可能出现在main级别中,而location相关的配置项可能出现在main、srv级别中
+/*任何一个HTTP模块的server相关的配置项都是可能出现在main级别中,而location相关的配置项可能出现在main、srv级别中
 main server location配置定义如下:
 1.main配置项:只能在http{}内 server外的配置.例如 http{aaa; server{ location{} }}   aaa为main配置项
 2.server配置项:可以在http内,server外配置,也可以在server内配置. 例如 http{bbb; server{bbb; location{} }}   bbb为server配置项
@@ -1576,25 +1497,23 @@ http {
 同理location类配置可能同时出现在main中,所以需要存储这写配置,所以要创建loc来存储他们,就是上面的sss配置.
 在解析到server{}的时候,由于location配置也可能出现在server{}内,就是上面server{}中的xxx;所以解析到server{}的时候
 需要调动srv和loc create;
-所以最终要决定使用那个sss配置和xxx配置,这就需要把http和server的sss合并, http、server和location中的xxx合并
-*/
+所以最终要决定使用那个sss配置和xxx配置,这就需要把http和server的sss合并, http、server和location中的xxx合并*/
 static ngx_http_module_t  ngx_http_core_module_ctx = {
         ngx_http_core_preconfiguration,        /* preconfiguration */ //在解析http{}内的配置项前回调
         ngx_http_core_postconfiguration,       /* postconfiguration */ //解析完http{}内的所有配置项后回调
 
-        ////解析到http{}行时,在ngx_http_block执行.该函数创建的结构体成员只能出现在http中,不会出现在server和location中
+        //解析到http{}行时,在ngx_http_block执行.该函数创建的结构体成员只能出现在http中,不会出现在server和location中
         ngx_http_core_create_main_conf,        /* create main configuration */
+
         //http{}的所有项解析完后执行
         ngx_http_core_init_main_conf,          /* init main configuration */ //解析完main配置项后回调
 
-        //解析server{}   local{}项时,会执行
-        //创建用于存储可同时出现在main、srv级别配置项的结构体,该结构体中的成员与server配置是相关联的
+        /*解析server{} local{}项时,会执行创建用于存储可同时出现在main、srv级别配置项的结构体,该结构体中的成员与server配置是相关联的*/
         ngx_http_core_create_srv_conf,         /* create server configuration */
         /* merge_srv_conf方法可以把出现在main级别中的配置项值合并到srv级别配置项中 */
         ngx_http_core_merge_srv_conf,          /* merge server configuration */
 
-        //解析到http{}  server{}  local{}行时,会执行
-        //创建用于存储可同时出现在main、srv、loc级别配置项的结构体,该结构体中的成员与location配置是相关联的
+        /*解析到http{}  server{}  local{}行时,会执行创建用于存储可同时出现在main、srv、loc级别配置项的结构体,该结构体中的成员与location配置是相关联的*/
         ngx_http_core_create_loc_conf,         /* create location configuration */
         //把出现在main、srv级别的配置项值合并到loc级别的配置项中
         ngx_http_core_merge_loc_conf           /* merge location configuration */
@@ -1603,8 +1522,9 @@ static ngx_http_module_t  ngx_http_core_module_ctx = {
 
 //在解析到http{}行的时候,会根据ngx_http_block来执行ngx_http_core_module_ctx中的相关create来创建存储配置项目的空间
 ngx_module_t  ngx_http_core_module = { //http{}内部 和server location都属于这个模块,他们的main_create  srv_create loc_ctreate都是一样的
-//http{}相关配置结构创建首先需要执行ngx_http_core_module,而后才能执行对应的http子模块,这里有个顺序关系在里面.因为
-//ngx_http_core_loc_conf_t ngx_http_core_srv_conf_t ngx_http_core_main_conf_t的相关
+
+        /*http{}相关配置结构创建首先需要执行ngx_http_core_module,而后才能执行对应的http子模块,这里有个顺序关系在里面.因为
+        ngx_http_core_loc_conf_t ngx_http_core_srv_conf_t ngx_http_core_main_conf_t的相关*/
         NGX_MODULE_V1,
         &ngx_http_core_module_ctx,             /* module context */
         ngx_http_core_commands,                /* module directives */
@@ -1622,20 +1542,18 @@ ngx_module_t  ngx_http_core_module = { //http{}内部 和server location都属�
 
 ngx_str_t ngx_http_core_get_method = {3, (u_char *) "GET"};
 
-//ngx_http_process_request->ngx_http_handler->ngx_http_core_run_phases
-//ngx_http_run_posted_requests->ngx_http_handler
+/*ngx_http_process_request->ngx_http_handler->ngx_http_core_run_phases
+ngx_http_run_posted_requests->ngx_http_handler*/
 void
 ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
     ngx_http_core_main_conf_t *cmcf;
 
     r->connection->log->action = NULL;
-    /*
-    检查ngx_http_request_t结构体的internal标志位,如果internal为0,则从头部phase_handler执行;如果internal标志位为1,则表示请求当前需要做内部跳转,
+    /*检查ngx_http_request_t结构体的internal标志位,如果internal为0,则从头部phase_handler执行;如果internal标志位为1,则表示请求当前需要做内部跳转,
 将要把结构体中的phase_handler序号置为server_rewrite_index.注意ngx_http_phase_engine_t结构体中的handlers动态数组中保存了请求需要经历的所有
 回调方法,而server_rewrite_index则是handlers数组中NGX_HTTP_SERVER_REWRITE_PHASE处理阶段的第一个ngx_http_phase_handler_t回调方法所处的位置.
     究竟handlers数组是怎么使用的呢?事实上,它要配合着ngx_http_request_t结构体的phase_handler序号使用,由phase_handler指定着请求将要执行
-的handlers数组中的方法位置.注意,handlers数组中的方法都是由各个HTTP模块实现的,这就是所有HTTP模块能够共同处理请求的原因.
- */
+的handlers数组中的方法位置.注意,handlers数组中的方法都是由各个HTTP模块实现的,这就是所有HTTP模块能够共同处理请求的原因*/
     if (!r->internal) {
         switch (r->headers_in.connection_type) {
             case 0:
@@ -1653,16 +1571,13 @@ ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
 
         r->lingering_close = (r->headers_in.content_length_n > 0
                               || r->headers_in.chunked);
-        /*
-      当internal标志位为0时,表示不需要重定向(如刚开始处理请求时),将phase_handler序号置为0,意味着从ngx_http_phase_engine_t指定数组
-      的第一个回调方法开始执行(了解ngx_http_phase_engine_t是如何将各HTTP模块的回调方法构造成handlers数组的).
-         */
+        /*当internal标志位为0时,表示不需要重定向(如刚开始处理请求时),将phase_handler序号置为0,意味着从ngx_http_phase_engine_t指定数组
+        的第一个回调方法开始执行(了解ngx_http_phase_engine_t是如何将各HTTP模块的回调方法构造成handlers数组的)*/
         r->phase_handler = 0;
 
     } else {
-        /*
-在这一步骤中,把phase_handler序号设为server_rewrite_index,这意味着无论之前执行到哪一个阶段,马上都要重新从NGX_HTTP_SERVER_REWRITE_PHASE
-阶段开始再次执行,这是Nginx的请求可以反复rewrite重定向的基础*/
+        /*在这一步骤中,把phase_handler序号设为server_rewrite_index,这意味着无论之前执行到哪一个阶段,马上都要重新从NGX_HTTP_SERVER_REWRITE_PHASE
+            阶段开始再次执行,这是Nginx的请求可以反复rewrite重定向的基础*/
         cmcf = ngx_http_get_module_main_conf(r, ngx_http_core_module);
         r->phase_handler = cmcf->phase_engine.server_rewrite_index;
     }
@@ -1678,8 +1593,7 @@ ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
     ngx_http_core_run_phases(r);
 }
 
-/*
-    每个ngx_http_phases阶段对应的checker函数,处于同一个阶段的checker函数相同,见ngx_http_init_phase_handlers
+/*每个ngx_http_phases阶段对应的checker函数,处于同一个阶段的checker函数相同,见ngx_http_init_phase_handlers
     NGX_HTTP_SERVER_REWRITE_PHASE  -------  ngx_http_core_rewrite_phase
     NGX_HTTP_FIND_CONFIG_PHASE     -------  ngx_http_core_find_config_phase
     NGX_HTTP_REWRITE_PHASE         -------  ngx_http_core_rewrite_phase
@@ -1716,14 +1630,14 @@ ngx_http_handler(ngx_http_request_t *r) { /* 执行11个阶段的指定阶段 */
 ┃NGX HTTP LOG PHASE            ┃ngx_http_core_generic_phase       ┃
 ┗━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━┛
 */
-/*
-通常来说,在接收完HTTP头部后,是无法在一次Nginx框架的调度中处理完一个请求的.在第一次接收完HTTP头部后,HTTP框架将调度
+
+/*通常来说,在接收完HTTP头部后,是无法在一次Nginx框架的调度中处理完一个请求的.在第一次接收完HTTP头部后,HTTP框架将调度
 ngx_http_process_request方法开始处理请求,如果某个checker方法返回了NGX_OK,则将会把控制权交还给Nginx框架.当这个请求
 上对应的事件再次触发时,HTTP框架将不会再调度ngx_http_process_request方法处理请求,而是由ngx_http_request_handler方法
-开始处理请求.例如recv虽然把头部行内容读取完毕,并能解析完成,但是可能有携带请求内容,内容可能没有读完
-*/
-//通过执行当前r->phase_handler所指向的阶段的checker函数
-//ngx_http_process_request->ngx_http_handler->ngx_http_core_run_phases
+开始处理请求.例如recv虽然把头部行内容读取完毕,并能解析完成,但是可能有携带请求内容,内容可能没有读完*/
+
+/*通过执行当前r->phase_handler所指向的阶段的checker函数
+ngx_http_process_request->ngx_http_handler->ngx_http_core_run_phases*/
 void
 ngx_http_core_run_phases(ngx_http_request_t *r) { //执行该请求对于的阶段的checker(),并获取返回值
     ngx_int_t rc;
@@ -1735,14 +1649,12 @@ ngx_http_core_run_phases(ngx_http_request_t *r) { //执行该请求对于的阶�
     ph = cmcf->phase_engine.handlers;
 
     while (ph[r->phase_handler].checker) { //处于同一ngx_http_phases阶段的所有ngx_http_phase_handler_t的checker指向相同的函数,见ngx_http_init_phase_handlers
-/*
-handler方法其实仅能在checker方法中被调用,而且checker方法由HTTP框架实现,所以可以控制各HTTP模块实现的处理方法在不同的阶段中采用不同的调用行为
-ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶段,以及下一阶段应当执行哪个HTTP模块实现的内容.可以看到请求的phase_handler成员
-会被重置,而HTTP框架实现的checker穷法也会修改phase_handler成员的值
-当checker方法的返回值非NGX_OK时,意味着向下执行phase_engine中的各处理方法;反之,当任何一个checker方法返回NGX_OK时,意味着把控制权交还
-给Nginx的事件模块,由它根据事件(网络事件、定时器事件、异步I/O事件等)再次调度请求.然而,一个请求多半需要Nginx事件模块多次地调度HTTP模
-块处理,也就是在该函数外设置的读/写事件的回调方法ngx_http_request_handler
-*/
+        /*handler方法其实仅能在checker方法中被调用,而且checker方法由HTTP框架实现,所以可以控制各HTTP模块实现的处理方法在不同的阶段中采用不同的调用行为
+        ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶段,以及下一阶段应当执行哪个HTTP模块实现的内容.可以看到请求的phase_handler成员
+        会被重置,而HTTP框架实现的checker穷法也会修改phase_handler成员的值
+        当checker方法的返回值非NGX_OK时,意味着向下执行phase_engine中的各处理方法;反之,当任何一个checker方法返回NGX_OK时,意味着把控制权交还
+        给Nginx的事件模块,由它根据事件(网络事件、定时器事件、异步I/O事件等)再次调度请求.然而,一个请求多半需要Nginx事件模块多次地调度HTTP模
+        块处理,也就是在该函数外设置的读/写事件的回调方法ngx_http_request_handler  */
 
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
 
@@ -1754,7 +1666,7 @@ ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶�
 }
 
 /*
-//NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE  NGX_HTTP_LOG_PHASE默认都是该函数盼段下HTTP模块的ngx_http_handler_pt方法返回值意义
+NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE  NGX_HTTP_LOG_PHASE默认都是该函数盼段下HTTP模块的ngx_http_handler_pt方法返回值意义:
 ┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    返回值    ┃    意义                                                                          ┃
 ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -1778,12 +1690,13 @@ ngx_http_request_t结构体中的phase_handler成员将决定执行到哪一阶�
 ┃其他          ┃                                                                                  ┃
 ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 */
-/*
-有3个HTTP阶段都使用了ngx_http_core_generic_phase作为它们的checker方法,这意味着任何试图在NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE
-NGX_HTTP_LOG_PHASE这3个阶段处理请求的HTTP模块都需要了解ngx_http_core_generic_phase方法
-*/ //所有阶段的checker在ngx_http_core_run_phases中调用
-//NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE  NGX_HTTP_LOG_PHASE默认都是该函数
-//当HTTP框架在建立的TCP连接上接收到客户发送的完整HTTP请求头部时,开始执行NGX_HTTP_POST_READ_PHASE阶段的checker方法
+
+/*有3个HTTP阶段都使用了ngx_http_core_generic_phase作为它们的checker方法,这意味着任何试图在NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE
+NGX_HTTP_LOG_PHASE这3个阶段处理请求的HTTP模块都需要了解ngx_http_core_generic_phase方法*/
+
+/*所有阶段的checker在ngx_http_core_run_phases中调用
+NGX_HTTP_POST_READ_PHASE   NGX_HTTP_PREACCESS_PHASE  NGX_HTTP_LOG_PHASE默认都是该函数
+当HTTP框架在建立的TCP连接上接收到客户发送的完整HTTP请求头部时,开始执行NGX_HTTP_POST_READ_PHASE阶段的checker方法*/
 ngx_int_t
 ngx_http_core_generic_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) {
     ngx_int_t rc;
@@ -1802,18 +1715,17 @@ ngx_http_core_generic_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph)
         r->phase_handler = ph->next; //直接指向下一个处理阶段的第一个方法
         return NGX_AGAIN;
     }
-    //如果handler方法返回NGX_DECLINED,那么将进入下一个处理方法,这个处理方法既可能属于当前阶段,也可能属于下一个阶段.注意返回
-    //NGX_OK与NGX_DECLINED之间的区别
+    /*如果handler方法返回NGX_DECLINED,那么将进入下一个处理方法,这个处理方法既可能属于当前阶段,也可能属于下一个阶段.注意返回
+    NGX_OK与NGX_DECLINED之间的区别*/
     if (rc == NGX_DECLINED) {
         r->phase_handler++; //紧接着的下一个处理方法
         return NGX_AGAIN;
     }
-    /*
-如果handler方法返回NGX_AGAIN或者NGX_DONE,则意味着刚才的handler方法无法在这一次调度中处理完这一个阶段,它需要多次调度才能完成,
-也就是说,刚刚执行过的handler方法希望:如果请求对应的事件再次被触发时,将由ngx_http_request_handler通过ngx_http_core_ run_phases再次
-调用这个handler方法.直接返回NGX_OK会使待HTTP框架立刻把控制权交还给epoll事件框架,不再处理当前请求,唯有这个请求上的事件再次被触发才会继续执行.
-*/
-//如果handler方法返回NGX_AGAIN或者NGX_DONE,那么当前请求将仍然停留在这一个处理阶段中
+    /*如果handler方法返回NGX_AGAIN或者NGX_DONE,则意味着刚才的handler方法无法在这一次调度中处理完这一个阶段,它需要多次调度才能完成,
+        也就是说,刚刚执行过的handler方法希望:如果请求对应的事件再次被触发时,将由ngx_http_request_handler通过ngx_http_core_ run_phases再次
+        调用这个handler方法.直接返回NGX_OK会使待HTTP框架立刻把控制权交还给epoll事件框架,不再处理当前请求,唯有这个请求上的事件再次被触发才会继续执行*/
+
+    //如果handler方法返回NGX_AGAIN或者NGX_DONE,那么当前请求将仍然停留在这一个处理阶段中
     if (rc == NGX_AGAIN || rc == NGX_DONE) { //phase_handler没有发生变化,当这个请求上的事件再次触发的时候继续在该阶段执行
         return NGX_OK;
     }
@@ -1825,8 +1737,7 @@ ngx_http_core_generic_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph)
     return NGX_OK;
 }
 
-/*
-NGX_HTTP_SERVER_REWRITE_PHASE  NGX_HTTP_REWRITE_PHASE阶段的checker方法是ngx_http_core_rewrite_phase.表10-2总结了该阶段
+/*NGX_HTTP_SERVER_REWRITE_PHASE  NGX_HTTP_REWRITE_PHASE阶段的checker方法是ngx_http_core_rewrite_phase.表10-2总结了该阶段
 下ngx_http_handler_pt处理方法的返回值是如何影响HTTP框架执行的,注意,这个阶段中不存在返回值可以使请求直接跳到下一个阶段执行.
 NGX_HTTP_REWRITE_PHASE  NGX_HTTP_POST_REWRITE_PHASE阶段HTTP模块的ngx_http_handler_pt方法返回值意义
 ┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -1849,7 +1760,9 @@ NGX_HTTP_REWRITE_PHASE  NGX_HTTP_POST_REWRITE_PHASE阶段HTTP模块的ngx_http_h
 ┣━━━━━━━┫                                                                                    ┃
 ┃其他          ┃                                                                                    ┃
 ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-*/ //所有阶段的checker在ngx_http_core_run_phases中调用
+*/
+
+//所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_rewrite_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) {
     ngx_int_t rc;
@@ -1858,27 +1771,23 @@ ngx_http_core_rewrite_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph)
                    "rewrite phase: %ui", r->phase_handler);
 
     rc = ph->handler(r);
-    /* 将phase_handler加1表示将要执行下一个回调方法.注意,此时返回的是NGX AGAIN,HTTP框架不会把进程控制权交还给epoll事件框架,而
-是继续立刻执行请求的下一个回调方法. */
+    /* 将phase_handler加1表示将要执行下一个回调方法.注意,此时返回的是NGX_AGAIN,HTTP框架不会把进程控制权交还给epoll事件框架,而是继续立刻执行请求的下一个回调方法*/
     if (rc == NGX_DECLINED) {
         r->phase_handler++;
         return NGX_AGAIN;
     }
-    /*
-     如果handler方法返回NGX_DONE,则意味着刚才的handler方法无法在这一次调度中处理完这一个阶段,它需要多次的调度才能完成.注意,此
-     时返回NGX_OK,它会使得HTTP框架立刻把控制权交还给epoll等事件模块,不再处理当前请求,唯有这个请求上的事件再次被触发时才会继续执行.
-     */
+    /*如果handler方法返回NGX_DONE,则意味着刚才的handler方法无法在这一次调度中处理完这一个阶段,它需要多次的调度才能完成.注意,此
+     时返回NGX_OK,它会使得HTTP框架立刻把控制权交还给epoll等事件模块,不再处理当前请求,唯有这个请求上的事件再次被触发时才会继续执行*/
     if (rc == NGX_DONE) { //phase_handler没有发生变化,因此如果该请求的事件再次触发,还会接着上次的handler执行
         return NGX_OK;
     }
-    /*
-   为什么该checker执行handler没有NGX_DECLINED(r- >phase_handler  =  ph- >next) ?????
-   答:ngx_http_core_rewrite_phase方法与ngx_http_core_generic_phase方法有一个显著的不同点:前者永远不会导致跨过同
-一个HTTP阶段的其他处理方法,就直接跳到下一个阶段来处理请求.原因其实很简单,可能有许多HTTP模块在NGX_HTTP_REWRITE_PHASE和
-NGX_HTTP_POST_REWRITE_PHASE阶段同时处理重写URL这样的业务,HTTP框架认为这两个盼段的HTTP模块是完全平等的,序号靠前的HTTP模块优先
-级并不会更高,它不能决定序号靠后的HTTP模块是否可以再次重写URL.因此,ngx_http_core_rewrite_phase方法绝对不会把phase_handler直接
-设置到下一个阶段处理方法的流程中,即不可能存在类似下面的代码: r- >phase_handler  =  ph- >next ;
-    */
+    /*为什么该checker执行handler没有NGX_DECLINED(r- >phase_handler  =  ph- >next) ?????
+       答:ngx_http_core_rewrite_phase方法与ngx_http_core_generic_phase方法有一个显著的不同点:前者永远不会导致跨过同
+    一个HTTP阶段的其他处理方法,就直接跳到下一个阶段来处理请求.原因其实很简单,可能有许多HTTP模块在NGX_HTTP_REWRITE_PHASE和
+    NGX_HTTP_POST_REWRITE_PHASE阶段同时处理重写URL这样的业务,HTTP框架认为这两个盼段的HTTP模块是完全平等的,序号靠前的HTTP模块优先
+    级并不会更高,它不能决定序号靠后的HTTP模块是否可以再次重写URL.因此,ngx_http_core_rewrite_phase方法绝对不会把phase_handler直接
+    设置到下一个阶段处理方法的流程中,即不可能存在类似下面的代码: r- >phase_handler  =  ph- >next ;  */
+
     /* NGX_OK, NGX_AGAIN, NGX_ERROR, NGX_HTTP_...  */
 
     ngx_http_finalize_request(r, rc);
@@ -1886,9 +1795,8 @@ NGX_HTTP_POST_REWRITE_PHASE阶段同时处理重写URL这样的业务,HTTP框架
     return NGX_OK;
 }
 
-/*
-NGXHTTP—FIND—CONFIG—PHASE阶段上不能挂载任何回调函数,因为它们永远也不会被执行,该阶段完成的是Nginx的特定任务,即进行Location定位
-*/
+/*NGXHTTP—FIND—CONFIG—PHASE阶段上不能挂载任何回调函数,因为它们永远也不会被执行,该阶段完成的是Nginx的特定任务,即进行Location定位*/
+
 //所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_find_config_phase(ngx_http_request_t *r,
@@ -1982,8 +1890,8 @@ ngx_http_core_find_config_phase(ngx_http_request_t *r,
     return NGX_AGAIN;
 }
 
-//内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)
-//所有阶段的checker在ngx_http_core_run_phases中调用
+/*内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)
+所有阶段的checker在ngx_http_core_run_phases中调用*/
 ngx_int_t
 ngx_http_core_post_rewrite_phase(ngx_http_request_t *r,
                                  ngx_http_phase_handler_t *ph) {
@@ -2028,8 +1936,7 @@ ngx_http_core_post_rewrite_phase(ngx_http_request_t *r,
 }
 
 
-/*
-  NGX_HTTP_ACCESS_PHASE阶段下HTTP
+/*NGX_HTTP_ACCESS_PHASE阶段下HTTP
     模块的ngx_http_handler_pt方法返回值意义
 ┏━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    返回值            ┃    意义                                                                    ┃
@@ -2059,25 +1966,22 @@ ngx_http_core_post_rewrite_phase(ngx_http_request_t *r,
 ┗━━━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
     从表10-3中可以看出,NGX_HTTP_ACCESS_PHASE阶段实际上与nginx.conf配置文件中的satisfy配置项有紧密的联系,所以,任何介
 入NGX_HTTP_ACCESS_PHASE阶段的HTTP模块,在实现ngx_http_handler_pt方法时都需要注意satisfy的参数,该参数可以由
-ngx_http_core_loc_conf_t绪构体中得到.
-*/
-/*
-ngx_http_core—access_phase方法是仅用于NGX—HTTP__ ACCESS PHASE阶段的处理方法,这一阶段用于控制用户发起的请求是否合法,如检测客
+ngx_http_core_loc_conf_t绪构体中得到*/
+
+/*ngx_http_core—access_phase方法是仅用于NGX—HTTP__ ACCESS PHASE阶段的处理方法,这一阶段用于控制用户发起的请求是否合法,如检测客
 户端的IP地址是否允许访问.它涉及nginx.conf配置文件中satisfy配置项的参数值,见表11-2.
     对于表11-2的any配置项,是通过ngx_http_request_t结构体中的access—code成员来
-传递handler方法的返圆值的
-*/
+传递handler方法的返圆值的*/
+
 //所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) {
     ngx_int_t rc;
     ngx_http_core_loc_conf_t *clcf;
-    /*
- 既然NGX_HTTP_ACCESS_PHASE阶段用于控制客户端是否有权限访问服务,那么它就不需要对子请求起作用.如何判断请求究竟是来自客
-户端的原始请求还是被派生出的子请求呢?很简单,检查ngx_http_request_t结构体中的main指针即可.ngx_ http_init_request
-方法会把main指针指向其自身,而由这个请求派生出的其他子请求中的main指针,仍然会指向ngx_http_init_request方法初始化的原始请求.
-因此,检查main成员与ngx_http_request_t自身的指针是否相等即可
-  */
+    /*既然NGX_HTTP_ACCESS_PHASE阶段用于控制客户端是否有权限访问服务,那么它就不需要对子请求起作用.如何判断请求究竟是来自客
+    户端的原始请求还是被派生出的子请求呢?很简单,检查ngx_http_request_t结构体中的main指针即可.ngx_ http_init_request
+    方法会把main指针指向其自身,而由这个请求派生出的其他子请求中的main指针,仍然会指向ngx_http_init_request方法初始化的原始请求.
+    因此,检查main成员与ngx_http_request_t自身的指针是否相等即可*/
     if (r != r->main) { //是否是子请求,如果是子请求,说明父请求已经有权限了,因此子请求也有权限,直接跳过该NGX_HTTP_ACCESS_PHASE阶段
         r->phase_handler = ph->next;
         return NGX_AGAIN;
@@ -2087,27 +1991,22 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
                    "access phase: %ui", r->phase_handler);
 
     rc = ph->handler(r);
-    /*
-  返回NGX—DECLINED意味着handler方法执行完毕且"意犹未尽",希望立刻执行下一个handler方法,无论其是否属于NGX HTTP_ACCESS_PHASE阶段,
-  在这一步中只需要把phase_handler加1,同时ngx_http_core_access_phase方法返回NGX AGAIN即可.*/
+    /*返回NGX—DECLINED意味着handler方法执行完毕且"意犹未尽",希望立刻执行下一个handler方法,无论其是否属于NGX HTTP_ACCESS_PHASE阶段,
+    在这一步中只需要把phase_handler加1,同时ngx_http_core_access_phase方法返回NGX AGAIN即可.*/
     if (rc == NGX_DECLINED) {
         r->phase_handler++;
         return NGX_AGAIN;
     }
-    /*
-    返回NGX.AGAIN或者NGX—DONE意味着当前的NGX_HTTP_ACCESS_PHASE阶段没有一次性执行完毕,所以在这一步中会暂时结束当前请求的
-    处理,将控制权交还给事件模块,ngx_http_core_access_phase方法结束.当请求中对应的事件再次触发时才会继续处理该请求.
-    */
+    /*返回NGX.AGAIN或者NGX—DONE意味着当前的NGX_HTTP_ACCESS_PHASE阶段没有一次性执行完毕,所以在这一步中会暂时结束当前请求的
+    处理,将控制权交还给事件模块,ngx_http_core_access_phase方法结束.当请求中对应的事件再次触发时才会继续处理该请求*/
     if (rc == NGX_AGAIN || rc == NGX_DONE) {
         return NGX_OK;
     }
-    /*
-   由于NGX HTTP ACCESS PHASE阶段是在NGX HTTP—FIND—CONFIG—PHASE阶段之后的,因此这时请求已经找到了匹配的location配置块,
-先把location块对应的ngx_http_core_loc_conf t配置结构体取出来,因为这里有一个配置项satisfy是下一步需要用到的*/
+    /*由于NGX HTTP ACCESS PHASE阶段是在NGX HTTP—FIND—CONFIG—PHASE阶段之后的,因此这时请求已经找到了匹配的location配置块,
+        先把location块对应的ngx_http_core_loc_conf t配置结构体取出来,因为这里有一个配置项satisfy是下一步需要用到的*/
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
-    /*
-相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
+    /*相对于NGX HTTP ACCESS PHASE阶段处理方法,satisfy配置项参数的意义
 ┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃satisfy的参数 ┃    意义                                                                              ┃
 ┣━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -2128,7 +2027,7 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
 ┃              ┃all和any有点像"&&"和"¨"的关系                                                    ┃
 ┗━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 */
-    if (clcf->satisfy == NGX_HTTP_SATISFY_ALL) { //必须NGX—HTTP—ACCESS—PHASE阶段的所有handler都返回NGX_OK才算具有权限访问
+    if (clcf->satisfy == NGX_HTTP_SATISFY_ALL) { //必须NGX_HTTP—ACCESS—PHASE阶段的所有handler都返回NGX_OK才算具有权限访问
 
         if (rc == NGX_OK) { //只要有一个模块的handler允许访问,该客户端就有权限
             r->phase_handler++;
@@ -2147,11 +2046,9 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
             return NGX_AGAIN;
         }
 
-        /*
-    如果返回值是NGX_HTTP_FORBIDDEN 或者NGX_HTTP_UNAUTHORIZED,则表示这个HTTP模块的handler方法认为请求没有权限访问服务,但
-    只要NGX_HTTP_ACCESS_PHASE阶段的任何一个handler方法返回NGX_OK就认为请求合法,所以后续的handler方法可能会更改这一结果.
-    这时将请求的access_code成员设置为handler穷法的返回值,用于传递当前HTTP模块的处理结果
-    */
+        /*如果返回值是NGX_HTTP_FORBIDDEN 或者NGX_HTTP_UNAUTHORIZED,则表示这个HTTP模块的handler方法认为请求没有权限访问服务,但
+        只要NGX_HTTP_ACCESS_PHASE阶段的任何一个handler方法返回NGX_OK就认为请求合法,所以后续的handler方法可能会更改这一结果.
+        这时将请求的access_code成员设置为handler穷法的返回值,用于传递当前HTTP模块的处理结果*/
         if (rc == NGX_HTTP_FORBIDDEN || rc == NGX_HTTP_UNAUTHORIZED) { //虽然当前模块的handler任务没权限,单后面其他模块的handler可能允许该客户端访问
             if (r->access_code != NGX_HTTP_UNAUTHORIZED) {
                 r->access_code = rc;
@@ -2172,13 +2069,12 @@ ngx_http_core_access_phase(ngx_http_request_t *r, ngx_http_phase_handler_t *ph) 
     return NGX_OK;
 }
 
-/*
-NGX_HTTP_POST_ACCESS_PHASE阶段又是一个只能由HTTP框架实现的阶段,不允许HTTP模块向该阶段添加ngx_http_handler_pt处理方法.这个阶段完全是为之前
+/*NGX_HTTP_POST_ACCESS_PHASE阶段又是一个只能由HTTP框架实现的阶段,不允许HTTP模块向该阶段添加ngx_http_handler_pt处理方法.这个阶段完全是为之前
 的NGX_HTTP_ACCESS_PHASE阶段服务的,换句话说,如果没有任何HTTP模块介入NGX_HTTP_ACCESS_PHASE阶段处理请求,NGX_HTTP_POST_ACCESS_PHASE阶段就
-不会存在.
-    NGX_HTTP_POST_ACCESS_PHASE阶段的checker方法是ngx_http_core_post_access_phase,它的工作非常简单,就是检查ngx_http_request_t请求
-中的access_code成员,当其不为O时就结束请求(表示没有访问权限),否则继续执行下一个ngx_http_handler_pt处理方法.
-*/ //所有阶段的checker在ngx_http_core_run_phases中调用
+不会存在.NGX_HTTP_POST_ACCESS_PHASE阶段的checker方法是ngx_http_core_post_access_phase,它的工作非常简单,就是检查ngx_http_request_t请求
+中的access_code成员,当其不为O时就结束请求(表示没有访问权限),否则继续执行下一个ngx_http_handler_pt处理方法*/
+
+//所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_post_access_phase(ngx_http_request_t *r,
                                 ngx_http_phase_handler_t *ph) {
@@ -2271,8 +2167,7 @@ ngx_http_core_auth_delay_handler(ngx_http_request_t *r) {
     ngx_http_finalize_request(r, NGX_HTTP_UNAUTHORIZED);
 }
 
-/*
-    这是一个核心HTTP阶段,可以说大部分HTTP模块都会在此阶段重新定义Nginx服务器的行为,如第3章中提到的mytest模块.NGX_HTTP_CONTENT_PHASE
+/*这是一个核心HTTP阶段,可以说大部分HTTP模块都会在此阶段重新定义Nginx服务器的行为,如第3章中提到的mytest模块.NGX_HTTP_CONTENT_PHASE
 阶段之所以被众多HTTP模块"钟爱",主要基于以下两个原因:
     其一,以上9个阶段主要专注于4件基础性工作:rewrite重写URL、找到location配置块、判断请求是否具备访问权限、try_files功能优先读取静态资源文件,
 这4个工作通常适用于绝大部分请求,因此,许多HTTP模块希望可以共享这9个阶段中已经完成的功能.
@@ -2301,8 +2196,9 @@ NGX_HTTP_CONTENT_PHASE阶段的checker方法是ngx_http_core_content_phase.ngx_h
     在第一种方式下,ngx_http_handler_pt处理方法无论返回任何值,都会直接调用ngx_http_finalize_request方法结束请求.当然,
 ngx_http_finalize_request方法根据返回值的不同未必会直接结束请求,这在第11章中会详细介绍.
     在第二种方式下,如果ngx_http_handler_pt处理方法返回NGX_DECLINED,将按顺序向后执行下一个ngx_http_handler_pt处理方法;如果返回其他值,
-则调用ngx_http_finalize_request方法结束请求.
-*/ //所有阶段的checker在ngx_http_core_run_phases中调用
+则调用ngx_http_finalize_request方法结束请求*/
+
+//所有阶段的checker在ngx_http_core_run_phases中调用
 ngx_int_t
 ngx_http_core_content_phase(ngx_http_request_t *r,
                             ngx_http_phase_handler_t *ph) {
@@ -2310,13 +2206,11 @@ ngx_http_core_content_phase(ngx_http_request_t *r,
     ngx_int_t rc;
     ngx_str_t path;
 
-    /*
-  检测ngx_http_request_t结构体的content_handler成员是否为空,其实就是看在NGX_HTTP_FIND_CONFIG_PHASE阶段匹配了URI请求
-  的location内,是否有HTTP模块把处理方法设置到了ngx_http_core_loc_conf_t结构体的handler成员中
-   */
+    /*检测ngx_http_request_t结构体的content_handler成员是否为空,其实就是看在NGX_HTTP_FIND_CONFIG_PHASE阶段匹配了URI请求
+    的location内,是否有HTTP模块把处理方法设置到了ngx_http_core_loc_conf_t结构体的handler成员中*/
     if (r->content_handler) { //如果在clcf->handler中设置了方法,则直接从这里进去执行该方法,然后返回,就不会执行content阶段的其他任何方法了,参考例子ngx_http_mytest_handler
-        //如果有content_handler,就直接调用就行了.比如如果是FCGI,在遇到配置fastcgi_pass   127.0.0.1:8777;的时候,会调用ngx_http_fastcgi_pass函数
-        //,注册本location的处理hander为ngx_http_fastcgi_handler. 从而在ngx_http_update_location_config里面会更新content_handler指针为当前loc所对应的指针.
+        /*如果有content_handler,就直接调用就行了.比如如果是FCGI,在遇到配置fastcgi_pass   127.0.0.1:8777;的时候,会调用ngx_http_fastcgi_pass函数,
+         注册本location的处理hander为ngx_http_fastcgi_handler. 从而在ngx_http_update_location_config里面会更新content_handler指针为当前loc所对应的指针.*/
 
         r->write_event_handler = ngx_http_request_empty_handler;
         //上面的r->content_handler会指向ngx_http_mytest_handler处理方法.也就是说,事实上ngx_http_finalize_request决定了ngx_http_mytest_handler如何起作用.
@@ -2328,10 +2222,8 @@ ngx_http_core_content_phase(ngx_http_request_t *r,
                    "content phase: %ui", r->phase_handler);
 
     rc = ph->handler(r);
-    /*
-  注意:从ngx_http_core_content_phase方法中可以看到,请求在第10个阶段NGX_HTTP_CONTENT_PHASE后,并没有去调用第11个阶段NGX_HTTP_LOG_PHASE的处理
-  方法,事实上,记录访问日志是必须在请求将要结束时才能进行的,因此,NGX_HTTP_LOG_PHASE阶段的回调方法在ngx_http_free_request方法中才会调用到.
-  */
+    /*注意:从ngx_http_core_content_phase方法中可以看到,请求在第10个阶段NGX_HTTP_CONTENT_PHASE后,并没有去调用第11个阶段NGX_HTTP_LOG_PHASE的处理方法.
+     事实上,记录访问日志是必须在请求将要结束时才能进行的,因此,NGX_HTTP_LOG_PHASE阶段的回调方法在ngx_http_free_request方法中才会调用到*/
     if (rc != NGX_DECLINED) { //该阶段的下一阶段log阶段在请求将要结束ngx_http_free_request中调用,因此最后一个content方法处理完后结束请求
         ngx_http_finalize_request(r, rc);
         return NGX_OK;
@@ -2362,9 +2254,7 @@ ngx_http_core_content_phase(ngx_http_request_t *r,
     }
 
     ngx_log_error(NGX_LOG_ERR, r->connection->log, 0, "no handler found");
-    /*
-   以NGX HTTP NOT—FOUND作为参数调用ngx_http_finalize_request方法,表示结束请求并返回404错误码.同时,ngx_http_core_content_phase方
-   法返回NGX_OK,表示交还控制权给事件模块*/
+    /*以NGX HTTP NOT—FOUND作为参数调用ngx_http_finalize_request方法,表示结束请求并返回404错误码.同时,ngx_http_core_content_phase方法返回NGX_OK,表示交还控制权给事件模块*/
     ngx_http_finalize_request(r, NGX_HTTP_NOT_FOUND);
     return NGX_OK;
 }
@@ -2458,7 +2348,7 @@ ngx_http_update_location_config(ngx_http_request_t *r) {
  */
 
 static ngx_int_t
-ngx_http_core_find_location(ngx_http_request_t *r) { //图解参考http://blog.chinaunix.net/uid-27767798-id-3759557.html
+ngx_http_core_find_location(ngx_http_request_t *r) {
     ngx_int_t rc;
     ngx_http_core_loc_conf_t *pclcf;
 #if (NGX_PCRE)
@@ -2491,10 +2381,9 @@ ngx_http_core_find_location(ngx_http_request_t *r) { //图解参考http://blog.c
     }
 
     /* rc == NGX_DECLINED or rc == NGX_AGAIN in nested location */
-//前缀匹配有匹配到location或者没有匹配到location都要进行正则表达式匹配
+    //前缀匹配有匹配到location或者没有匹配到location都要进行正则表达式匹配
 
-    /*
-        例如有如下配置:
+    /*例如有如下配置:
         location /mytest {		 #1	 前缀匹配
             mytest;
          }
@@ -2503,8 +2392,7 @@ ngx_http_core_find_location(ngx_http_request_t *r) { //图解参考http://blog.c
          }
          如果请求是http://10.135.10.167/mytest则匹配#1,
          如果把#1改为location /mytes,则匹配#2
-         如果把#1改为location /,则匹配#2
-   */
+         如果把#1改为location /,则匹配#2  */
 #if (NGX_PCRE)
 
     if (noregex == 0 && pclcf->regex_locations) { //用了正则表达式,而且呢,regex_locations正则表达式列表里面有货,那就匹配之.
@@ -2545,6 +2433,7 @@ ngx_http_core_find_location(ngx_http_request_t *r) { //图解参考http://blog.c
  * NGX_AGAIN    - inclusive match
  * NGX_DECLINED - no match
  */
+
 //在node树中查找r->uri节点
 static ngx_int_t
 ngx_http_core_find_static_location(ngx_http_request_t *r,
@@ -2563,8 +2452,8 @@ ngx_http_core_find_static_location(ngx_http_request_t *r,
         if (node == NULL) {
             return rv;
         }
-        //ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "static_locations test location: \"%*s\"", node->len, node->name);
-        //n是uri的长度和node name长度的最小值,好比较他们的交集
+        /*ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0, "static_locations test location: \"%*s\"", node->len, node->name);
+        n是uri的长度和node name长度的最小值,好比较他们的交集*/
 
         ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                        "test location: \"%*s\"",
@@ -2586,16 +2475,12 @@ ngx_http_core_find_static_location(ngx_http_request_t *r,
 
             //如果这个节点是前缀匹配的那种需要递归tree节点,因为tree节点后面的子节点拥有相同的前缀.
             if (node->inclusive) {
-                /*
-                   因为前缀已经匹配到了,所以这里先暂且把loc_conf作为target,但是不保证后面的tree节点的子节点是否有和uri完全匹配
+                /*因为前缀已经匹配到了,所以这里先暂且把loc_conf作为target,但是不保证后面的tree节点的子节点是否有和uri完全匹配
                    或者更多前缀匹配的.例如如果uri是/abc,当前node节点是/a,虽然匹配到了location /a,先把/a的location
-                   配置作为target,但是有可能在/a的tree节点有/abc的location,所以需要递归tree节点看一下.
-                   */
+                   配置作为target,但是有可能在/a的tree节点有/abc的location,所以需要递归tree节点看一下*/
 
                 r->loc_conf = node->inclusive->loc_conf;
-                /*
-            置成again表示需要递归嵌套location,为什么要嵌套递归呢,因为location的嵌套配置虽然官方不推荐,但是配置的话,父子
-            location需要有相同的前缀.所以需要递归嵌套location*/
+                /*置成again表示需要递归嵌套location,为什么要嵌套递归呢,因为location的嵌套配置虽然官方不推荐,但是配置的话,父子location需要有相同的前缀.所以需要递归嵌套location*/
                 rv = NGX_AGAIN;
 
                 node = node->tree; //node重新变为tree节点
@@ -2606,9 +2491,8 @@ ngx_http_core_find_static_location(ngx_http_request_t *r,
             }
 
             /* exact only */
-            /*
-               对于精确匹配的location不会放在公共前缀节点的tree节点中,会单拉出来一个node和前缀节点平行.也就是说对于精确匹
-               配 ＝/abcd 和前缀匹配的/abc两个location配置,=/abcd不会是/abc节点的tree节点.=/abcd 只能是／abc的right节点*/
+            /*对于精确匹配的location不会放在公共前缀节点的tree节点中,会单拉出来一个node和前缀节点平行.也就是说对于精确匹
+               配 ＝/abcd 和前缀匹配的/abc两个location配置,=/abcd不会是/abc节点的tree节点.=/abcd 只能是/abc的right节点*/
             node = node->right;
 
             continue;
@@ -2634,9 +2518,7 @@ ngx_http_core_find_static_location(ngx_http_request_t *r,
                           node->inclusive->loc_conf;
             rv = NGX_DONE;
         }
-        /*
-       如果前缀相等,uri的长度比node的长度还要小,比如node的name是/abc ,uri是/ab,这种情况是/abc 一定是精确匹配,因为如果是
-       前缀匹配那么／abc 肯定会再／ab的tree 指针里面*/
+        /*如果前缀相等,uri的长度比node的长度还要小,比如node的name是/abc ,uri是/ab,这种情况是/abc 一定是精确匹配,因为如果是前缀匹配那么/abc 肯定会再/ab的tree 指针里面*/
         node = node->left;
     }
 }
@@ -2760,12 +2642,12 @@ ngx_http_set_exten(ngx_http_request_t *r) {
 }
 
 
-/*
- ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
+/*ETag是一个可以与Web资源关联的记号(token).典型的Web资源可以一个Web页,但也可能是JSON或XML文档.服务器单独负责判断记号是什么
  及其含义,并在HTTP响应头中将其传送到客户端,以下是服务器端返回的格式:ETag:"50b1c1d4f775c61:df3"客户端的查询更新格式是这样
  的:If-None-Match : W / "50b1c1d4f775c61:df3"如果ETag没改变,则返回状态304然后不返回,这也和Last-Modified一样.测试Etag主要
- 在断点下载时比较有用. "etag:XXX" ETag值的变更说明资源状态已经被修改
- */ //设置etag头部行 ,如果客户端在第一次请求文件和第二次请求文件这段时间,文件修改了,则etag就变了
+ 在断点下载时比较有用. "etag:XXX" ETag值的变更说明资源状态已经被修改*/
+
+//设置etag头部行,如果客户端在第一次请求文件和第二次请求文件这段时间,文件修改了,则etag就变了
 ngx_int_t
 ngx_http_set_etag(ngx_http_request_t *r) //ngx_http_test_if_match验证客户端过来的etag, ngx_http_set_etag设置最新etag
 { //即使是下载一个超大文件,整体也只会调用该接口一次,针对一个文件调用一次,不会说因为大文件要多次发送还会调用这里,因此一个文件只要没修过,起etag始终是不变的
@@ -2919,8 +2801,7 @@ ngx_http_send_response(ngx_http_request_t *r, ngx_uint_t status,
     return ngx_http_output_filter(r, &out);
 }
 
-/*
-发送HTTP头部
+/*发送HTTP头部
 下面看一下HTTP框架提供的发送HTTP头部的方法,如下所示.
 在向headers链表中添加自定义的HTTP头部时,可以参考ngx_list_push的使用方法.这里有一个简单的例子,如下所示.
 ngx_table_elt_t* h = ngx_list_push(&r->headers_out.headers);
@@ -2935,11 +2816,9 @@ h->value.data = (u_char *) "TestValue";
 这样将会在响应中新增一行HTTP头部:
 TestHead: TestValud\r\n
 如果发送的是一个不含有HTTP包体的响应,这时就可以直接结束请求了(例如,在ngx_http_mytest_handler方法中,直接在ngx_http_send_header方法执行后将其返回值return即可).
-注意　ngx_http_send_header方法会首先调用所有的HTTP过滤模块共同处理headers_out中定义的HTTP响应头部,全部处理完毕后才会序列化为TCP字符流发送到客户端,相关流程可参见11.9.1节
-*/
+注意　ngx_http_send_header方法会首先调用所有的HTTP过滤模块共同处理headers_out中定义的HTTP响应头部,全部处理完毕后才会序列化为TCP字符流发送到客户端,相关流程可参见11.9.1节*/
 
-/*
-发送缓存文件中内容到客户端过程:
+/*发送缓存文件中内容到客户端过程:
  ngx_http_file_cache_open->ngx_http_file_cache_read->ngx_http_file_cache_aio_read这个流程获取文件中前面的头部信息相关内容,并获取整个
  文件stat信息,例如文件大小等.
  头部部分在ngx_http_cache_send->ngx_http_send_header发送,
@@ -2973,16 +2852,13 @@ ngx_http_send_header(ngx_http_request_t *r) {
     return ngx_http_top_header_filter(r);
 }
 
-/*
-注意　在向用户发送响应包体时,必须牢记Nginx是全异步的服务器,也就是说,不可以在进程的栈里分配内存并将其作为包体发送.当ngx_http_output_filter方法返回时,
+/*注意在向用户发送响应包体时,必须牢记Nginx是全异步的服务器,也就是说,不可以在进程的栈里分配内存并将其作为包体发送.当ngx_http_output_filter方法返回时,
 可能由于TCP连接上的缓冲区还不可写,所以导致ngx_buf_t缓冲区指向的内存还没有发送,可这时方法返回已把控制权交给Nginx了,又会导致栈里的内存被释放,最后就会
-造成内存越界错误.因此,在发送响应包体时,尽量将ngx_buf_t中的pos指针指向从内存池里分配的内存.
-*/
-//r是request请求,in是输入的chain
-//调用ngx_http_output_filter方法即可向客户端发送HTTP响应包体,ngx_http_send_header发送响应行和响应头部
+造成内存越界错误.因此,在发送响应包体时,尽量将ngx_buf_t中的pos指针指向从内存池里分配的内存*/
 
-/*
-实际上,Nginx还封装了一个生成ngx_buf_t的简便方法,它完全等价于上面的6行语句,如下所示.
+/*r是request请求,in是输入的chain，调用ngx_http_output_filter方法即可向客户端发送HTTP响应包体,ngx_http_send_header发送响应行和响应头部*/
+
+/*实际上,Nginx还封装了一个生成ngx_buf_t的简便方法,它完全等价于上面的6行语句,如下所示.
 ngx_buf_t *b = ngx_create_temp_buf(r->pool, 128);
 分配完内存后,可以向这段内存写入数据.当写完数据后,要让b->last指针指向数据的末尾,如果b->last与b->pos相等,那么HTTP框架是不会发送一个字节的包体的.
 最后,把上面的ngx_buf_t *b用ngx_chain_t传给ngx_http_output_filter方法就可以发送HTTP响应的包体内容了.例如:
@@ -2992,11 +2868,9 @@ out.next = NULL;
 return ngx_http_output_filter(r, &out);
 */
 
-/*
-Nginx是一个全异步的事件驱动架构,那么仅仅调用ngx_http_send_header方法和ngx_http_output_filter方法,就可以把响应全部发送给客户端吗?当
+/*Nginx是一个全异步的事件驱动架构,那么仅仅调用ngx_http_send_header方法和ngx_http_output_filter方法,就可以把响应全部发送给客户端吗?当
 然不是,当响应过大无法一次发送完时(TCP的滑动窗口也是有限的,一次非阻塞的发送多半是无法发送完整的HTTP响应的),就需要向epoll以及定时
-器中添加写事件了,当连接再次可写时,就调用ngx_http_writer方法继续发送响应,直到全部的响应都发送到客户端为止.
-*/
+器中添加写事件了,当连接再次可写时,就调用ngx_http_writer方法继续发送响应,直到全部的响应都发送到客户端为止*/
 
 /* 注意:到这里的in实际上是已经指向数据内容部分,或者如果发送的数据需要从文件中读取,in中也会指定文件file_pos和file_last已经文件fd等,
    可以参考ngx_http_cache_send ngx_http_send_header ngx_http_output_filter */
@@ -3449,14 +3323,11 @@ ngx_http_gzip_quantity(u_char *p, u_char *last) {
 
 #endif
 
-/*
-r是我们的module handler中,nginx调用时传给我们的请求,这时我们直接传给subrequest即可.uri和args是我们需要访问backend server的URL,
+/*r是我们的module handler中,nginx调用时传给我们的请求,这时我们直接传给subrequest即可.uri和args是我们需要访问backend server的URL,
 而psr是subrequest函数执行完后返回给我们的新请求,即将要访问backend server的请求指针.ps指明了回调函数,就是说,如果这个请求执行完毕,
-接收到了backend server的响应后,就会回调这个函数.flags会指定这个子请求的一些特征.
-*/
+接收到了backend server的响应后,就会回调这个函数.flags会指定这个子请求的一些特征*/
 
-/*
-sub1_r和sub2_r都是同一个父请求,就是root_r请求,sub1_r和sub2_r就是ngx_http_postponed_request_s->request成员
+/*sub1_r和sub2_r都是同一个父请求,就是root_r请求,sub1_r和sub2_r就是ngx_http_postponed_request_s->request成员
 它们由ngx_http_postponed_request_s->next连接在一起,参考ngx_http_subrequest
                           -----root_r(主请求)
                           |postponed
@@ -3477,14 +3348,11 @@ DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->da
 发送数据到客户端优先级:
 1.子请求优先级比父请求高
 2.同级(一个r产生多个子请求)请求,从左到右优先级由高到低(因为先创建的子请求先发送数据到客户端)
-发送数据到客户端顺序控制见ngx_http_postpone_filter    nginx通过子请求发送数据到后端见ngx_http_run_posted_requests
-*/
+发送数据到客户端顺序控制见ngx_http_postpone_filter    nginx通过子请求发送数据到后端见ngx_http_run_posted_requests*/
 
-//subrequest注意ngx_http_run_posted_requests与ngx_http_subrequest ngx_http_postpone_filter ngx_http_finalize_request配合阅读
-//subrequest参考http://blog.csdn.net/fengmo_q/article/details/6685840  nginx subrequest的实现解析
+/*subrequest注意ngx_http_run_posted_requests与ngx_http_subrequest ngx_http_postpone_filter ngx_http_finalize_request配合阅读*/
 
-/*
-    (1)  ngx_http_request_t *r
+/*(1)  ngx_http_request_t *r
     ngx_http_request_t *r是当前的请求,也就是父请求.
     (2) uri
     ngx_str_t *uri是子请求的URI,它对究竞选用nginx.conf配置文件中的哪个模块来处理子请求起决定性作用.
@@ -3504,8 +3372,7 @@ DATA11,但是该节点实际上保存的是数据,而不是子请求,所以c->da
     flag是按比特位操作的,这样可以同时含有上述3个值.
     (7)返回值
     返回NGX OK表示成功建立子请求;返回NGX_ERROR表示建立子请求失败.
-    该函数主要是创建一个子请求结构ngx_http_request_t,然后把父请求r的相关值赋给子请求r
-*/
+    该函数主要是创建一个子请求结构ngx_http_request_t,然后把父请求r的相关值赋给子请求r */
 ngx_int_t
 ngx_http_subrequest(ngx_http_request_t *r,
                     ngx_str_t *uri, ngx_str_t *args, ngx_http_request_t **psr,
@@ -3613,18 +3480,17 @@ ngx_http_subrequest(ngx_http_request_t *r,
     sr->main = r->main;
     sr->parent = r;
     sr->post_subrequest = ps; /* 保存回调handler及数据,在子请求执行完,将会调用 */
- /* 读事件handler赋值为不做任何事的函数,因为子请求不用再读数据或者检查连接状态;
+    /* 读事件handler赋值为不做任何事的函数,因为子请求不用再读数据或者检查连接状态;
        写事件handler为ngx_http_handler,它会重走phase */
     sr->read_event_handler = ngx_http_request_empty_handler;
     sr->write_event_handler = ngx_http_handler;
-    /*
-    对于子请求,虽然有独立的ngx_http_request_t对象r,但是却没有额的外创建r->variables,和父请求(或者说主请求)是共享的
+    /*对于子请求,虽然有独立的ngx_http_request_t对象r,但是却没有额的外创建r->variables,和父请求(或者说主请求)是共享的;
     针对子请求,虽然重新创建了ngx_http_request_t变量sr,但子请求的Nginx变量值数组sr->variables却是直接指向父请求的r->variables.
-其实这并不难理解,因为父子请求的大部分变量值都是一样的,当然没必要申请另外的窄间,而对于那些父子请求之间可能会有不同变量值的
-变量,又有NGXHTTP_VARNOCACHEABLE标记的存在,所以也不会有什么问题.比如变量$args,在父请求里去访问该变量值时,发现该变量是不可缓
-存的,于是就调用get_handler0函数从main_req对象的args字段(即r->args)里去取,此时得到的值可能是page=9999.而在子请求里去访问该变
-量值时,发现该变量是不可缓存的,于是也调用get_handler0函数从sub__req对象的args字段(即sr->args．注意对象sr与r之间是分隔开的)里
-去取,此时得到的值就可能是id=12.因而,在获取父子请求之间可变变量的值时,并不会相互干扰*/
+    其实这并不难理解,因为父子请求的大部分变量值都是一样的,当然没必要申请另外的窄间,而对于那些父子请求之间可能会有不同变量值的变量,
+    又有NGXHTTP_VARNOCACHEABLE标记的存在,所以也不会有什么问题.比如变量$args,在父请求里去访问该变量值时,发现该变量是不可缓存的,
+    于是就调用get_handler0函数从main_req对象的args字段(即r->args)里去取,此时得到的值可能是page=9999.而在子请求里去访问该变量值时,
+    发现该变量是不可缓存的,于是也调用get_handler0函数从sub__req对象的args字段(即sr->args．注意对象sr与r之间是分隔开的)里去取,此时得到的值就可能是id=12.
+    因而,在获取父子请求之间可变变量的值时,并不会相互干扰*/
     sr->variables = r->variables; /* 默认共享父请求的变量,当然你也可以根据需求在创建完子请求后,再创建子请求独立的变量集 */
 
     sr->log_handler = r->log_handler;
@@ -3635,7 +3501,7 @@ ngx_http_subrequest(ngx_http_request_t *r,
 
     if (!sr->background) {
         /*  sub1_r和sub2_r都是同一个父请求,就是root_r请求,sub1_r和sub2_r就是ngx_http_postponed_request_s->request成员
-    它们由ngx_http_postponed_request_s->next连接在一起,参考ngx_http_subrequest
+        它们由ngx_http_postponed_request_s->next连接在一起,参考ngx_http_subrequest
                           -----root_r(主请求)
                           |postponed
                           |                next
@@ -3646,8 +3512,8 @@ ngx_http_subrequest(ngx_http_request_t *r,
             |
             |               next
           sub11_r(data11)-----------sub12_r(data12)
-          下面的这个if中最终c->data指向的是sub11_r,也就是最左下层的r
-     */
+          下面的这个if中最终c->data指向的是sub11_r,也就是最左下层的r  */
+
         //注意:在创建子请求的过程中并没有创建新的ngx_connection_t,也就是始终用的root请求的ngx_connection_t
         if (c->data == r && r->postponed == NULL) { //说明是r还没有子请求,在创建r的第一个子请求,例如第二层r的第一个子请求就是第三层r
 
@@ -3662,7 +3528,7 @@ ngx_http_subrequest(ngx_http_request_t *r,
         pr->request = sr;
         pr->out = NULL;
         pr->next = NULL;
-        //连接图形化可以参考http://blog.csdn.net/fengmo_q/article/details/6685840
+
         if (r->postponed) {/* 把该子请求挂载在其父请求的postponed链表的队尾 */
             //同一个r中创建的子请求通过r->postponed->next连接在一起,这些子请求中分别在创建子请求则通过postponed指向各自的子请求
             for (p = r->postponed; p->next; p = p->next) { /* void */ }
@@ -3685,8 +3551,7 @@ ngx_http_subrequest(ngx_http_request_t *r,
     tp = ngx_timeofday();
     sr->start_sec = tp->sec;
     sr->start_msec = tp->msec;
-    /* 增加主请求的引用数,这个字段主要是在ngx_http_finalize_request调用的一些结束请求和
-       连接的函数中使用 */
+    /* 增加主请求的引用数,这个字段主要是在ngx_http_finalize_request调用的一些结束请求和连接的函数中使用 */
     r->main->count++;
 
     *psr = sr;
@@ -3716,9 +3581,11 @@ ngx_http_subrequest(ngx_http_request_t *r,
 }
 
 
+/*内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),
+ 而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)*/
 ngx_int_t
 ngx_http_internal_redirect(ngx_http_request_t *r,
-                           ngx_str_t *uri, ngx_str_t *args) { //内部重定向是从NGX_HTTP_SERVER_REWRITE_PHASE处继续执行(ngx_http_internal_redirect),而重新rewrite是从NGX_HTTP_FIND_CONFIG_PHASE处执行(ngx_http_core_post_rewrite_phase)
+                           ngx_str_t *uri, ngx_str_t *args) {
     ngx_http_core_srv_conf_t *cscf;
 
     r->uri_changes--; //重定向次数减1,如果到0了,说明这么多次重定向已经结束,直接返回
@@ -4013,15 +3880,15 @@ ngx_http_get_forwarded_addr_internal(ngx_http_request_t *r, ngx_addr_t *addr,
 }
 
 
-/*
-cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
-参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location
-*/
-//见ngx_http_core_location location{}配置的ctx->loc_conf[ngx_http_core_module.ctx_index]存储在父级server{}的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中
-//见ngx_http_core_server server{}配置的ctx->srv_conf存储在父级http{}ctx对应的ctx->main_conf[ngx_http_core_module.ctx_index]->servers中,通过这个srv_conf[]->ctx就能获取到server{}的上下文ctx
+/*cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
+参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location   */
+
+/*见ngx_http_core_location location{}配置的ctx->loc_conf[ngx_http_core_module.ctx_index]存储在父级server{}的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中
+见ngx_http_core_server server{}配置的ctx->srv_conf存储在父级http{}ctx对应的ctx->main_conf[ngx_http_core_module.ctx_index]->servers中,
+ 通过这个srv_conf[]->ctx就能获取到server{}的上下文ctx*/
 static char *
 ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
-{ //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
+{
     char *rv;
     void *mconf;
     size_t len;
@@ -4043,10 +3910,8 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
     //server{}的父级http{}的上下文ctx
     http_ctx = cf->ctx; //保存上一级http{}中(server{}外)的配置到http_ctx中  在ngx_init_cycle中cf->ctx = cycle->conf_ctx;
 
-    /*
-    server块下ngx_http_conf ctx_t结构中的main conf数组将通过直接指向来复用所属的http块下的
-    main_conf数组(其实是说server块下没有main级别配置,这是显然的)
-    */ //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
+    /*server块下ngx_http_conf ctx_t结构中的main conf数组将通过直接指向来复用所属的http块下的
+    main_conf数组(其实是说server块下没有main级别配置,这是显然的)*/
     ctx->main_conf = http_ctx->main_conf;
 
     /* the server{}'s srv_conf */
@@ -4134,8 +3999,8 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
 #if (NGX_WIN32)
         sin->sin_port = htons(80);
 #else
-        //如果在server{)块内没有解析到listen配置项,则意味着当前的server虚拟主机并没有监听TCP端口,这不符合HTTP框架的设计原则.于是将开始监听默认端口80,实际上,
-//如果当前进程没有权限监听1024以下的端口,则会改为监听8000端口
+       /* 如果在server{)块内没有解析到listen配置项,则意味着当前的server虚拟主机并没有监听TCP端口,这不符合HTTP框架的设计原则.
+        于是将开始监听默认端口80,实际上,如果当前进程没有权限监听1024以下的端口,则会改为监听8000端口*/
         sin->sin_port = htons((getuid() == 0) ? 80 : 8000);
 #endif
         sin->sin_addr.s_addr = INADDR_ANY;
@@ -4172,330 +4037,13 @@ ngx_http_core_server(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy)
     return rv;
 }
 
-/*
-Nginx Location配置总结(2012-03-09 21:49:25)转载▼标签: nginxlocation配置rewrite杂谈 分类: 程序设计积累
-语法规则: location [=|~|~*|^~] /uri/ { … }
-= 开头表示精确匹配
-^~ 开头表示uri以某个常规字符串开头,理解为匹配 url路径即可.nginx不对url做编码,因此请求为/static/20%/aa,可以被规则^~ /static/ /aa匹配到(注意是空格).
-~ 开头表示区分大小写的正则匹配
-~*  开头表示不区分大小写的正则匹配
-!~和!~*分别为区分大小写不匹配及不区分大小写不匹配 的正则
-/ 通用匹配,任何请求都会匹配到.
-多个location配置的情况下匹配顺序为(参考资料而来,还未实际验证,试试就知道了,不必拘泥,仅供参考):
-首先匹配 =,其次匹配^~, 其次是按文件中顺序的正则匹配,最后是交给 / 通用匹配.当有匹配成功时候,停止匹配,按当前匹配规则处理请求.
-例子,有如下匹配规则:
-location = / {
-   #规则A
-}
-location = /login {
-   #规则B
-}
-location ^~ /static/ {
-   #规则C
-}
-location ~ \.(gif|jpg|png|js|css)$ {
-   #规则D
-}
-location ~* \.png$ {
-   #规则E
-}
-location !~ \.xhtml$ {
-   #规则F
-}
-location !~* \.xhtml$ {
-   #规则G
-}
-location / {
-   #规则H
-}
-那么产生的效果如下:
-访问根目录/, 比如http://localhost/ 将匹配规则A
-访问 http://localhost/login 将匹配规则B,http://localhost/register 则匹配规则H
-访问 http://localhost/static/a.html 将匹配规则C
-访问 http://localhost/a.gif, http://localhost/b.jpg 将匹配规则D和规则E,但是规则D顺序优先,规则E不起作用,而 http://localhost/static/c.png 则优先匹配到规则C
-访问 http://localhost/a.PNG 则匹配规则E,而不会匹配规则D,因为规则E不区分大小写.
-访问 http://localhost/a.xhtml 不会匹配规则F和规则G,http://localhost/a.XHTML不会匹配规则G,因为不区分大小写.规则F,规则G属于排除法,符合匹配规则但是不会匹配到,所以想想看实际应用中哪里会用到.
-访问 http://localhost/category/id/1111 则最终匹配到规则H,因为以上规则都不匹配,这个时候应该是nginx转发请求给后端应用服务器,比如FastCGI(php),tomcat(jsp),nginx作为方向代理服务器存在.
-所以实际使用中,个人觉得至少有三个匹配规则定义,如下:
-#直接匹配网站根,通过域名访问网站首页比较频繁,使用这个会加速处理,官网如是说.
-#这里是直接转发给后端应用服务器了,也可以是一个静态首页
-# 第一个必选规则
-location = / {
-    proxy_pass http://tomcat:8080/index
-}
-# 第二个必选规则是处理静态文件请求,这是nginx作为http服务器的强项
-# 有两种配置模式,目录匹配或后缀匹配,任选其一或搭配使用
-location ^~ /static/ {
-    root /webroot/static/;
-}
-location ~* \.(gif|jpg|jpeg|png|css|js|ico)$ {
-    root /webroot/res/;
-}
-#第三个规则就是通用规则,用来转发动态请求到后端应用服务器
-#非静态文件请求就默认是动态请求,自己根据实际把握
-#毕竟目前的一些框架的流行,带.php,.jsp后缀的情况很少了
-location / {
-    proxy_pass http://tomcat:8080/
-}
-三、ReWrite语法
-last – 基本上都用这个Flag.
-break – 中止Rewirte,不在继续匹配
-redirect – 返回临时重定向的HTTP状态302
-permanent – 返回永久重定向的HTTP状态301
-1、下面是可以用来判断的表达式:
--f和!-f用来判断是否存在文件
--d和!-d用来判断是否存在目录
--e和!-e用来判断是否存在文件或目录
--x和!-x用来判断文件是否可执行
-2、下面是可以用作判断的全局变量
-例:http://localhost:88/test1/test2/test.php
-$host:localhost
-$server_port:88
-$request_uri:http://localhost:88/test1/test2/test.php
-$document_uri:/test1/test2/test.php
-$document_root:D:\nginx/html
-$request_filename:D:\nginx/html/test1/test2/test.php
-四、Redirect语法
-server {
-listen 80;
-server_name start.igrow.cn;
-index index.html index.php;
-root html;
-if ($http_host !~ "^star\.igrow\.cn$&quot {
-rewrite ^(.*) http://star.igrow.cn$1 redirect;
-}
-}
-五、防盗链
-location ~* \.(gif|jpg|swf)$ {
-valid_referers none blocked start.igrow.cn sta.igrow.cn;
-if ($invalid_referer) {
-rewrite ^/ http://$host/logo.png;
-}
-}
-六、根据文件类型设置过期时间
-location ~* \.(js|css|jpg|jpeg|gif|png|swf)$ {
-if (-f $request_filename) {
-expires 1h;
-break;
-}
-}
-七、禁止访问某个目录
-location ~* \.(txt|doc)${
-root /data/www/wwwroot/linuxtone/test;
-deny all;
-}
-一些可用的全局变量:
-$args
-$content_length
-$content_type
-$document_root
-$document_uri
-$host
-$http_user_agent
-$http_cookie
-$limit_rate
-$request_body_file
-$request_method
-$remote_addr
-$remote_port
-$remote_user
-$request_filename
-$request_uri
-$query_string
-$scheme
-$server_protocol
-$server_addr
-$server_name
-$server_port
-$uri
-*/
 
-/*
-1、nginx配置基础
-1、正则表达式匹配
-~ 区分大小写匹配
-~* 不区分大小写匹配
-!~和!~*分别为区分大小写不匹配及不区分大小写不匹配
-^ 以什么开头的匹配
-$ 以什么结尾的匹配
-转义字符.可以转. * ?等
-* 代表任意字符
-2、文件及目录匹配
--f和!-f用来判断是否存在文件
--d和!-d用来判断是否存在目录
--e和!-e用来判断是否存在文件或目录
--x和!-x用来判断文件是否可执行
-例:
-location = /
-#匹配任何查询,因为所有请求都已 / 开头.但是正则表达式规则和长的块规则将被优先和查询匹配
-location ^~ /images/ {
-# 匹配任何已/images/开头的任何查询并且停止搜索.任何正则表达式将不会被测试.
-location ~* .(gif|jpg|jpeg)$ {
-# 匹配任何已.gif、.jpg 或 .jpeg 结尾的请求
-入门
-1、if指令
-所有的Nginx内置变量都可以通过if指令和正则表达式来进行匹配,并且根据匹配结果进行一些操作,如下:
- 代码如下 复制代码
-if ($http_user_agent ~ MSIE) {
-  rewrite  ^(.*)$  /msie/$1  break;
-}
+/*cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
+参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location  */
 
-if ($http_cookie ~* "id=([^;] +)(?:;|$)" ) {
-  set  $id  $1;
-}
-使用符号~*和~模式匹配的正则表达式:
-1.~为区分大小写的匹配.
-2.~*不区分大小写的匹配(匹配firefox的正则同时匹配FireFox).
-3.!~和!~*意为"不匹配的".
-Nginx在很多模块中都有内置的变量,常用的内置变量在HTTP核心模块中,这些变量都可以使用正则表达式进行匹配.
-2、可以通过正则表达式匹配的指令
-location
-查看维基:location
-可能这个指令是我们平时使用正则匹配用的最多的指令:
- 代码如下 复制代码
-location ~ .*.php?$ {
-        fastcgi_pass   127.0.0.1:9000;
-        fastcgi_index  index.php;
-        fastcgi_param  SCRIPT_FILENAME  /data/wwwsite/test.com/$fastcgi_script_name;
-        include        fcgi.conf;
-    }
-
-几乎每个基于LEMP的主机都会有如上一段代码.他的匹配规则类似于if指令,不过他多了三个标识符,^~、=、@.并
-且它没有取反运算符!,这三个标识符的作用分别是:
-1.^~ 标识符后面跟一个字符串.Nginx将在这个字符串匹配后停止进行正则表达式的匹配(location指令中正则表达
-式的匹配的结果优先使用),如:location ^~ /images/,你希望对/images/这个目录进行一些特别的操作,如增加
-expires头,防盗链等,但是你又想把除了这个目录的图片外的所有图片只进行增加expires头的操作,这个操作可能
-会用到另外一个location,例如:location ~* .(gif|jpg|jpeg)$,这样,如果有请求/images/1.jpg,nginx如何决
-定去进行哪个location中的操作呢?结果取决于标识符^~,如果你这样写:location /images/,这样nginx会将1.jpg
-匹配到location ~* .(gif|jpg|jpeg)$这个location中,这并不是你需要的结果,而增加了^~这个标识符后,它在匹
-配了/images/这个字符串后就停止搜索其它带正则的location.
-2.= 表示精确的查找地址,如location = /它只会匹配uri为/的请求,如果请求为/index.html,将查找另外的
-location,而不会匹配这个,当然可以写两个location,location = /和location /,这样/index.html将匹配到后者
-,如果你的站点对/的请求量较大,可以使用这个方法来加快请求的响应速度.
-3.@ 表示为一个location进行命名,即自定义一个location,这个location不能被外界所访问,只能用于Nginx产生的
-子请求,主要为error_page和try_files.
-注意,这3个标识符后面不能跟正则表达式,虽然配置文件检查会通过,而且没有任何警告,但是他们并不会进行匹配
-.
-综上所述,location指令对于后面值的匹配顺序为:
-1.标识符"="的location会最先进行匹配,如果请求uri匹配这个location,将对请求使用这个location的配置.
-2.进行字符串匹配,如果匹配到的location有^~这个标识符,匹配停止返回这个location的配置.
-3.按照配置文件中定义的顺序进行正则表达式匹配.最早匹配的location将返回里面的配置.
-4.如果正则表达式能够匹配到请求的uri,将使用这个正则对应的location,如果没有,则使用第二条匹配的结果.
-server_name
-查看维基:server_name
-server_name用于配置基于域名或IP的虚拟主机,这个指令也是可以使用正则表达式的,但是注意,这个指令中的正则
-表达式不用带任何的标识符,但是必须以~开头:
- 代码如下 复制代码
-server {
-  server_name   www.example.com   ~^wwwd+.example.com$;
-}
-server_name指令中的正则表达式可以使用引用,高级的应用可以查看这篇文章:在server_name中使用正则表达式
-fastcgi_split_path_info
-查看维基:fastcgi_split_path_info
-这个指令按照CGI标准来设置SCRIPT_FILENAME (SCRIPT_NAME)和PATH_INFO变量,它是一个被分割成两部分(两个引用
-)的正则表达式.如下:
-
- 代码如下 复制代码
-location ~ ^.+.p(www.111cn.net)hp {
-  (...)
-  fastcgi_split_path_info ^(.+.php)(.*)$;
-  fastcgi_param SCRIPT_FILENAME /path/to/php$fastcgi_script_name;
-  fastcgi_param PATH_INFO $fastcgi_path_info;
-  fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
-  (...)
-}
-第一个引用(.+.php)加上/path/to/php将作为SCRIPT_FILENAME,第二个引用(.*)为PATH_INFO,例如请求的完整
-URI为show.php/article/0001,则上例中SCRIPT_FILENAME的值为/path/to/php/show.php,PATH_INFO则
-为/article/0001.
-这个指令通常用于一些通过PATH_INFO美化URI的框架(例如CodeIgniter).
-gzip_disable
-查看维基:gzip_disable
-通过正则表达式来指定在哪些浏览器中禁用gzip压缩.
-gzip_disable     "msie6";rewrite
-查看维基:rewrite
-这个指令应该也是用的比较多的,它需要使用完整的包含引用的正则表达式:
- 代码如下 复制代码
-rewrite  "/photos/([0-9] {2})([0-9] {2})([0-9] {2})" /path/to/photos/$1/$1$2/$1$2$3.png;通常环境下我们
-
-会把它和if结合来使用:
- 代码如下 复制代码
-if ($host ~* www.(.*)) {
-  set $host_without_www $1;
-  rewrite ^(.*)$ http://$host_without_www$1 permanent; # $1为'/foo',而不是'www.mydomain.com/foo'
-}
-
-Nginx中的正则如何匹配中文
-首先确定在编译pcre时加了enable-utf8参数,如果没有,请重新编译pcre,然后就可以在Nginx的配置文件中使用这
-样的正则:"(*UTF8)^/[x{4e00}-x{9fbf}]+)$"注意引号和前面的(*UTF8),(*UTF8)将告诉这个正则切换为UTF8模
-式.
- 代码如下 复制代码
-[root@backup conf]# pcretest
-PCRE version 8.10 2010-06-25
-  re> /^[x{4e00}-x{9fbf}]+/8
-data> 测试
- 0: x{6d4b}x{8bd5}
-data> Nginx模块参考手册中文版
-No match
-data> 参考手册中文版
- 0: x{53c2}x{8003}x{624b}x{518c}x{4e2d}x{6587}x{7248}
-
-location顺序错误导致下载.php源码而不执行php程序的问题
-看下面的例子片断(server段、wordpress安装到多个目录):
-=====================================
- 代码如下 复制代码
-location / {
-        try_files $uri $uri/ /index.html;
-}
-location /user1/ {
-      try_files $uri $uri/ /user1/index.php?q=$uri&$args;
-}
-location ~* ^/(user2|user3)/ {
-        try_files $uri $uri/ /$1/index.php?q=$uri&$args;
-}
-location ~ .php$ {
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-}
-
-=====================================
-nginx.conf的配置代码看上去没有任何问题,而事实上:
-访问 /user1/会正常执行php程序.
-访问 /user2/ 或 /user3/ 都不会执行程序,而是直接下载程序的源代码.
-原因在哪里?看到他们地区别了吗?
-/user1/是普通location写法
-而/user2/ 或 /user3/ 是正则表达式匹配的location
-问题就出在了/user2/ 或 /user3/匹配location指令使用了正则表达式,所以必须注意代码段的先后顺序,必须把
-location ~ .php$ {...}段上移、放到它的前面去.
-正确的代码举例:
-=====================================
- 代码如下 复制代码
-location / {
-        try_files $uri $uri/ /index.html;
-}
-location /user1/ {
-      try_files $uri $uri/ /user1/index.php?q=$uri&$args;
-}
-location ~ .php$ {
-        fastcgi_pass 127.0.0.1:9000;
-        fastcgi_index index.php;
-        include fastcgi_params;
-}
-location ~* ^/(user2|user3)/ {
-        try_files $uri $uri/ /$1/index.php?q=$uri&$args;
-}
-
-=====================================
-【注意】对于普通location指令行,是没有任何顺序的要求的.如果你也遇到了类似的问题,可以尝试调整使用正则
-表达式的location指令片断的顺序来调试
-from:http://www.111cn.net/sys/nginx/45335.htm
-*/
-/*
-cf空间始终在一个地方,就是ngx_init_cycle中的conf,使用中只是简单的修改conf中的ctx指向已经cmd_type类型,然后在解析当前{}后,重新恢复解析当前{}前的配置
-参考"http" "server" "location"ngx_http_block  ngx_http_core_server  ngx_http_core_location  ngx_http_core_location
-*/
-//见ngx_http_core_location location{}配置的ctx->loc_conf[ngx_http_core_module.ctx_index]存储在父级server{}的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中
-//见ngx_http_core_server server{}配置的ctx->srv_conf存储在父级http{}ctx对应的ctx->main_conf[ngx_http_core_module.ctx_index]->servers中,通过这个srv_conf[]->ctx就能获取到server{}的上下文ctx
+/*见ngx_http_core_location location{}配置的ctx->loc_conf[ngx_http_core_module.ctx_index]存储在父级server{}的ctx->loc_conf[ngx_http_core_module.ctx_index]->locations中
+见ngx_http_core_server server{}配置的ctx->srv_conf存储在父级http{}ctx对应的ctx->main_conf[ngx_http_core_module.ctx_index]->servers中,
+ 通过这个srv_conf[]->ctx就能获取到server{}的上下文ctx*/
 static char *
 ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图形化参考:深入理解NGINX中的图9-2  图10-1  图4-2,结合图看,并可以配合http://tech.uc.cn/?p=300看
     char *rv;
@@ -4542,11 +4090,9 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图�
     clcf->loc_conf = ctx->loc_conf;
 
     value = cf->args->elts;
-    /*
-   // 获取 location 行解析结果,数组类型,如:["location", "^~", "/images/"] value = cf->args->elts;
+    /*获取 location 行解析结果,数组类型,如:["location", "^~", "/images/"] value = cf->args->elts;
         根据参数个数不同,来判断 location 类型,对对相应字段赋值
-        如果是正则表达式,则会调用 ngx_http_core_regex_location 对 re 进行编译
-   */
+        如果是正则表达式,则会调用 ngx_http_core_regex_location 对 re 进行编译*/
 
     /*
     = 开头表示精确匹配
@@ -4689,10 +4235,15 @@ ngx_http_core_location(ngx_conf_t *cf, ngx_command_t *cmd, void *dummy) { //图�
             }
 
         } else {
-            //ngx_http_add_location中把精确匹配 正则表达式 name  noname配置以外的其他配置都算做前缀匹配  例如//location ^~  xxx{}      location /XXX {}
-            //location /xx {}全部都匹配,   //location @mytest {}  //location !~ mytest {}  //location !~* mytest {}
-//以’@’开头的,如location @test {}
-// @  表示为一个location进行命名,即自定义一个location,这个location不能被外界所访问,只能用于Nginx产生的子请求,主要为error_page和try_files.
+           /* ngx_http_add_location中把精确匹配 正则表达式 name noname配置以外的其他配置都算做前缀匹配,例如:
+            location ^~  xxx{}
+            location /XXX {}
+            location /xx {}全部都匹配,
+            location @mytest {}
+            location !~ mytest {}
+            location !~* mytest {}
+            以'@'开头的,如location @test {}
+            @表示为一个location进行命名,即自定义一个location,这个location不能被外界所访问,只能用于Nginx产生的子请求,主要为error_page和try_files.*/
             clcf->name = *name;
 
             if (name->data[0] == '@') {
@@ -5474,8 +5025,7 @@ ngx_http_core_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child) {
     return NGX_CONF_OK;
 }
 
-/*
-语法(0.7.x):listen address:port [ default [ backlog=num | rcvbuf=size | sndbuf=size | accept_filter=filter | deferred | bind | ssl ] ]
+/*语法(0.7.x):listen address:port [ default [ backlog=num | rcvbuf=size | sndbuf=size | accept_filter=filter | deferred | bind | ssl ] ]
 语法(0.8.x):listen address:port [ default_server [ backlog=num | rcvbuf=size | sndbuf=size | accept_filter=filter | reuseport | deferred | bind | ssl ] ]
 默认值:listen 80
 使用字段:server
@@ -5522,6 +5072,7 @@ listen 127.0.0.1 default accept_filter=dataready backlog=1024;
 0.8.21版本以后nginx可以监听unix套接口:
 listen unix:/tmp/nginx1.sock;
 */
+
 //"listen"配置项,最终存放在ngx_http_core_main_conf_t->ports
 static char *
 ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
@@ -5569,7 +5120,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 
     for (n = 2; n < cf->args->nelts; n++) {
         /* 讲所在的server块作为整个WEB服务的默认server块.如果没有设置这个产生,那么将会以在nginx.conf中找到的第一个server块作为
-    默认server块,为什么需要默认虚拟主机呢?当一个请求无法匹配配置文件中的所有主机域名时,就会选用默认虚拟主机*/
+            默认server块,为什么需要默认虚拟主机呢?当一个请求无法匹配配置文件中的所有主机域名时,就会选用默认虚拟主机*/
         if (ngx_strcmp(value[n].data, "default_server") == 0
             || ngx_strcmp(value[n].data, "default") == 0) {
             lsopt.default_server = 1;
@@ -5675,8 +5226,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
 #endif
             continue;
         }
-        /*
-       TCP_DEFER_ACCEPT 优化 使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,也可以减少用户调用epoll_ctl和epoll_wait的次数,从而提高了程序的性能.
+        /*TCP_DEFER_ACCEPT 优化 使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,也可以减少用户调用epoll_ctl和epoll_wait的次数,从而提高了程序的性能.
        设置listen套接字的TCP_DEFER_ACCEPT选项后, 只当一个链接有数据时是才会从accpet中返回(而不是三次握手完成).所以节省了一次读第一个http请求包的过程,减少了系统调用
 
        查询资料,TCP_DEFER_ACCEPT是一个很有趣的选项,
@@ -5688,8 +5238,7 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
        会释放相关的链接.但没有同时关闭相应的端口,所以客户端会一直以为处于链接状态.如果Connect后面马上有后续的发送数据,那么服务器会调用Accept接收这个链接端口.
        感觉了一下,这个端口设置对于CONNECT链接上来而又什么都不干的攻击方式处理很有效.我们原来的代码都是先允许链接,然后再进行超时处理,比他这个有点Out了.不过这个选项可能会导致定位某些问题麻烦.
        timeout = 0表示取消 TCP_DEFER_ACCEPT选项
-       性能四杀手:内存拷贝,内存分配,进程切换,系统调用.TCP_DEFER_ACCEPT 对性能的贡献,就在于 减少系统调用了.
-       */
+       性能四杀手:内存拷贝,内存分配,进程切换,系统调用.TCP_DEFER_ACCEPT 对性能的贡献,就在于减少系统调用了*/
         if (ngx_strcmp(value[n].data, "deferred") == 0) { //搜索TCP_DEFER_ACCEPT
 #if (NGX_HAVE_DEFERRED_ACCEPT && defined TCP_DEFER_ACCEPT)
             lsopt.deferred_accept = 1;
@@ -5743,8 +5292,8 @@ ngx_http_core_listen(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
             continue;
         }
         //在当前端口上建立的连接必须基于SSL协议
-        /*
-        被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议下,例如:
+
+        /*被指定这个参数的listen将被允许工作在SSL模式,这将允许服务器同时工作在HTTP和HTTPS两种协议下,例如:
             listen 80;
             listen 443 default ssl;
         */
@@ -6466,14 +6015,12 @@ ngx_http_core_error_page(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     return NGX_CONF_OK;
 }
 
-/*
-nginx有两个指令是管理缓存文件描述符的:一个就是本文中说到的ngx_http_log_module模块的open_file_log_cache配置;存储在ngx_http_log_loc_conf_t->open_file_cache
+/*nginx有两个指令是管理缓存文件描述符的:一个就是本文中说到的ngx_http_log_module模块的open_file_log_cache配置;存储在ngx_http_log_loc_conf_t->open_file_cache
 另一个是ngx_http_core_module模块的 open_file_cache配置,存储在ngx_http_core_loc_conf_t->open_file_cache;前者是只用来管理access变量日志文件.
 后者用来管理的就多了,包括:static,index,tryfiles,gzip,mp4,flv,都是静态文件哦!
-这两个指令的handler都调用了函数 ngx_open_file_cache_init ,这就是用来管理缓存文件描述符的第一步:初始化
-*/
+这两个指令的handler都调用了函数 ngx_open_file_cache_init ,这就是用来管理缓存文件描述符的第一步:初始化  */
 
-//open_file_cache max=1000 inactive=20s; 执行该函数   max=num中的num表示最多缓存这么多个文件
+//open_file_cache max=1000 inactive=20s; 执行该函数max=num中的num表示最多缓存这么多个文件
 static char *
 ngx_http_core_open_file_cache(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_http_core_loc_conf_t *clcf = conf;
@@ -6592,8 +6139,8 @@ ngx_http_core_keepalive(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_OK;
 }
 
-//在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
-//生效地方见ngx_http_core_find_config_phase
+/*在location{}中配置了internal,表示匹配该uri的location{}必须是进行重定向后匹配的该location,如果不满足条件直接返回NGX_HTTP_NOT_FOUND,
+生效地方见ngx_http_core_find_config_phase*/
 static char *
 ngx_http_core_internal(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     ngx_http_core_loc_conf_t *clcf = conf;

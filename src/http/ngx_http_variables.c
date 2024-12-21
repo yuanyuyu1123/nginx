@@ -595,8 +595,8 @@ set_handler体现的是active_handle的策略,每执行一个请求,都会计算
 
 //注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建*/
 
-//遍历variables_keys hash表,如果表中已经存在name,则直接返回hash中对应的ngx_http_variable_t信息,否则创建ngx_http_variable_t hash节点
-//注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建
+/*遍历variables_keys hash表,如果表中已经存在name,则直接返回hash中对应的ngx_http_variable_t信息,否则创建ngx_http_variable_t hash节点
+注意:ngx_http_core_module模块一定要在其他涉及到变量模块前定义,因为variables_keys空间是在ngx_http_core_module模块的ngx_http_variables_add_core_vars中创建*/
 ngx_http_variable_t *
 ngx_http_add_variable(ngx_conf_t *cf, ngx_str_t *name, ngx_uint_t flags) {
     ngx_int_t rc;

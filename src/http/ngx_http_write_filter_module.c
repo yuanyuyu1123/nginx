@@ -27,8 +27,7 @@ static ngx_http_module_t ngx_http_write_filter_module_ctx = {
         NULL,                                  /* merge location configuration */
 };
 
-/*
-表6-1  默认即编译进Nginx的HTTP过滤模块
+/*默认即编译进Nginx的HTTP过滤模块
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃默认即编译进Nginx的HTTP过滤模块     ┃    功能                                                          ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -132,9 +131,10 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     ll = &r->out;
 
     /* find the size, the flush point and the last link of the saved chain */
-    //找到请求的ngx_http_request_t结构体中存放的等待发送的缓冲区链表out,遍历这个ngx_chain_t类型的缓冲区链表,
-    //计算出out缓冲区共占用了多大的字节数,这个out链表通常都保存着待发送的响应.例如,在调用ngx_http_send header方法时,
-    //如果HTTP响应头部过大导致无法一次性发送完,那么剩余的响应头部就会在out链表中.
+
+    /*找到请求的ngx_http_request_t结构体中存放的等待发送的缓冲区链表out,遍历这个ngx_chain_t类型的缓冲区链表,
+    计算出out缓冲区共占用了多大的字节数,这个out链表通常都保存着待发送的响应.例如,在调用ngx_http_send header方法时,
+    如果HTTP响应头部过大导致无法一次性发送完,那么剩余的响应头部就会在out链表中.*/
     for (cl = r->out; cl; cl = cl->next) { //out里面是上次发送没有发送完的内容
         ll = &cl->next;
 
@@ -199,6 +199,7 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     }
 
     /* add the new chain to the existent one */
+
     //遍历这个ngx_chain_t类型的缓存链表in,将in中的缓冲区加入到out链表的末尾,并计算out缓冲区共占用多大的字节数
     for (ln = in; ln; ln = ln->next) { //in表示这次新加进来需要发送的内容
         cl = ngx_alloc_chain_link(r->pool);
@@ -309,8 +310,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
     /*3个标志位同时为0(即待发送的out链表中没有一个缓冲区表示响应已经结束或需要立刻发送出去),而且本次要发送的缓冲区in虽然不为空,
     但以上两步骤中计算出的待发送响应的大小又小于配置文件中的postpone_output参数,那么说明当前的缓冲区是不完整的且没有必要立刻发送*/
 
-    //例如如果有头部,又有包体,则一般最尾部的头部filter函数ngx_http_header_filter->ngx_http_write_filter到这里的时候一般头部字段
-    //过少,这里直接返回NGX_OK,这样就可以让头部和包体在最尾部的包体filter函数ngx_http_write_filter->ngx_http_write_filter和包体在一个报文中发送出去
+    /*例如如果有头部,又有包体,则一般最尾部的头部filter函数ngx_http_header_filter->ngx_http_write_filter到这里的时候一般头部字段
+    过少,这里直接返回NGX_OK,这样就可以让头部和包体在最尾部的包体filter函数ngx_http_write_filter->ngx_http_write_filter和包体在一个报文中发送出去*/
     if (!last && !flush && in && size < (off_t) clcf->postpone_output) {
         //如果last flush都等于0,并且in不为NULL,并且输出链中的数据小于postpone_output,则直接返回,表示等数据跟多(达到postpone_output),或者指定last flush则输出
         return NGX_OK;
@@ -362,8 +363,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
             r->limit_rate_after_set = 1;
         }
         /*ngx_time()方法,它取出了当前时间,而start sec表示开始接收到客户端请求内容的时间,c->sent表示这条连接上已经发送了的HTTP响
-   应长度,这样计算出的变量limit就表示本次可以发送的字节数了.如果limit小于或等于0,它表示这个连接上的发送响应速度已经超出
-   了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行;如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应*/
+           应长度,这样计算出的变量limit就表示本次可以发送的字节数了.如果limit小于或等于0,它表示这个连接上的发送响应速度已经超出
+           了limit_rate配置项的限制,所以本次不可以继续发送,跳到第7步执行;如果limit大于0,表示本次可以发送limit字节的响应,开始发送响应*/
         limit = (off_t) r->limit_rate * (ngx_time() - r->start_sec + 1)
                 - (c->sent - r->limit_rate_after); //实际上这发送过程中就比实际的limit_rate多发送limit_rate_after,也就是先发送limit_rate_after后才开始计算是否超速了
 
@@ -372,8 +373,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
             /* limit是已经超发的字节数,它是0或者负数.这个定时器的超时时间是超发字节数按照limit_rate速率算出需要等待的时间
             再加上l毫秒,它可以使Nginx定时器准确地在允许发送响应时激活请求. */
             delay = (ngx_msec_t) (-limit * 1000 / r->limit_rate + 1);
-            //添加定时器的时候为什么没有ngx_handle_write_event? 因为一旦添加wrie epoll事件,那么只要内核数据发送出去就会触发write事件,
-            //从而执行ngx_http_writer,这个过程是很快的,这样就起不到限速的作用了
+            /*添加定时器的时候为什么没有ngx_handle_write_event? 因为一旦添加wrie epoll事件,那么只要内核数据发送出去就会触发write事件,
+            从而执行ngx_http_writer,这个过程是很快的,这样就起不到限速的作用了*/
             ngx_add_timer(c->write, delay);  //handle应该是ngx_http_request_handler
 
             c->buffered |= NGX_HTTP_WRITE_BUFFERED;
@@ -397,8 +398,8 @@ ngx_http_write_filter(ngx_http_request_t *r, ngx_chain_t *in) {//将r->out里面
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0,
                    "http write filter limit %O", limit);
-    //注意这里发送的时候可能会出现超速,所以在发送成功后会重新计算是否超速,从而决定是否需要启动定时器延迟发送
-    //返回值应该是out中还没有发送出去的数据存放在chain中
+    /*注意这里发送的时候可能会出现超速,所以在发送成功后会重新计算是否超速,从而决定是否需要启动定时器延迟发送
+    返回值应该是out中还没有发送出去的数据存放在chain中*/
     chain = c->send_chain(c, r->out, limit); //这里面会重新计算实际已经发送出去了多少字节
 
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, c->log, 0,

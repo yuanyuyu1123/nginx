@@ -238,7 +238,7 @@ ngx_slprintf(u_char *buf, u_char *last, const char *fmt, ...) {
 ┣━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃%%        ┃  打印1个百分号(%)                                                                      ┃
 ┗━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-例如,在4.2.4节自定义的ngx_c onf_set_myc onfig方法中,可以这样输出日志.
+例如,在ngx_c onf_set_myc onfig方法中,可以这样输出日志.
 long tl = 4900000000;
 u_long tul = 5000000000;
 int32_t ti32 = 110;
@@ -1252,10 +1252,10 @@ ngx_hex_dump(u_char *dst, u_char *src, size_t len) {
     return dst;
 }
 
-/*
-这两个函数用于对str进行base64编码与解码,调用前,需要保证dst中有足够的空间来存放结果,如果不知道具体大小,可先调用
-ngx_base64_encoded_length与ngx_base64_decoded_length来预估最大占用空间.
-*/ //ngx_encode_base64  ngx_decode_base64对应解密解密
+/*这两个函数用于对str进行base64编码与解码,调用前,需要保证dst中有足够的空间来存放结果,如果不知道具体大小,可先调用
+ngx_base64_encoded_length与ngx_base64_decoded_length来预估最大占用空间*/
+
+//ngx_encode_base64  ngx_decode_base64对应解密解密
 void
 ngx_encode_base64(ngx_str_t *dst, ngx_str_t *src) {
     static u_char basis64[] =
@@ -1317,8 +1317,8 @@ ngx_encode_base64_internal(ngx_str_t *dst, ngx_str_t *src, const u_char *basis,
     dst->len = d - dst->data;
 }
 
-//对src数据最hash然后存到dst中,这里为什么可以保证dst不被越界,一般都是在代码中字节保证src的长度来实现的,可以参考ngx_http_secure_link_variable
-//ngx_encode_base64  ngx_decode_base64对应解密解密
+/*对src数据最hash然后存到dst中,这里为什么可以保证dst不被越界,一般都是在代码中字节保证src的长度来实现的,可以参考ngx_http_secure_link_variable
+ngx_encode_base64  ngx_decode_base64对应解密解密*/
 ngx_int_t
 ngx_decode_base64(ngx_str_t *dst, ngx_str_t *src) {
     static u_char basis64[] = {
@@ -1344,8 +1344,8 @@ ngx_decode_base64(ngx_str_t *dst, ngx_str_t *src) {
     return ngx_decode_base64_internal(dst, src, basis64);
 }
 
-//对src数据最hash然后存到dst中,这里为什么可以保证dst不被越界,一般都是在代码中字节保证src的长度来实现的,可以参考ngx_http_secure_link_variable
-//ngx_decode_base64url  ngx_encode_base64url对应加密解密
+/*对src数据最hash然后存到dst中,这里为什么可以保证dst不被越界,一般都是在代码中字节保证src的长度来实现的,可以参考ngx_http_secure_link_variable
+ngx_decode_base64url  ngx_encode_base64url对应加密解密*/
 ngx_int_t
 ngx_decode_base64url(ngx_str_t *dst, ngx_str_t *src) {
     static u_char basis64[] = {
@@ -1733,15 +1733,11 @@ ngx_escape_uri(u_char *dst, u_char *src, size_t size, ngx_uint_t type) { //如�
     return (uintptr_t) dst;
 }
 
-/*
-地址栏中的问号有什么作用
-比如这样的链接:
-http://www.xxx.com/Show.asp?id=77&nameid=2905210001&page=1
+/*地址栏中的问号有什么作用,比如这样的链接: http://www.xxx.com/Show.asp?id=77&nameid=2905210001&page=1
 在这样的链接中,问号的含义不是上面文章中所提到的版本号问题,而是传递参数的作用.这个问号将show.asp文件和后面的id、nameid、page等连接起来.
 对src进行反编码,type可以是0、NGX_UNESCAPE_URI、NGX_UNESCAPE_REDIRECT这三个值.如果是0,则表示src中的所有字符都要进行转码.如果
 是NGX_UNESCAPE_URI与NGX_UNESCAPE_REDIRECT,则遇到’?’后就结束了,后面的字符就不管了.而NGX_UNESCAPE_URI与NGX_UNESCAPE_REDIRECT之间
-的区别是NGX_UNESCAPE_URI对于遇到的需要转码的字符,都会转码,而NGX_UNESCAPE_REDIRECT则只会对非可见字符进行转码.
-*/
+的区别是NGX_UNESCAPE_URI对于遇到的需要转码的字符,都会转码,而NGX_UNESCAPE_REDIRECT则只会对非可见字符进行转码*/
 void
 ngx_unescape_uri(u_char **dst, u_char **src, size_t size, ngx_uint_t type) {
     u_char *d, *s, ch, c, decoded;
@@ -2054,9 +2050,9 @@ ngx_escape_json(u_char *dst, u_char *src, size_t size) {
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
-┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是      ┃  向红黑树添加数据节点,每个  ┃
+┃void ngx_rbtree_insert_value        ┃  root是红黑树容器的指针;node是        ┃  向红黑树添加数据节点,每个  ┃
 ┃(ngx_rbtree_node_t *root,           ┃待添加元素的ngx_rbtree_node_t成员     ┃数据节点的关键字都是唯一的,  ┃
-┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化    ┃不存在同一个关键字有多个节点  ┃
+┃ngx_rbtree_node_t *node,            ┃的指针;sentinel是这棵红黑树初始化      ┃不存在同一个关键字有多个节点  ┃
 ┃ngx_rbtree_node_t *sentinel)        ┃时哨兵节点的指针                      ┃的问题                        ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫
 */
@@ -2142,6 +2138,7 @@ ngx_str_rbtree_lookup(ngx_rbtree_t *rbtree, ngx_str_t *val, uint32_t hash) {
 
 
 /* ngx_sort() is implemented as insertion sort because we need stable sort */
+
 //字符串数组排序
 void
 ngx_sort(void *base, size_t n, size_t size,

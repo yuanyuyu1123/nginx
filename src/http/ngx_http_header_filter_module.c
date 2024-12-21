@@ -168,17 +168,14 @@ ngx_http_header_filter(ngx_http_request_t *r) {
     ngx_http_core_loc_conf_t *clcf;
     ngx_http_core_srv_conf_t *cscf;
     u_char addr[NGX_SOCKADDR_STRLEN];
-    /*
- 检查请求ngx_http_request_t结构体的header_sent标志位,如果header_sent为1,则表示这个请求的响应头部已经发送过了,
- 不需要再向下执行,直接返回NGX_OK即可*/
+    /*检查请求ngx_http_request_t结构体的header_sent标志位,如果header_sent为1,则表示这个请求的响应头部已经发送过了,不需要再向下执行,直接返回NGX_OK即可*/
     if (r->header_sent) {
         return NGX_OK;
     }
 
     r->header_sent = 1;
-    /*
-   检查当前请求是否是客户端发来的原始请求,如果当前请求只是一个子请求,它是不存在发送HTTP响应头部这个概念的,因此,如果当前
-请求不是main成员指向的原始请求时,跳到第1步直接返回NGX_OK.如果HTTP版本小于1.0,同样不需要发送响应头部,仍然跳到第1步返回NGX一OK*/
+    /*检查当前请求是否是客户端发来的原始请求,如果当前请求只是一个子请求,它是不存在发送HTTP响应头部这个概念的,因此,如果当前
+    请求不是main成员指向的原始请求时,跳到第1步直接返回NGX_OK.如果HTTP版本小于1.0,同样不需要发送响应头部,仍然跳到第1步返回NGX_OK*/
     if (r != r->main) {
         return NGX_OK;
     }

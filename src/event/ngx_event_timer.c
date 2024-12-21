@@ -10,6 +10,7 @@
 #include <ngx_event.h>
 
 //定时器是通过一棵红黑树实现的.ngx_event_timer_rbtree就是所有定时器事件组成的红黑树,而ngx_event_timer_sentinel就是这棵红黑树的哨兵节点
+
 /*这棵红黑树中的每个节点都是ngx_event_t事件中的timer成员,而ngx_rbtree_node-t节点的关键字就是事件的超时时间,以这个超时时间的大小组成
 了二叉排序树ngx_event_timer rbtree.这样,如果需要找出最有可能超时的事件,那么将ngx_event timer- rbtree树中最左边的节点取出来即可.
 只要用当前时间去比较这个最左边节点的超时时间,就会知道这个事件有没有触发超时,如果还没有触发超时,那么会知道最少还要经过多少毫秒满足超
@@ -61,6 +62,7 @@ static ngx_rbtree_node_t ngx_event_timer_sentinel;
  * it should not be a problem, because we use the rbtree to find
  * a minimum timer value only
  */
+
 //初始化红黑树实现的定时器.
 ngx_int_t
 ngx_event_timer_init(ngx_log_t *log) {
@@ -90,12 +92,7 @@ ngx_event_find_timer(void) {
     return (ngx_msec_t) (timer > 0 ? timer : 0);
 }
 
-/*1.ngx_event_s可以是普通的epoll读写事件(参考ngx_event_connect_peer->ngx_add_conn或者ngx_add_event),通过读写事件触发
-2.也可以是普通定时器事件(参考ngx_cache_manager_process_handler->ngx_add_timer(ngx_event_add_timer)),通过ngx_process_events_and_timers中的
-epoll_wait返回,可以是读写事件触发返回,也可能是因为没获取到共享锁,从而等待0.5s返回重新获取锁来跟新事件并执行超时事件来跟新事件并且判断定
-时器链表中的超时事件,超时则执行从而指向event的handler,然后进一步指向对应r或者u的->write_event_handler  read_event_handler
-3.也可以是利用定时器expirt实现的读写事件(参考ngx_http_set_write_handler->ngx_add_timer(ngx_event_add_timer)),触发过程见2,
- 只是在handler中不会执行write_event_handler  read_event_handler*/
+
 void
 ngx_event_expire_timers(void) {
     ngx_event_t *ev;

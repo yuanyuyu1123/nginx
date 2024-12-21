@@ -88,8 +88,8 @@ struct ngx_http_upstream_rr_peer_s {
 
 
 typedef struct ngx_http_upstream_rr_peers_s ngx_http_upstream_rr_peers_t;
-//此函数会创建后端服务器列表,并且将非后备服务器与后备服务器分开进行各自单独的链表.每一个后端服务器用一个结构体
-//ngx_http_upstream_rr_peer_t与之对应(ngx_http_upstream_round_robin.h):
+/*此函数会创建后端服务器列表,并且将非后备服务器与后备服务器分开进行各自单独的链表.每一个后端服务器用一个结构体
+ngx_http_upstream_rr_peer_t与之对应(ngx_http_upstream_round_robin.h):*/
 
 //ngx_http_upstream_init_round_robin中赋值和创建空间
 struct ngx_http_upstream_rr_peers_s { //每个upstream节点的信息
@@ -110,17 +110,15 @@ struct ngx_http_upstream_rr_peers_s { //每个upstream节点的信息
 
     ngx_str_t                      *name; //upstrem xxx {}中的xxx,如果是fastcgi_pass IP:PORT,则没有name
 
-    //所有同一类服务器(非backup或者backup)服务器信息直接通过ngx_http_upstream_rr_peer_s->next连接,
-    //backup服务器和非backup服务器通过ngx_http_upstream_rr_peers_s->next连接在一起,见ngx_http_upstream_init_round_robin
+    /*所有同一类服务器(非backup或者backup)服务器信息直接通过ngx_http_upstream_rr_peer_s->next连接,
+    backup服务器和非backup服务器通过ngx_http_upstream_rr_peers_s->next连接在一起,见ngx_http_upstream_init_round_robin*/
     ngx_http_upstream_rr_peers_t   *next; //下个upstream节点,例如所有非backup服务器的peers->next会指向所有的backup服务器信息ngx_http_upstream_init_round_robin
 
-    /*
-    例如upstream {
+    /*例如upstream {
         server ip1;
         server ip2;
     }
-    则ngx_http_upstream_rr_peers_s会包含两个ngx_http_upstream_rr_peer_s信息
-    */
+    则ngx_http_upstream_rr_peers_s会包含两个ngx_http_upstream_rr_peer_s信息*/
     ngx_http_upstream_rr_peer_t    *peer;//服务器信息 //所有的peer[]服务器信息通过peers->peer连接在一起ngx_http_upstream_init_round_robin
 };
 

@@ -96,6 +96,7 @@ static ngx_command_t ngx_core_commands[] = {
 
         /*lock_file logs/nginx.lock,如果不打开lock_file,则该nginx.lock文件不生效,没作用,如果打开,则开操作系统是否支持原子锁,如果不支持则用文件锁实现
         一般linux是支持原子锁的,所以该文件没有意义*/
+
         /*见ngx_trylock_fd*/
         {ngx_string("lock_file"),
          NGX_MAIN_CONF | NGX_DIRECT_CONF | NGX_CONF_TAKE1,

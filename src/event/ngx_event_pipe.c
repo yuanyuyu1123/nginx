@@ -58,8 +58,8 @@ ngx_event_pipe(ngx_event_pipe_t *p, ngx_int_t do_write) {//注意走到这里的
         }
         /* 非cachable方式下,指定内存用完了数据还没有读完的情况下,或者是后端包体读取完毕,则会从这里返回,其他情况下都会在这里面一直循环 */
 
-        //p->read的值可以参考ngx_event_pipe_read_upstream->p->upstream->recv_chain()->ngx_readv_chain里面是否赋值为0
-        //upstream_blocked是在ngx_event_pipe_read_upstream里面设置的变量,代表是否有数据已经从upstream读取了.
+       /* p->read的值可以参考ngx_event_pipe_read_upstream->p->upstream->recv_chain()->ngx_readv_chain里面是否赋值为0
+        upstream_blocked是在ngx_event_pipe_read_upstream里面设置的变量,代表是否有数据已经从upstream读取了.*/
         if (!p->read && !p->upstream_blocked) { //内核缓冲区数据已经读完,或者本地指定内存已经用完,则推出
             break; //读取后端返回NGX_AGAIN则read置0
         }
@@ -165,8 +165,7 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
         if (p->preread_bufs == NULL && !p->upstream->read->ready) { //如果后端协议栈数据读取完毕,返回NGX_AGAIN,则ready会置0
             break;
         }
-        /*
-          下面这个大的if-else就干一件事情: 寻找一块空闲的内存缓冲区,用来待会存放读取进来的upstream的数据.
+        /*下面这个大的if-else就干一件事情: 寻找一块空闲的内存缓冲区,用来待会存放读取进来的upstream的数据.
 		如果preread_bufs不为空,就先用之,否则看看free_raw_bufs有没有,或者申请一块*/
         if (p->preread_bufs) {
 
@@ -254,6 +253,7 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
             } else if (p->allocated < p->bufs.num) {
 
                 /* allocate a new buf if it's still allowed */
+
                 /*如果没有超过fastcgi_buffers等指令的限制,那么申请一块内存吧.因为现在没有空闲内存了.
                     allocate a new buf if it's still allowed申请一个ngx_buf_t以及size大小的数据.用来存储从FCGI读取的数据.*/
                 b = ngx_create_temp_buf(p->pool, p->bufs.size);
@@ -275,8 +275,8 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
                        && p->downstream->data == p->output_ctx
                        && p->downstream->write->ready
                        && !p->downstream->write->delayed) {
-                //没有开启换成,并且前面已经开辟了5个3Kbuf已经都开辟了,不能在分配空间了
-                //到这里,那说明没法申请内存了,但是配置里面没要求必须先保留在cache里,那我们可以吧当前的数据发送给客户端了.跳出循环进行write操作,然后就会空余处空间来继续读.
+                /*没有开启换成,并且前面已经开辟了5个3Kbuf已经都开辟了,不能在分配空间了
+                到这里,那说明没法申请内存了,但是配置里面没要求必须先保留在cache里,那我们可以吧当前的数据发送给客户端了.跳出循环进行write操作,然后就会空余处空间来继续读.*/
                 /*
                  * if the bufs are not needed to be saved in a cache and
                  * a downstream is ready then write the bufs to a downstream
@@ -295,12 +295,14 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
                 /* 当前fastcgi_buffers 和fastcgi_buffer_size配置的空间都已经用完了,则需要把读取到(就是fastcgi_buffers 和
                 fastcgi_buffer_size指定的空间中保存的读取数据)的数据写道临时文件中去 */
 
-                //必须缓存,而且当前的缓存文件的位移,其大小小于可允许的大小,那good,可以写入文件了.
-                //这里可以看出,在开启cache的时候,只有前面的fastcgi_buffers  5 3K都已经用完了,才会写入临时文件中去//下面将r->in的数据写到临时文件
+                /*必须缓存,而且当前的缓存文件的位移,其大小小于可允许的大小,那good,可以写入文件了.
+                这里可以看出,在开启cache的时候,只有前面的fastcgi_buffers  5 3K都已经用完了,才会写入临时文件中去//下面将r->in的数据写到临时文件*/
+
                 /*
                  * if it is allowed, then save some bufs from p->in
                  * to a temporary file, and add them to a p->out chain
                  */
+
                 //下面将r->in的数据写到临时文件
                 rc = ngx_event_pipe_write_chain_to_temp_file(p);
 
@@ -332,9 +334,9 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
 
                 break;
             }
-            //到这里,肯定是找到空闲的buf了,chain指向之了.ngx_readv_chain .调用readv不断的读取连接的数据.放入chain的链表里面这里的
-            //chain是不是只有一块? 其next成员为空呢,不一定,如果free_raw_bufs不为空,上面的获取空闲buf只要没有使用AIO的话,就可能有多个buffer链表的.
-            //注意:这里面只是把读到的数据放入了chain->buf中,但是没有移动尾部last指针,实际上该函数返回后pos和last都还是指向读取数据的头部的
+            /*到这里,肯定是找到空闲的buf了,chain指向之了.ngx_readv_chain .调用readv不断的读取连接的数据.放入chain的链表里面这里的
+            chain是不是只有一块? 其next成员为空呢,不一定,如果free_raw_bufs不为空,上面的获取空闲buf只要没有使用AIO的话,就可能有多个buffer链表的.
+            注意:这里面只是把读到的数据放入了chain->buf中,但是没有移动尾部last指针,实际上该函数返回后pos和last都还是指向读取数据的头部的*/
             n = p->upstream->recv_chain(p->upstream, chain, limit); //chain->buf空间用来存储recv_chain从后端接收到的数据
 
             ngx_log_debug1(NGX_LOG_DEBUG_EVENT, p->log, 0,
@@ -383,11 +385,11 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
                 cl->buf->last = cl->buf->end; //把这坨全部用了,readv填充了数据.
 
                 /* STUB */ cl->buf->num = p->num++; //第几块,cl链中(cl->next)中的第几块
-                //主要功能就是解析fastcgi格式包体,解析出包体后,把对应的buf加入到p->in
-                //FCGI为ngx_http_fastcgi_input_filter,其他为ngx_event_pipe_copy_input_filter .用来解析特定格式数据
+                /*主要功能就是解析fastcgi格式包体,解析出包体后,把对应的buf加入到p->in
+                FCGI为ngx_http_fastcgi_input_filter,其他为ngx_event_pipe_copy_input_filter .用来解析特定格式数据*/
                 if (p->input_filter(p, cl->buf) == NGX_ERROR) { //整块buffer的调用协议解析句柄
-                    //这里面,如果cl->buf这块数据解析出来了DATA数据,那么cl->buf->shadow成员指向一个链表,
-                    //通过shadow成员链接起来的链表,每个成员就是零散的fcgi data数据部分.
+                    /*这里面,如果cl->buf这块数据解析出来了DATA数据,那么cl->buf->shadow成员指向一个链表,
+                    通过shadow成员链接起来的链表,每个成员就是零散的fcgi data数据部分.*/
                     return NGX_ABORT;
                 }
 
@@ -399,6 +401,7 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
 
             } else { //说明本次读到的n字节数据不能装满一个buf,则移动last指针,同时返回出去继续读
                 //如果这个节点的空闲内存数目大于剩下要处理的,就将剩下的存放在这里. 通过后面的if (p->free_raw_bufs && p->length != -1){}执行p->input_filter(p, cl->buf)
+
                 /*啥意思,不用调用input_filter了吗,不是.是这样的,如果剩下的这块数据还不够塞满当前这个cl的缓存大小,
                     那就先存起来,怎么存呢: 别释放cl了,只是移动其大小,然后n=0使循环退出.然后在下面几行的if (cl) {里面可以检测到这种情况
                     于是在下面的if里面会将这个ln处的数据放入free_raw_bufs的头部.不过这里会有多个连接吗? 可能有的*/
@@ -408,8 +411,8 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
         }
 
         if (cl) {
-            //将上面没有填满一块内存块的数据链接放到free_raw_bufs的前面.注意上面修改了cl->buf->last,后续的读入数据不会
-            //覆盖这些数据的.看ngx_readv_chain然后继续读
+            /*将上面没有填满一块内存块的数据链接放到free_raw_bufs的前面.注意上面修改了cl->buf->last,后续的读入数据不会
+            覆盖这些数据的.看ngx_readv_chain然后继续读*/
             for (ln = cl; ln->next; ln = ln->next) { /* void */ }
 
             ln->next = p->free_raw_bufs;
@@ -490,8 +493,8 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
             p->free_raw_bufs = cl->next;
 
             /* STUB */ cl->buf->num = p->num++;
-            //主要功能就是解析fastcgi格式包体,解析出包体后,把对应的buf加入到p->in
-            //FCGI为ngx_http_fastcgi_input_filter,其他为ngx_event_pipe_copy_input_filter .用来解析特定格式数据
+           /* 主要功能就是解析fastcgi格式包体,解析出包体后,把对应的buf加入到p->in
+            FCGI为ngx_http_fastcgi_input_filter,其他为ngx_event_pipe_copy_input_filter .用来解析特定格式数据*/
             if (p->input_filter(p, cl->buf) == NGX_ERROR) {
                 return NGX_ABORT;
             }
@@ -508,12 +511,12 @@ ngx_event_pipe_read_upstream(ngx_event_pipe_t *p) { //ngx_event_pipe_write_to_do
     if ((p->upstream_eof || p->upstream_error) && p->free_raw_bufs) { //没办法了,都快到头了,或者出现错误了,所以处理一下这块不完整的buffer
 
         /* STUB */ p->free_raw_bufs->buf->num = p->num++;
-        //如果数据读取完毕了,或者后端出现问题了,并且,free_raw_bufs不为空,后面还有一部分数据,
-        //当然只可能有一块.那就调用input_filter处理它.FCGI为ngx_http_fastcgi_input_filter 在ngx_http_fastcgi_handler里面设置的
+        /*如果数据读取完毕了,或者后端出现问题了,并且,free_raw_bufs不为空,后面还有一部分数据,
+        当然只可能有一块.那就调用input_filter处理它.FCGI为ngx_http_fastcgi_input_filter 在ngx_http_fastcgi_handler里面设置的*/
 
-        //这里考虑一种情况: 这是最后一块数据了,没满,里面没有data数据,所以ngx_http_fastcgi_input_filter会调用ngx_event_pipe_add_free_buf函数,
-        //将这块内存放入free_raw_bufs的前面,可是君不知,这最后一块不存在数据部分的内存正好等于free_raw_bufs,因为free_raw_bufs还没来得及改变.
-        //所以,就把自己给替换掉了.这种情况会发生吗?
+       /* 这里考虑一种情况: 这是最后一块数据了,没满,里面没有data数据,所以ngx_http_fastcgi_input_filter会调用ngx_event_pipe_add_free_buf函数,
+        将这块内存放入free_raw_bufs的前面,可是君不知,这最后一块不存在数据部分的内存正好等于free_raw_bufs,因为free_raw_bufs还没来得及改变.
+        所以,就把自己给替换掉了.这种情况会发生吗?*/
         if (p->input_filter(p, p->free_raw_bufs->buf) == NGX_ERROR) {
             return NGX_ABORT;
         }
@@ -586,8 +589,8 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
         }
         //upstream_eof表示内核缓冲区数据已经读完 如果upstream的连接已经关闭了,或出问题了,或者发送完毕了,那就可以发送了.
         if (p->upstream_eof || p->upstream_error || p->upstream_done) {
-            //实际上在接受完后端数据后,在想客户端发送包体部分的时候,会两次调用该函数,一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
-            //另一次是ngx_http_upstream_finalize_request->ngx_http_send_special,
+            /*实际上在接受完后端数据后,在想客户端发送包体部分的时候,会两次调用该函数,一次是ngx_event_pipe_write_to_downstream-> p->output_filter(),
+            另一次是ngx_http_upstream_finalize_request->ngx_http_send_special*/
             /* pass the p->out and p->in chains to the output filter */
 
             for (cl = p->busy; cl; cl = cl->next) {
@@ -614,8 +617,8 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
                 for (cl = p->out; cl; cl = cl->next) {
                     cl->buf->recycled = 0;
                 }
-                //下面,因为p->out的链表里面一块块都是解析后的后端服务器页面数据,所以直接调用ngx_http_output_filter进行数据发送就行了.
-                //注意: 没有发送完毕的数据会保存到ngx_http_request_t->out中,HTTP框架会触发再次把r->out写出去,而不是存在p->out中的
+                /*下面,因为p->out的链表里面一块块都是解析后的后端服务器页面数据,所以直接调用ngx_http_output_filter进行数据发送就行了.
+                注意: 没有发送完毕的数据会保存到ngx_http_request_t->out中,HTTP框架会触发再次把r->out写出去,而不是存在p->out中的*/
                 rc = p->output_filter(p->output_ctx, p->out);
 
                 if (rc == NGX_ERROR) {
@@ -629,8 +632,8 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
             if (p->writing) {
                 break;
             }
-            //ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
-            //如果开启缓存,则数据写入临时文件中,p->in=NULL
+            /*ngx_event_pipe_read_upstream读取数据后通过ngx_http_fastcgi_input_filter把读取到的数据加入到p->in链表
+            如果开启缓存,则数据写入临时文件中,p->in=NULL*/
             if (p->in) { //跟out同理.简单调用ngx_http_output_filter进入各个filter发送过程中.
                 ngx_log_debug0(NGX_LOG_DEBUG_EVENT, p->log, 0,
                                "pipe write downstream flush in");
@@ -668,8 +671,8 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
 
         prev = NULL;
         bsize = 0;
-        //这里遍历需要busy这个正在发送,已经调用过output_filter的buf链表,计算一下那些可以回收重复利用的buf
-        //计算这些buf的总容量,注意这里不是计算busy中还有多少数据没有真正writev出去,而是他们总共的最大容量
+        /*这里遍历需要busy这个正在发送,已经调用过output_filter的buf链表,计算一下那些可以回收重复利用的buf
+        计算这些buf的总容量,注意这里不是计算busy中还有多少数据没有真正writev出去,而是他们总共的最大容量*/
         for (cl = p->busy; cl; cl = cl->next) {
 
             if (cl->buf->recycled) {
@@ -686,8 +689,8 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
                        "pipe write busy: %uz", bsize);
 
         out = NULL;
-        //busy_size为fastcgi_busy_buffers_size 指令设置的大小,指最大待发送的busy状态的内存总大小.
-        //如果大于这个大小,nginx会尝试去发送新的数据并回收这些busy状态的buf.
+        /*busy_size为fastcgi_busy_buffers_size 指令设置的大小,指最大待发送的busy状态的内存总大小.
+        如果大于这个大小,nginx会尝试去发送新的数据并回收这些busy状态的buf  */
         if (bsize >= (size_t) p->busy_size) {
             flush = 1;
             goto flush;
@@ -718,9 +721,9 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
                                cl->buf->last_shadow,
                                cl->buf->pos,
                                cl->buf->last - cl->buf->pos);
-                //1.对于在in里面的数据,如果其需要回收;
-                //2.并且又是某一块大FCGI buf的最后一个有效html数据节点;
-                //3.而且当前的没法送的大小大于busy_size, 那就需要回收一下了,因为我们有buffer机制
+                /*1.对于在in里面的数据,如果其需要回收;
+                2.并且又是某一块大FCGI buf的最后一个有效html数据节点;
+                3.而且当前的没法送的大小大于busy_size, 那就需要回收一下了,因为我们有buffer机制*/
                 if (cl->buf->recycled && prev_last_shadow) {
                     if (bsize + cl->buf->end - cl->buf->start > p->busy_size) {
                         flush = 1; //超过了大小,标记一下待会是需要真正发送的.不过这个好像没发挥多少作用,因为后面不怎么判断、
@@ -752,8 +755,9 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
 
         ngx_log_debug2(NGX_LOG_DEBUG_EVENT, p->log, 0,
                        "pipe write: out:%p, f:%ui", out, flush);
-        //下面将out指针指向的内存调用output_filter,进入filter过程.
-        //如果后端数据有写入临时文件,则out=NULL,只有在获取到全部后端数据并写入临时文件后,才会通过前面的if (p->upstream_eof || p->upstream_error || p->upstream_done) {p->output_filter()}发送出去
+        /*下面将out指针指向的内存调用output_filter,进入filter过程.
+        如果后端数据有写入临时文件,则out=NULL,只有在获取到全部后端数据并写入临时文件后,
+         才会通过前面的if (p->upstream_eof || p->upstream_error || p->upstream_done) {p->output_filter()}发送出去*/
         if (out == NULL) { //在下面的ngx_chain_update_chains中有可能置为NULL,表示out链上的数据发送完毕
 
             if (!flush) {
@@ -773,8 +777,9 @@ ngx_event_pipe_write_to_downstream(ngx_event_pipe_t *p) { //ngx_event_pipe调用
             如果一次没有发送完成,则剩余的数据会留在p->out中.当数据通过p->output_filter(p->output_ctx, out)发送后,buf2会被添加到p->free中,
             buf1会被添加到free_raw_bufs中,见ngx_event_pipe_write_to_downstream  */
 
-        //将没有全部发送的buf(last != end)加入到busy,已经全部处理了的buf(end = last)放入free中
-        //实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,见ngx_http_write_filter
+        /*将没有全部发送的buf(last != end)加入到busy,已经全部处理了的buf(end = last)放入free中
+        实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,见ngx_http_write_filter*/
+
         /*实际上p->busy最终指向的是ngx_http_write_filter中未发送完的r->out中保存的数据,这部分数据始终在r->out的最前面,后面在读到数据后在
             ngx_http_write_filter中会把新来的数据加到r->out后面,也就是未发送的数据在r->out前面新数据在链后面,所以实际write是之前未发送的先发送出去*/
         ngx_chain_update_chains(p->pool, &p->free, &p->busy, &out, p->tag);
@@ -1135,8 +1140,8 @@ done:
     }
 
     for (cl = out; cl; cl = next) {
-        //p->in链中的各个chain指向的内存信息已经写入临时文件,并通过创建新的chain节点指向文件里面的各个偏移信息,那么之前p->in中的
-        //各个链chain需要加入free链中,以备可以分配复用
+        /*p->in链中的各个chain指向的内存信息已经写入临时文件,并通过创建新的chain节点指向文件里面的各个偏移信息,那么之前p->in中的
+        各个链chain需要加入free链中,以备可以分配复用*/
         next = cl->next;
 
         cl->next = p->free;

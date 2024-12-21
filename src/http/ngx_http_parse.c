@@ -109,8 +109,9 @@ Host:localhost
 User-Agent:Mozila/4.0(compatible:MSIE5.01:Windows NT5.0)
 Accept-Encoding:gzip,deflate.
 */
-//解析上面的GET /sample.jsp HTTP/1.1
-//ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body
+
+/*解析上面的GET /sample.jsp HTTP/1.1
+ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部) 接收包体ngx_http_read_client_request_body*/
 
 /*返回值主要有3类:返回NGX—OK表示成功地解析到完整的HTTP请求行;返回NGX AGAIN表示目前接收到的字符流不足以构成完成的请求行,还需要
 接收更多的字符流;返回NGX_HTTP_PARSE_INVALID_REQUEST或者NGX_HTTP_PARSE_INVALID_09_METHOD等其他值时表示接收到非法的请求行.*/
@@ -822,8 +823,7 @@ ngx_http_parse_request_line(ngx_http_request_t *r, ngx_buf_t *b) {
     return NGX_OK;
 }
 
-/*
-GET /sample.jsp HTTP/1.1
+/*GET /sample.jsp HTTP/1.1
 
 Accept:image/gif.image/jpeg,**
 Accept-Language:zh-cn
@@ -831,14 +831,15 @@ Connection:Keep-Alive
 Host:localhost
 User-Agent:Mozila/4.0(compatible:MSIE5.01:Windows NT5.0)
 Accept-Encoding:gzip,deflate.
-*/ //解析上面的GET /sample.jsp HTTP/1.1以外的配置
+*/
 
-/*
-返回NGX_HTTP_PARSE_HEADER_DONE表示响应中所有的http头部都解析完毕,接下来再接收到的都将是http包体
-返回NGX_OK表示解析出一行http头部
-如果返回NGX_AGAIN则表示状态机还没有解析到完整的http头部,要求upstream模块继续接收新的字符流再交由process_header回调方法解析
-*/ //ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部)
-//头部行最后面两个\r\n确定头部行全部解析完毕,也就是中间出现一个空行来区分头部行和body数据
+//解析上面的GET /sample.jsp HTTP/1.1以外的配置
+
+/*返回NGX_HTTP_PARSE_HEADER_DONE表示响应中所有的http头部都解析完毕,接下来再接收到的都将是http包体返回NGX_OK表示解析出一行http头部
+如果返回NGX_AGAIN则表示状态机还没有解析到完整的http头部,要求upstream模块继续接收新的字符流再交由process_header回调方法解析*/
+
+/*ngx_http_parse_request_line解析请求行, ngx_http_process_request_headers(ngx_http_parse_header_line)解析头部行(请求头部)
+头部行最后面两个\r\n确定头部行全部解析完毕,也就是中间出现一个空行来区分头部行和body数据*/
 ngx_int_t
 ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
                            ngx_uint_t allow_underscores) { //每解析完一行name:value就会返回NGX_OK
@@ -878,7 +879,7 @@ ngx_http_parse_header_line(ngx_http_request_t *r, ngx_buf_t *b,
 
             /* first char */
             case sw_start:
-                r->header_name_start = p; //这行头部行的开始处  //header_name_start指向Accept-Language:zh-cn中的A处
+                r->header_name_start = p; //这行头部行的开始处,header_name_start指向Accept-Language:zh-cn中的A处
                 r->invalid_header = 0;
 
                 switch (ch) {  //如果出现一行空行,那么说明后面的数据就是报文体数据了
@@ -1640,8 +1641,8 @@ ngx_http_parse_complex_uri(ngx_http_request_t *r, ngx_uint_t merge_slashes) {
     return NGX_OK;
 }
 
-//判断buf b中是否包含完整的http应答行    HTTP/1.1 200 OK \r\n
-//ngx_http_parse_status_line解析应答行,mytest_upstream_process_header解析头部行中的其中一行
+/*判断buf b中是否包含完整的http应答行    HTTP/1.1 200 OK \r\n
+ngx_http_parse_status_line解析应答行,mytest_upstream_process_header解析头部行中的其中一行*/
 ngx_int_t
 ngx_http_parse_status_line(ngx_http_request_t *r, ngx_buf_t *b,
                            ngx_http_status_t *status) {
@@ -2159,14 +2160,11 @@ ngx_http_split_args(ngx_http_request_t *r, ngx_str_t *uri, ngx_str_t *args) {
     }
 }
 
-/*
-格式:
+/*格式:
 十六进制ea5表明这个暑假块有3749字节
           这个块为3749字节,块数结束后\r\n表明这个块已经结束               这个块为3752字节,块数结束后\r\n表明这个块已经结束
                                                                                                                                  0表示最后一个块,最后跟两个\r\n
-ea5\r\n........................................................\r\n ea8\r\n..................................................\r\n 0\r\n\r\n
-参考:http://blog.csdn.net/zhangboyj/article/details/6236780
-*/
+ea5\r\n........................................................\r\n ea8\r\n..................................................\r\n 0\r\n\r\n    */
 ngx_int_t
 ngx_http_parse_chunked(ngx_http_request_t *r, ngx_buf_t *b,
                        ngx_http_chunked_t *ctx) {

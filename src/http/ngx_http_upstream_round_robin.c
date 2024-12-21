@@ -473,8 +473,7 @@ ngx_http_upstream_create_round_robin_peer(ngx_http_request_t *r,
 }
 
 
-/*
- 判断server 是否有效的方法是:
+/*判断server 是否有效的方法是:
  1)如果server的失败次数(peers->peer[i].fails)没有达到了max_fails所设置的最大失败次数,则该server是有效的.
  2)如果server已经达到了max_fails所设置的最大失败次数,从这一时刻开始算起,在fail_timeout 所设置的时间段内, server是无效的.
  3)当server的失败次数(peers->peer[i].fails)为最大的失败次数,当距离现在的时间超过了fail_timeout 所设置的时间段, 则令peers->peer[i].fails =0,使得该server重新有效.
@@ -486,8 +485,8 @@ upstream中无server可以使用.就会清空所有peers数组中所有的失败
             peers->peer[i].fails2 = 0;
     }
     并返回错误码给nginx,  nginx得到此错误码后,就不再向后台server发请求,而是在nginx的错误日志中输出"no live upstreams while connecting to upstream"
-    的记录(这就是no live产生的真正原因),并直接返回给请求的客户端一个502的错误.
-*/
+    的记录(这就是no live产生的真正原因),并直接返回给请求的客户端一个502的错误*/
+
 /*ngx_http_upstream_get_round_robin_peer ngx_http_upstream_get_least_conn_peer ngx_http_upstream_get_hash_peer
 ngx_http_upstream_get_ip_hash_peer ngx_http_upstream_get_keepalive_peer等 */
 ngx_int_t
@@ -742,10 +741,11 @@ ngx_http_upstream_free_round_robin_peer(ngx_peer_connection_t *pc, void *data,
     } else {
 
         /* mark peer live if check passed */
+
         //一个fail_timeout时间段到了,则跟新checeked为当前时间
         if (peer->accessed < peer->checked) {
-            //从获取后端失败并且判断达到最大上限失败次数,则会复活该后端服务器,同时再次选择该服务器,如果该服务器又有效了,则会设置checked为当前时间
-            //这时候peer->accessed < peer->checked满足条件,把fails清0
+            /*从获取后端失败并且判断达到最大上限失败次数,则会复活该后端服务器,同时再次选择该服务器,如果该服务器又有效了,则会设置checked为当前时间
+            这时候peer->accessed < peer->checked满足条件,把fails清0*/
             peer->fails = 0;
         }
     }

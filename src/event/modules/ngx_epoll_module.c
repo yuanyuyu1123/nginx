@@ -9,8 +9,7 @@
 #include <ngx_core.h>
 #include <ngx_event.h>
 
-/*
-Epoll在LT和ET模式下的读写方式
+/*Epoll在LT和ET模式下的读写方式
 在一个非阻塞的socket上调用read/write函数, 返回EAGAIN或者EWOULDBLOCK(注: EAGAIN就是EWOULDBLOCK)
 从字面上看, 意思是:EAGAIN: 再试一次,EWOULDBLOCK: 如果这是一个阻塞socket, 操作将被block,perror输出: Resource temporarily unavailable
 总结:
@@ -151,8 +150,7 @@ struct epitem{
 效率很高).第3个参数maxevents表示本次可以返回的最大事件数目,通常maxevents参数
 与预分配的events数组的大小是相等的.第4个参数timeout表示在没有检测到事件发生时
 最多等待的时间(单位为毫秒),如果timeout为0,则表示epoll_wait在rdllist链表中为空,
-立刻返回,不会等待.
-*/
+立刻返回,不会等待.*/
 #if (NGX_TEST_BUILD_EPOLL)
 /* epoll declarations */
 /*
@@ -358,8 +356,8 @@ static struct epoll_event *event_list; //epoll_events个sizeof(struct epoll_even
 static ngx_uint_t nevents; //nerents也是配置项epoll_events的参数
 
 #if (NGX_HAVE_EVENTFD)
-//执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
-//ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读
+/*执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
+ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读*/
 static int notify_fd = -1; //初始化见ngx_epoll_notify_init
 static ngx_event_t notify_event;
 static ngx_connection_t notify_conn;
@@ -385,7 +383,7 @@ static ngx_str_t epoll_name = ngx_string("epoll");
 
 static ngx_command_t ngx_epoll_commands[] = {
         /*在调用epoll_wait时,将由第2和第3个参数告诉Linux内核一次最多可返回多少个事件.这个配置项表示调用一次epoll_wait时最多可返回
-  的事件数,当然,它也会预分配那么多epoll_event结构体用于存储事件*/
+        的事件数,当然,它也会预分配那么多epoll_event结构体用于存储事件*/
 
         {ngx_string("epoll_events"),
          NGX_EVENT_CONF | NGX_CONF_TAKE1,
@@ -623,8 +621,8 @@ ngx_epoll_init(ngx_cycle_t *cycle, ngx_msec_t timer) {
 
 
 #if (NGX_HAVE_EVENTFD)
-//执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
-//ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读
+/*执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
+ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读*/
 static ngx_int_t
 ngx_epoll_notify_init(ngx_log_t *log) {
     struct epoll_event ee;
@@ -669,8 +667,8 @@ ngx_epoll_notify_init(ngx_log_t *log) {
     return NGX_OK;
 }
 
-//执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
-//ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读
+/*执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
+ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读*/
 
 static void //ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读
 ngx_epoll_notify_handler(ngx_event_t *ev) {
@@ -817,8 +815,7 @@ ngx_epoll_done(ngx_cycle_t *cycle) {
     nevents = 0;
 }
 
-/*
-epoll_ctl系统调用
+/*epoll_ctl系统调用
     epoll_ctl在C库中的原型如下.
     int epoll_ctl(int  epfd, int  op, int  fd, struct  epoll_event*  event)j
     epoll_ctl向epoll对象中添加、修改或者删除感兴趣的事件,返回0表示成功,否则返
@@ -875,8 +872,9 @@ typedef union epoll_data
 } epoll_data_t;
     可见,这个data成员还与具体的使用方式相关.例如,ngx_epoll_module模块只使用了
 联合中的ptr成员,作为指向ngx_connection_t连接的指针*/
-//ngx_epoll_add_event表示添加某种类型的(读或者写,通过flag指定促发方式,NGX_CLEAR_EVENT为ET方式,NGX_LEVEL_EVENT为LT方式)事件,
-//ngx_epoll_add_connection(读写一起添加上去, 使用EPOLLET边沿触发方式)
+
+/*ngx_epoll_add_event表示添加某种类型的(读或者写,通过flag指定促发方式,NGX_CLEAR_EVENT为ET方式,NGX_LEVEL_EVENT为LT方式)事件,
+ngx_epoll_add_connection(读写一起添加上去, 使用EPOLLET边沿触发方式)*/
 static ngx_int_t //通过flag指定促发方式,NGX_CLEAR_EVENT为ET方式,NGX_LEVEL_EVENT为LT方式
 ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags) { //该函数封装为ngx_add_event的,使用的时候为ngx_add_event
     //一般网络事件中的报文读写通过ngx_handle_read_event  ngx_handle_write_event添加事件
@@ -926,15 +924,15 @@ ngx_epoll_add_event(ngx_event_t *ev, ngx_int_t event, ngx_uint_t flags) { //该�
     ngx_log_debug3(NGX_LOG_DEBUG_EVENT, ev->log, 0,
                    "epoll add event: fd:%d op:%d ev:%08XD",
                    c->fd, op, ee.events);
-    //EPOLL_CTL_ADD一次后,就可以一直通过epoll_wait来获取读事件,除非调用EPOLL_CTL_DEL,不是每次读事件触发epoll_wait返回后都要重新添加EPOLL_CTL_ADD,
-    //之前代码中有的地方好像备注错了,备注为每次读事件触发后都要重新add一次
+    /*EPOLL_CTL_ADD一次后,就可以一直通过epoll_wait来获取读事件,除非调用EPOLL_CTL_DEL,不是每次读事件触发epoll_wait返回后都要重新添加EPOLL_CTL_ADD,
+    之前代码中有的地方好像备注错了,备注为每次读事件触发后都要重新add一次*/
     if (epoll_ctl(ep, op, c->fd, &ee) == -1) { //epoll_wait() 系统调用等待由文件描述符 c->fd 引用的 epoll 实例上的事件
         ngx_log_error(NGX_LOG_ALERT, ev->log, ngx_errno,
                       "epoll_ctl(%d, %d) failed", op, c->fd);
         return NGX_ERROR;
     }
-    //后面的ngx_add_event->ngx_epoll_add_event中把listening中的c->read->active置1, ngx_epoll_del_event中把listening中置read->active置0
-    //第一次添加epoll_ctl为EPOLL_CTL_ADD,如果再次添加发现active为1,则epoll_ctl为EPOLL_CTL_MOD
+    /*后面的ngx_add_event->ngx_epoll_add_event中把listening中的c->read->active置1, ngx_epoll_del_event中把listening中置read->active置0
+    第一次添加epoll_ctl为EPOLL_CTL_ADD,如果再次添加发现active为1,则epoll_ctl为EPOLL_CTL_MOD*/
     ev->active = 1; //将事件的active标志位置为1,表示当前事件是活跃的   ngx_epoll_del_event中置0
 #if 0
     ev->oneshot = (flags & NGX_ONESHOT_EVENT) ? 1 : 0;
@@ -1062,8 +1060,8 @@ ngx_epoll_del_connection(ngx_connection_t *c, ngx_uint_t flags) {
 
 
 #if (NGX_HAVE_EVENTFD)
-//执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
-//ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读
+/*执行ngx_epoll_notify后会通过epoll_wait返回执行该函数ngx_epoll_notify_handler
+ngx_epoll_notify_handler  ngx_epoll_notify_init  ngx_epoll_notify(ngx_notify)配合阅读*/
 static ngx_int_t
 ngx_epoll_notify(ngx_event_handler_pt handler) {
     static uint64_t inc = 1;
@@ -1081,9 +1079,8 @@ ngx_epoll_notify(ngx_event_handler_pt handler) {
 
 #endif
 
-//ngx_epoll_process_events注册到ngx_process_events的
-//和ngx_epoll_add_event配合使用
-//该函数在ngx_process_events_and_timers中调用
+/*ngx_epoll_process_events注册到ngx_process_events的和ngx_epoll_add_event配合使用,
+该函数在ngx_process_events_and_timers中调用*/
 static ngx_int_t
 ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags) { //flags参数中含有NGX_POST_EVENTS表示这批事件要延后处理
     int events;
@@ -1100,19 +1097,20 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "epoll timer: %M", timer);
     /*调用epoll_wait获取事件.注意,timer参数是在process_events调用时传入的,在9.7和9.8节中会提到这个参数*/
-    //The call was interrupted by a signal handler before any of the requested events occurred or the timeout expired;
-    //如果有信号发生(见函数ngx_timer_signal_handler),如定时器,则会返回-1
-    //需要和ngx_add_event与ngx_add_conn配合使用
-    //event_list存储的是就绪好的事件,如果是select则是传入用户注册的事件,需要遍历检查,而且每次select返回后需要重新设置事件集,epoll不用
+
+    /*The call was interrupted by a signal handler before any of the requested events occurred or the timeout expired;
+    如果有信号发生(见函数ngx_timer_signal_handler),如定时器,则会返回-1
+    需要和ngx_add_event与ngx_add_conn配合使用
+    event_list存储的是就绪好的事件,如果是select则是传入用户注册的事件,需要遍历检查,而且每次select返回后需要重新设置事件集,epoll不用*/
+
     /*这里面等待的事件包括客户端连接事件(这个是从父进程继承过来的ep,然后在子进程while前的ngx_event_process_init->ngx_add_event添加),
     对已经建立连接的fd读写事件的添加在ngx_event_accept->ngx_http_init_connection->ngx_handle_read_event*/
 
-/*ngx_notify->ngx_epoll_notify只会触发epoll_in,不会同时引发epoll_out,如果是网络读事件epoll_in,则会同时引起epoll_out*/
+    /*ngx_notify->ngx_epoll_notify只会触发epoll_in,不会同时引发epoll_out,如果是网络读事件epoll_in,则会同时引起epoll_out*/
     events = epoll_wait(ep, event_list, (int) nevents, timer); //timer为-1表示无限等待, nevents表示最多监听多少个事件,必须大于0
     //EPOLL_WAIT如果没有读写事件或者定时器超时事件发生,则会进入睡眠,这个过程会让出CPU
     err = (events == -1) ? ngx_errno : 0;
-    //当flags标志位指示要更新时间时,就是在这里更新的
-    //要摸ngx_timer_resolution毫秒超时后跟新时间,要摸epoll读写事件超时后跟新时间
+    /*当flags标志位指示要更新时间时,就是在这里更新的,要么ngx_timer_resolution毫秒超时后跟新时间,要摸epoll读写事件超时后跟新时间*/
     if (flags & NGX_UPDATE_TIME || ngx_event_timer_alarm) {
         ngx_time_update();
     }
@@ -1151,6 +1149,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
         instance = (uintptr_t) c & 1;  //将地址的最后一位取出来,用instance变量标识, 见ngx_epoll_add_event
         /*无论是32位还是64位机器,其地址的最后1位肯定是0,可以用下面这行语句把ngx_connection_t的地址还原到真正的地址值*/
+
         //注意这里的c有可能是accept前的c,用于检测是否客户端发起tcp连接事件,accept返回成功后会重新创建一个ngx_connection_t,用来读写客户端的数据
         c = (ngx_connection_t *) ((uintptr_t) c & (uintptr_t) ~1);
 
@@ -1158,6 +1157,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
         if (c->fd == -1 || rev->instance != instance) { //判断这个读事件是否为过期事件
             //当fd套接字描述符为-l或者instance标志位不相等时,表示这个事件已经过期了,不用处理
+
             /*
              * the stale event from a file descriptor
              * that was just closed in this iteration
@@ -1226,6 +1226,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
             if (c->fd == -1 || wev->instance != instance) { //判断这个读事件是否为过期事件
                 //当fd套接字描述符为-1或者instance标志位不相等时,表示这个事件已经过期,不用处理
+
                 /*
                  * the stale event from a file descriptor
                  * that was just closed in this iteration
