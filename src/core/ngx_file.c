@@ -112,8 +112,8 @@ ngx_http_upstream_send_response->ngx_http_upstream_process_request->ngx_http_fil
 的cache目录下面*/
 
 
-//创建temp_file临时文件,并把chain链表中的数据写入文件,返回值为写入到文件中的字节数
-//如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了,则会把缓存中的数据写入临时文件,然后继续读,读到后写入临时文件,直到read返回NGX_AGAIN
+/*创建temp_file临时文件,并把chain链表中的数据写入文件,返回值为写入到文件中的字节数
+如果配置xxx_buffers  XXX_buffer_size指定的空间都用完了,则会把缓存中的数据写入临时文件,然后继续读,读到后写入临时文件,直到read返回NGX_AGAIN*/
 ssize_t
 ngx_write_chain_to_temp_file(ngx_temp_file_t *tf, ngx_chain_t *chain) {
     ngx_int_t rc;
@@ -144,8 +144,7 @@ ngx_write_chain_to_temp_file(ngx_temp_file_t *tf, ngx_chain_t *chain) {
     return ngx_write_chain_to_file(&tf->file, chain, tf->offset, tf->pool);
 }
 
-/*
-配置fastcgi_cache_path /var/yyz/cache_xxx levels=1:2 keys_zone=fcgi:1m inactive=30m max_size=64 use_temp_path=off;打印如下:
+/*配置fastcgi_cache_path /var/yyz/cache_xxx levels=1:2 keys_zone=fcgi:1m inactive=30m max_size=64 use_temp_path=off;打印如下:
 2015/12/16 04:25:19[               ngx_create_temp_file,   169]  [debug] 19348#19348: *3 hashed path: /var/yyz/cache_xxx/temp/2/00/0000000002
 2015/12/16 04:25:19[               ngx_create_temp_file,   174]  [debug] 19348#19348: *3 temp fd:-1
 2015/12/16 04:25:19[                    ngx_create_path,   260]  [debug] 19348#19348: *3 temp file: "/var/yyz/cache_xxx/temp/2"
@@ -278,8 +277,7 @@ ngx_create_hashed_filename(ngx_path_t *path, u_char *file, size_t len) {
     }
 }
 
-/*
-配置fastcgi_cache_path /var/yyz/cache_xxx levels=1:2 keys_zone=fcgi:1m inactive=30m max_size=64 use_temp_path=off;打印如下:
+/*配置fastcgi_cache_path /var/yyz/cache_xxx levels=1:2 keys_zone=fcgi:1m inactive=30m max_size=64 use_temp_path=off;打印如下:
 2015/12/16 04:25:19[                    ngx_create_path,   260]  [debug] 19348#19348: *3 temp file: "/var/yyz/cache_xxx/temp/2"
 2015/12/16 04:25:19[                    ngx_create_path,   260]  [debug] 19348#19348: *3 temp file: "/var/yyz/cache_xxx/temp/2/00"
 */
@@ -375,8 +373,7 @@ ngx_next_temp_number(ngx_uint_t collision) {
 }
 
 
-/*
-ngx_conf_set_path_slot可以携带1～4个参数,其中第1个参数必须是路径,第2～4
+/*ngx_conf_set_path_slot可以携带1～4个参数,其中第1个参数必须是路径,第2～4
 个参数必须是整数(大部分情形下可以不使用),可以参见client_body_temp_path
 配置项的用法,client_body_temp_path配置项就是用ngx_conf_set_path_slot预设方法来解析
 参数的.
@@ -406,8 +403,7 @@ static ngx_command_t  ngx_http_mytest_commands []  =
   }
    如果nginx.conf中存在配置项test_path /usr/local/nginx/ 1 2 3, my_path指向的ngx_
 path_t结构中,name的内容是/usr/local/nginx/,而level[0]为1,level[l]为2,level[2]为3.
-如果配置项是test_path /usr/local/nginx/;,那么level数组的3个成员都是O.
-*/
+如果配置项是test_path /usr/local/nginx/;,那么level数组的3个成员都是0*/
 char *
 ngx_conf_set_path_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     char *p = conf;
@@ -505,8 +501,7 @@ ngx_conf_merge_path_value(ngx_conf_t *cf, ngx_path_t **path, ngx_path_t *prev,
 }
 
 
-/*
-ngx_conf_set_access_slot 用于设置读／写权限,配置项后可以掳带1～3个参数,因此,
+/*ngx_conf_set_access_slot 用于设置读／写权限,配置项后可以掳带1～3个参数,因此,
 在ngx_command_t中的type成员要包含NGX—CONF TAKE123.参数的取值可参见表4-2.
 这里用ngx_http_mytest_conf_t结构中的ngx_uint_t my_access;来存储配置项"test_access"
 后的参数值,如下所示.
@@ -525,8 +520,7 @@ conf中出现配置项test access user:rw group:rw all:r;时,my_access的值将�
     注意  在ngx_http_mytest_create loc conf创建结构体时,如果想使用ngx_conf_set_
 access slot,那么必须把my_access初始化为NGX CONF UNSET UINT宏,也就是4.2.1
 节中的语句mycf->my_access=NGX_CONF_UNSET_UINT;．否则ngx_conf_set_access_slot
-解析时会报错.
-*/
+解析时会报错*/
 char *
 ngx_conf_set_access_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     char *confp = conf;
@@ -591,10 +585,8 @@ ngx_conf_set_access_slot(ngx_conf_t *cf, ngx_command_t *cmd, void *conf) {
     return NGX_CONF_ERROR;
 }
 
-/*
-检查slot是否已经存在  如果不存在,则添加到cf->cycle->pathes
-检查cache->path是否已经存在 如果不存在,则添加到cf->cycle->pathes
-*/
+/*检查slot是否已经存在  如果不存在,则添加到cf->cycle->pathes
+检查cache->path是否已经存在 如果不存在,则添加到cf->cycle->pathes  */
 ngx_int_t
 ngx_add_path(ngx_conf_t *cf, ngx_path_t **slot) {
     ngx_uint_t i, n;
@@ -1008,10 +1000,8 @@ ngx_copy_file(u_char *from, u_char *to, ngx_copy_file_t *cf) {
  *
  * on fatal (memory) error handler must return NGX_ABORT to stop walking tree
  */
-/*
-ngx_walk_tree是递归函数,打开每层路径(dir)直到每个文件(file),根据其路径和文件名得到key,在缓存的rbtree(红黑树)里面找这个key(部分),
- 如果没有找到的话,就在内存中分配一个映射这个文件的node(但是不会把文件的内容进行缓存),然后插入到红黑树中和加入队列.
-*/
+/*ngx_walk_tree是递归函数,打开每层路径(dir)直到每个文件(file),根据其路径和文件名得到key,在缓存的rbtree(红黑树)里面找这个key(部分),
+ 如果没有找到的话,就在内存中分配一个映射这个文件的node(但是不会把文件的内容进行缓存),然后插入到红黑树中和加入队列*/
 
 /*
 ctx->file_handler=>
@@ -1020,8 +1010,8 @@ ngx_http_file_cache_add_file=>
 ngx_http_file_cache_add
 */
 
-//使用 ngx_walk_tree 递归遍历缓存目录,并对不同类型的文件根据回调函数做不同的处理.
-//ngx_walk_tree这个函数主要是遍历所有的cache目录,然后对于每一个cache文件调用file_handler回调.
+/*使用 ngx_walk_tree 递归遍历缓存目录,并对不同类型的文件根据回调函数做不同的处理.
+ngx_walk_tree这个函数主要是遍历所有的cache目录,然后对于每一个cache文件调用file_handler回调.*/
 ngx_int_t
 ngx_walk_tree(ngx_tree_ctx_t *ctx, ngx_str_t *tree) {
     void *data, *prev;

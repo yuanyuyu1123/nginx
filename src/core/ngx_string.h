@@ -52,8 +52,8 @@ typedef struct {
     unsigned len: 28;  /* 变量值的长度 */
 
     unsigned valid: 1; /* 变量是否有效 */
-    /*
-      变量是否是可缓存的,一般来说,某些变量在第一次得到变量值后,后面再次用到时,可以直接使用上
+
+    /*变量是否是可缓存的,一般来说,某些变量在第一次得到变量值后,后面再次用到时,可以直接使用上
       而对于一些所谓的no_cacheable的变量,则需要在每次使用的时候,都要通过get_handler之类操作,再次获取*/
     unsigned no_cacheable: 1;
     unsigned not_found: 1;  /* 变量没有找到,一般是指某个变量没用能够通过get获取到其变量值,见ngx_http_variable_not_found */

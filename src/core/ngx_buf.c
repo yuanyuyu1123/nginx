@@ -177,9 +177,10 @@ ngx_chain_get_free_buf(ngx_pool_t *p, ngx_chain_t **free) {
 }
 
 /*因为nginx可以提前flush输出,所以这些buf被输出后就可以重复使用,可以避免重分配,提高系统性能,被称为free_buf,而没有被输出的
-        buf就是busy_buf. nginx没有特别的集成这个特性到自身,但是提供了一个函数ngx_chain_update_chains来帮助开发者维护这两个缓冲区队列*/
-//该函数功能就是把新读到的out数据添加到busy表尾部,然后把busy表中已经处理完毕的buf节点从busy表中摘除,然后放到free表头部
-//未发送出去的buf节点既会在out链表中,也会在busy链表中
+  buf就是busy_buf. nginx没有特别的集成这个特性到自身,但是提供了一个函数ngx_chain_update_chains来帮助开发者维护这两个缓冲区队列*/
+
+/*该函数功能就是把新读到的out数据添加到busy表尾部,然后把busy表中已经处理完毕的buf节点从busy表中摘除,然后放到free表头部;
+未发送出去的buf节点既会在out链表中,也会在busy链表中*/
 void
 ngx_chain_update_chains(ngx_pool_t *p, ngx_chain_t **free, ngx_chain_t **busy,
                         ngx_chain_t **out, ngx_buf_tag_t tag) {
@@ -199,11 +200,11 @@ ngx_chain_update_chains(ngx_pool_t *p, ngx_chain_t **free, ngx_chain_t **busy,
         *out = NULL;
     }
 
-    // buf 大小不是 0,说明还没有输出;request body 中的 bufs 是输出用的,如上所述,bufs 中指向的 buf 和 busy 指向的 buf 对象是一模一样的
+    // buf大小不是0,说明还没有输出;request body中的bufs是输出用的,如上所述,bufs中指向的buf和busy指向的buf对象是一模一样的
     while (*busy) { //pos和last不相等,说明该buf中的内容没有处理完
         cl = *busy;
 
-        if (cl->buf->tag != tag) { // tag 中存储的是 函数指针
+        if (cl->buf->tag != tag) { // tag 中存储的是函数指针
             *busy = cl->next;
             ngx_free_chain(p, cl);
             continue;
@@ -219,7 +220,7 @@ ngx_chain_update_chains(ngx_pool_t *p, ngx_chain_t **free, ngx_chain_t **busy,
 
         *busy = cl->next; //把cl从busy中拆除,然后添加到free头部
         cl->next = *free;
-        *free = cl; // 这个 chain 放到 free 列表的最前面,添加到free头部
+        *free = cl; //这个chain放到free列表的最前面,添加到free头部
     }
 }
 
@@ -287,7 +288,7 @@ ngx_chain_update_sent(ngx_chain_t *in, off_t sent) {
         if (sent >= size) { //说明该in->buf数据已经全部发送出去
             sent -= size; //标记后面还有多少数据是我发送过的
 
-            if (ngx_buf_in_memory(in->buf)) { //说明该in->buf数据已经全部发送出去
+            if (ngx_buf_in_memory(in->buf)) {
                 in->buf->pos = in->buf->last; //清空这段内存.继续找下一个
             }
 

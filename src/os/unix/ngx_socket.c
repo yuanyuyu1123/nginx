@@ -105,7 +105,7 @@ ngx_tcp_push(ngx_socket_t s)
                       (const void *) &tcp_nopush, sizeof(int));
 }
 
-#elif (NGX_LINUX)  //linux情况nginx使用NGX_CORK  选项仅在使用sendfile的时候才开启  见配置tcp_nopush on | off;
+#elif (NGX_LINUX)  //linux情况nginx使用NGX_CORK,选项仅在使用sendfile的时候才开启,见配置tcp_nopush on | off;
 
 /*
 Nagle算法的基本定义是任意时刻,最多只能有一个未被确认的小段. 所谓"小段",指的是小于MSS尺寸的数据块,所谓"未被确认",是指一
@@ -124,7 +124,7 @@ TCP链接的过程中,默认开启Nagle算法,进行小包发送的优化.
     默认情况下,发送数据采用Negale 算法.这样虽然提高了网络吞吐量,但是实时性却降低了,在一些交互性很强的应用程序来说是不
     允许的,使用TCP_NODELAY选项可以禁止Negale 算法.
     此时,应用程序向内核递交的每个数据包都会立即发送出去.需要注意的是,虽然禁止了Negale 算法,但网络的传输仍然受到TCP确认延迟机制的影响.
-3. TCP_CORK 选项  选项仅在使用sendfile的时候才开启
+3. TCP_CORK 选项,选项仅在使用sendfile的时候才开启
     所谓的CORK就是塞子的意思,形象地理解就是用CORK将连接塞住,使得数据先不发出去,等到拔去塞子后再发出去.设置该选项后,内核
     会尽力把小数据包拼接成一个大的数据包(一个MTU）再发送出去,当然若一定时间后(一般为200ms,该值尚待确认）,内核仍然没有组
     合成一个MTU时也必须发送现有的数据(不可能让数据一直等待吧）.

@@ -66,19 +66,19 @@ ngx_unix_recv(ngx_connection_t *c, u_char *buf, size_t size) {
 
     do {
         /*针对非阻塞I/O执行的系统调用则总是立即返回,而不管事件足否已经发生.如果事件没有眭即发生,这些系统调用就
-       返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
-       通常被设置成EAGAIN(意为"再来一次")或者EWOULDBLOCK(意为"期待阻塞"):对conncct而言,errno则被
-       设置成EINPROGRESS(意为"在处理中").*/
+           返回—1．和出错的情况一样.此时我们必须根据errno来区分这两种情况.对accept、send和recv而言,事件未发牛时errno
+           通常被设置成EAGAIN(意为"再来一次")或者EWOULDBLOCK(意为"期待阻塞"):对conncct而言,errno则被
+           设置成EINPROGRESS(意为"在处理中").*/
 
         //n = recv(c->fd, buf, size, 0); yang test
         //These calls return the number of bytes received, or -1 if an error occurred.  The return value will be 0 when the peer has performed an orderly shutdown.
-        n = recv(c->fd, buf, size, 0); //表示TCP错误,见ngx_http_read_request_header   recv返回0表示对方已经关闭连接
+        n = recv(c->fd, buf, size, 0); //表示TCP错误,见ngx_http_read_request_header,recv返回0表示对方已经关闭连接
 
         ngx_log_debug3(NGX_LOG_DEBUG_EVENT, c->log, 0,
                        "recv: fd:%d %z of %uz", c->fd, n, size);
         //读取成功,直接返回
 
-        /*recv返回0,本端不应该去关闭连接,如果是因为对端使用了shutdown来关闭半连接,本端还是可以发送数据的,知识不能读数据,所以这里置ready=0
+        /*recv返回0,本端不应该去关闭连接,如果是因为对端使用了shutdown来关闭半连接,本端还是可以发送数据的,只是不能读数据,所以这里置ready=0
         如果不是对端shutdown,那么说明是因为读缓冲区数据读完了,没数据了,读不到数据,所以返回0.返回0不能本端不能关闭套接字
         recv返回0,表示对端使用shutdown来实现半关闭或者异步读写的情况下,缓冲区没有数据可读,也会返回0.send返回0当作正常情况处理*/
         if (n == 0) { //表示TCP错误,见ngx_http_read_request_header   recv返回0表示对方已经关闭连接 The return value will be 0 when the peer has performed an orderly shutdown
@@ -176,7 +176,7 @@ ngx_unix_recv(ngx_connection_t *c, u_char *buf, size_t size) {
             }
 
 #endif
-            /*期待发送1000字节,实际上返回500字节,说明内核缓冲区接收到这500字节后已经满了,不能在写, read为0,只有等epoll写事件触发 read
+            /*期待发送1000字节,实际上返回500字节,说明内核缓冲区接收到这500字节后已经满了,不能在写, read为0,只有等epoll写事件触发 read,
             但是,接收如果期待接收1000字节,返回500字节则说明我内核缓冲区中只有500字节,因此可以继续recv,ready还是为1*/
             if ((size_t) n < size
                 && !(ngx_event_flags & NGX_USE_GREEDY_EVENT)) { //数据读取完毕ready置0,需要重新添加add epoll event

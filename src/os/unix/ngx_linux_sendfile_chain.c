@@ -93,7 +93,7 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
         /* set TCP_CORK if there is a header before a file */
 
         if (c->tcp_nopush == NGX_TCP_NOPUSH_UNSET
-            && header.count != 0 //等于0,则表明chain链中的所有数据在文件中
+            && header.count != 0 //不等于0,则表明chain链中有数据在内存中
             && cl
             && cl->buf->in_file) {
             /* the TCP_CORK and TCP_NODELAY are mutually exclusive */
@@ -154,9 +154,8 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
         }
 
         /* get the file buf */
-        //等于0,则表明chain链中的所有数据在文件中,一般sendfile on的时候走这里
 
-        /*说明chain中的数据是in_file的,也就是在缓存文件中,一般开启sendfile on的时候走这里,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.
+        /*等于0,说明chain中的数据是in_file的,也就是在缓存文件中,一般开启sendfile on的时候走这里,因为ngx_output_chain_as_is返回1,不会重新开辟内存空间读取缓存内容.
          in_file中的内存还是in_file的,而不会拷贝到新分配的内存中, 参考ngx_http_copy_filter->ngx_output_chain   ngx_output_chain_as_is等*/
         if (header.count == 0 && cl && cl->buf->in_file && send < limit) {
             file = cl->buf;
@@ -165,7 +164,7 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
 
             file_size = (size_t) ngx_chain_coalesce_file(&cl, limit - send);
 
-            send += file_size;
+            send += file_size;//此时数据全在文字中
 #if 1
             if (file_size == 0) {
                 ngx_debug_point();
@@ -188,7 +187,7 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
 
         } else {
             /*说明chain中的数据在内存中,一般不开启sendfile on的时候走这里,因为ngx_http_copy_filter->ngx_output_chain中会重新
-                分配内存读取缓存文件内容,见ngx_output_chain_as_is.之前buf->in_file的内容就会变好内存型的*/
+              分配内存读取缓存文件内容,见ngx_output_chain_as_is.之前buf->in_file的内容就会变好内存型的*/
             n = ngx_writev(c, &header);
 
             if (n == NGX_ERROR) {
@@ -228,22 +227,13 @@ ngx_linux_sendfile_chain(ngx_connection_t *c, ngx_chain_t *in, off_t limit) { //
     }
 }
 
-/*
-rocktmq中对零拷贝的解释
-(1)零拷贝原理:Consumer消费消息过程,使用了零拷贝,零拷贝包括一下2中方式,RocketMQ使用第一种方式,因小块数据传输的要求效果比sendfile方式好
-    a )使用mmap+write方式   (mmap将一个文件或者其它对象映射进内存)
+/* mmap小块数据传输的效果比sendfile方式好,因此:
+    a )使用mmap+write方式(mmap将一个文件或者其它对象映射进内存)
      优点:即使频繁调用,使用小文件块传输,效率也很高
-     缺点:不能很好的利用DMA方式,会比sendfile多消耗CPU资源,内存安全性控制复杂,需要避免JVM Crash问题
+     缺点:不能很好的利用DMA方式,会比sendfile多消耗CPU资源,内存安全性控制复杂
     b)使用sendfile方式
      优点:可以利用DMA方式,消耗CPU资源少,大块文件传输效率高,无内存安全新问题
-     缺点:小块文件效率低于mmap方式,只能是BIO方式传输,不能使用NIO
-    mmap是一种内存映射文件的方法,即将一个文件或者其它对象映射到进程的地址空间,实现文件磁盘地址和进程虚拟地址空间
-中一段虚拟地址的一一对映关系.实现这样的映射关系后,进程就可以采用指针的方式读写操作这一段内存,而系统会自动回
-写脏页面到对应的文件磁盘上,即完成了对文件的操作而不必再调用read,write等系统调用函数.相反,内核空间对这段区域
-的修改也直接反映用户空间,从而可以实现不同进程间的文件共享.
-http://www.linuxjournal.com/article/6345?page=0,0
-http://blog.csdn.net/kisimple/article/details/42499225
-*/
+     缺点:小块文件效率低于mmap方式,只能是BIO方式传输,不能使用NIO*/
 static ssize_t
 ngx_linux_sendfile(ngx_connection_t *c, ngx_buf_t *file, size_t size) {
 #if (NGX_HAVE_SENDFILE64)

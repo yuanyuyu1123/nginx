@@ -25,21 +25,13 @@
 #define NGX_CMD_REOPEN         5
 
 
-#define NGX_PROCESS_SINGLE     0 //单进程方式  //如果配置的是单进程工作模式
+#define NGX_PROCESS_SINGLE     0 //单进程方式,如果配置的是单进程工作模式
 #define NGX_PROCESS_MASTER     1 //正常运行的master+多worker进程模式中的主进程是该模式
 #define NGX_PROCESS_SIGNALLER  2 //是nginx -s发送信号的进程
 #define NGX_PROCESS_WORKER     3 //正常运行的master+多worker进程模式中的worker子进程是该模式
 #define NGX_PROCESS_HELPER     4 //做过期缓存文件清理的cache_manager处于该模式
 
 
-/*
-static ngx_cache_manager_ctx_t  ngx_cache_manager_ctx = {
-    ngx_cache_manager_process_handler, "cache manager process", 0
-};
-static ngx_cache_manager_ctx_t  ngx_cache_loader_ctx = {
-    ngx_cache_loader_process_handler, "cache loader process", 60000  //进程创建后60000m秒执行ngx_cache_loader_process_handler,在ngx_cache_manager_process_cycle中添加的定时器
-};
-*/
 typedef struct { //ngx_cache_manager_process_cycle
     ngx_event_handler_pt       handler; //ngx_cache_manager_process_handler  ngx_cache_loader_process_handler
     char                      *name; //进程名

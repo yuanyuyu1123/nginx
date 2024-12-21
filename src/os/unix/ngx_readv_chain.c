@@ -12,8 +12,7 @@
 
 ssize_t
 ngx_readv_chain(ngx_connection_t *c, ngx_chain_t *chain, off_t limit) {
-    //这个函数用readv将将连接的数据读取放到chain的链表里面,如果有错标记error或者eof.
-    //返回读取到的字节数
+    //这个函数用readv将将连接的数据读取放到chain的链表里面,如果有错标记error或者eof.返回读取到的字节数
     u_char *prev;
     ssize_t n, size;
     ngx_err_t err;
@@ -125,7 +124,8 @@ ngx_readv_chain(ngx_connection_t *c, ngx_chain_t *chain, off_t limit) {
         从上面可以看出readv可以将对端的数据读入到本端的几个不连续的内存中,而read则只能读入到连续的内存中*/
 
         /* On success, the readv() function returns the number of bytes read; the writev() function returns the number of bytes written.
-        On error, -1 is returned, and errno is  set appropriately. readv返回被读的字节总数.如果没有更多数据和碰到文件末尾时返回0的计数. */
+            On error, -1 is returned, and errno is  set appropriately.
+         readv返回被读的字节总数.如果没有更多数据和碰到文件末尾时返回0的计数. */
         n = readv(c->fd, (struct iovec *) vec.elts, vec.nelts);
 
         if (n == 0) { //readv返回0表示对端已经关闭连接,没有数据了.

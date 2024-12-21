@@ -41,8 +41,8 @@ ngx_array_destroy(ngx_array_t *a) {
     }
 }
 
-//检查array数组的elts元素释放已经用完,如果已经用完,则再重新开辟array空间来存储
-//ngx_array_push从数组中获取一个数组成员,ngx_array_push_n为一次性获取n个
+/*检查array数组的elts元素释放已经用完,如果已经用完,则再重新开辟array空间来存储
+ngx_array_push从数组中获取一个数组成员,ngx_array_push_n为一次性获取n个*/
 void *
 ngx_array_push(ngx_array_t *a) {
     void *elt, *new;

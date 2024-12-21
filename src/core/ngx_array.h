@@ -13,6 +13,7 @@
 #include <ngx_core.h>
 
 /*cookies是以ngx_array_t数组存储的*/
+
 //如果某个配置项在nginx.conf文件中可能出现多次,则用这个来进行动态存储,参考ngx_conf_set_str_array_slot
 typedef struct { //可以通过ngx_array_create函数创建空间,并初始化各个成员
     void *elts; //可以是ngx_keyval_t  ngx_str_t  ngx_bufs_t ngx_hash_key_t等

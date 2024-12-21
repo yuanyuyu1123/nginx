@@ -25,8 +25,10 @@
 typedef struct ngx_shm_zone_s ngx_shm_zone_t;
 
 typedef ngx_int_t (*ngx_shm_zone_init_pt)(ngx_shm_zone_t *zone, void *data);
-//在ngx_http_upstream_cache_get中获取zone的时候获取的是fastcgi_cache proxy_cache设置的zone,因此必须配置fastcgi_cache (proxy_cache) abc;中的xxx和xxx_cache_path(proxy_cache_path fastcgi_cache_path) xxx keys_zone=abc:10m;一致
-//所有的共享内存都通过ngx_http_file_cache_s->shpool进行管理   每个共享内存对应一个ngx_slab_pool_t来管理,见ngx_init_zone_pool
+
+/*在ngx_http_upstream_cache_get中获取zone的时候获取的是fastcgi_cache proxy_cache设置的zone,
+因此必须配置fastcgi_cache (proxy_cache) abc;中的xxx和xxx_cache_path(proxy_cache_path fastcgi_cache_path) xxx keys_zone=abc:10m;一致
+所有的共享内存都通过ngx_http_file_cache_s->shpool进行管理,每个共享内存对应一个ngx_slab_pool_t来管理,见ngx_init_zone_pool*/
 struct ngx_shm_zone_s {  //初始化见ngx_shared_memory_add,真正的共享内存创建在ngx_init_cycle->ngx_init_cycle
     void *data; //指向ngx_http_file_cache_t,赋值见ngx_http_file_cache_set_slot
     ngx_shm_t shm; //ngx_init_cycle->ngx_shm_alloc->ngx_shm_alloc中创建相应的共享内存空间
@@ -74,7 +76,7 @@ struct ngx_cycle_s {
 
     ngx_connection_t **files; //sizeof(ngx_connection_t *) * cycle->files_n  见ngx_event_process_init  ngx_get_connection
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连
-    接池数组的首部,而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作
+    接池数组的首部,而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员作
     为next指针串联成一个单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指
     向下一个空闲连接.而归还连接时只需把该连接插入到free_connections链表表头即可.*/
 
@@ -93,26 +95,27 @@ struct ngx_cycle_s {
     ngx_queue_t reusable_connections_queue; /* 双向链表容器,元素类型是ngx_connection_t结构体,表示可重复使用连接队列 表示可以重用的连接 */
     ngx_uint_t reusable_connections_n;
     time_t connections_reuse_time;
-    //ngx_http_optimize_servers->ngx_http_init_listening->ngx_http_add_listening->ngx_create_listening把解析到的listen配置项信息添加到cycle->listening中
-    //通过"listen"配置创建ngx_listening_t加入到该数组中
-    //注意,有多少个worker进程就会复制多少个ngx_listening_t, 见ngx_clone_listening
+
+    /*ngx_http_optimize_servers->ngx_http_init_listening->ngx_http_add_listening->ngx_create_listening把解析到的listen配置项信息添加到cycle->listening中
+    通过"listen"配置创建ngx_listening_t加入到该数组中
+    注意,有多少个worker进程就会复制多少个ngx_listening_t, 见ngx_clone_listening*/
     ngx_array_t listening; // 动态数组,每个数组元素储存着ngx_listening_t成员,表示监听端口及相关的参数
+
     /*动态数组容器,它保存着nginx所有要操作的目录.如果有目录不存在,就会试图创建,而创建目录失败就会导致nginx启动失败*/
-    //通过解析配置文件获取到的路径添加到该数组,例如nginx.conf中的client_body_temp_path proxy_temp_path,参考ngx_conf_set_path_slot
-    //这些配置可能设置重复的路径,因此不需要重复创建,通过ngx_add_path检测添加的路径是否重复,不重复则添加到paths中
+
+    /*通过解析配置文件获取到的路径添加到该数组,例如nginx.conf中的client_body_temp_path proxy_temp_path,参考ngx_conf_set_path_slot
+    这些配置可能设置重复的路径,因此不需要重复创建,通过ngx_add_path检测添加的路径是否重复,不重复则添加到paths中*/
     ngx_array_t paths; //数组成员 nginx_path_t,该数组在ngx_init_cycle中预分配空间
 
     ngx_array_t config_dump; //该数组在ngx_init_cycle中预分配空间
     ngx_rbtree_t config_dump_rbtree;
     ngx_rbtree_node_t config_dump_sentinel;
 
-    /*单链表容器,元素类型是ngx_open_file_t 结构体,它表示nginx已经打开的所有文件.
-      事实上,nginx框架不会向open_files链表中添加文件.
-      而是由对此感兴趣的模块向其中添加文件路径名,nginx框架会在ngx_init_cycle 方法中打开这些文件 ,先通过ngx_conf_open_file设置好数组文件,然后
-      在ngx_init_cycle真正创建文件*/
+    /*单链表容器,元素类型是ngx_open_file_t结构体,它表示nginx已经打开的所有文件.事实上,nginx框架不会向open_files链表中添加文件.
+      而是由对此感兴趣的模块向其中添加文件路径名,nginx框架会在ngx_init_cycle方法中打开这些文件,先通过ngx_conf_open_file设置好数组文件,然后在ngx_init_cycle真正创建文件*/
 
-    //access_log error_log配置的文件信息都通过ngx_conf_open_file加入到open_files链表中
-    //该链表中所包含的文件的打开在ngx_init_cycle中打开
+    /*access_log error_log配置的文件信息都通过ngx_conf_open_file加入到open_files链表中
+    该链表中所包含的文件的打开在ngx_init_cycle中打开*/
     ngx_list_t open_files; //如nginx.conf配置文件中的access_log参数的文件就保存在该链表中,参考ngx_conf_open_file
 
     //真正的共享内存空间创建ngx_shm_zone_t在ngx_init_cycle,需要创建哪些共享内存,由配置文件指定,然后调用
@@ -124,11 +127,9 @@ struct ngx_cycle_s {
     ngx_uint_t files_n; //每个进程能够打开的最多文件数  赋值见ngx_event_process_init
 
     /*从图9-1中可以看出,在ngx_cycle_t中的connections和free_connections达两个成员构成了一个连接池,其中connections指向整个连接池数组的首部,
-    而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员(见9.3.1节)作为next指针串联成一个
-    单链表,如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指向下一个空闲连
-    接.而归还连接时只需把该连接插入到free_connections链表表头即可.
-    在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,
-    相同序号下这3个数组中的元素是配合使用的*/
+    而free_connections则指向第一个ngx_connection_t空闲连接.所有的空闲连接ngx_connection_t都以data成员作为next指针串联成一个单链表,
+     如此,一旦有用户发起连接时就从free_connections指向的链表头获取一个空闲的连接,同时free_connections再指向下一个空闲连接.而归还连接时只需把该连接插入到free_connections链表表头即可.
+    在connections指向的连接池中,每个连接所需要的读/写事件都以相同的数组序号对应着read_events、write_events读/写事件数组,相同序号下这3个数组中的元素是配合使用的*/
 
     //子进程在ngx_event_process_init中创建空间和赋值,connections和read_events  write_events数组对应
     ngx_connection_t *connections; // 指向当前进程中的所有连接对象,与connection_n配合使用
@@ -178,9 +179,9 @@ typedef struct { //从ngx_cycle_s->conf_ctx[ngx_core_module.index]指向这里
     ngx_uint_t cpu_affinity_auto;
     /*
      worker_processes 4;
-     worker_cpu_affinity 0001 0010 0100 1000; 四个工作进程分别在四个指定的he上面运行
+     worker_cpu_affinity 0001 0010 0100 1000; 四个工作进程分别在四个指定的核上面运行
 
-     如果是5he可以这样配置
+     如果是5核可以这样配置
      worker_cpu_affinity 00001 00010 00100 01000 10000; 其他多核类似*/
     //参考ngx_set_cpu_affinity
     ngx_uint_t cpu_affinity_n; //worker_cpu_affinity参数个数

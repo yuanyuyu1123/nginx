@@ -22,22 +22,23 @@ static ngx_msec_t ngx_monotonic_time(time_t sec, ngx_uint_t msec);
  */
 
 #define NGX_TIME_SLOTS   64
-/*
-nginx这里采用了64个slot时间,也就是每次更新时间的时候都是更新下一个
-slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变,当然这里只能是尽量减少了时间混乱的几率,因为slot的个数不是无限的,slot是循环的,
-写操作总有几率会写到读操作的slot上.不过nginx现在实际上并没有采用多线程的方式,而且在信号处理中只是更新cached_err_log_time,所以对其他时间变量
-的读访问是不会发生混乱的
-*/
+/*nginx这里采用了64个slot时间,也就是每次更新时间的时候都是更新下一个slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变;
+当然这里只能是尽量减少了时间混乱的几率,因为slot的个数不是无限的,slot是循环的,写操作总有几率会写到读操作的slot上.
+不过nginx现在实际上并没有采用多线程的方式,而且在信号处理中只是更新cached_err_log_time,
+所以对其他时间变量的读访问是不会发生混乱的*/
 static ngx_uint_t slot;
 static ngx_atomic_t ngx_time_lock;
 
 volatile ngx_msec_t ngx_current_msec; //格林威治时间1970年1月1日凌晨0点0分0秒到当前时间的毫秒数
 volatile ngx_time_t *ngx_cached_time; //ngx_time_t结构体形式的当前时间
 volatile ngx_str_t ngx_cached_err_log_time; //用于记录error_log的当前时间字符串,它的格式类似于:"1970/09/28  12:OO:OO"
+
 //用于HTTP相关的当前时间字符串,它的格式类似于:"Mon,28  Sep  1970  06:OO:OO  GMT"
 volatile ngx_str_t ngx_cached_http_time;
+
 //用于记录HTTP曰志的当前时间字符串,它的格式类似于:"28/Sep/1970:12:OO:00  +0600n"
 volatile ngx_str_t ngx_cached_http_log_time;
+
 //以IS0 8601标准格式记录下的字符串形式的当前时间
 volatile ngx_str_t ngx_cached_http_log_iso8601;
 volatile ngx_str_t ngx_cached_syslog_time;
@@ -69,8 +70,7 @@ static u_char cached_syslog_time[NGX_TIME_SLOTS]
 static char *week[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
                          "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-/*
-表9-4 Nginx缓存时间的操作方法
+/*表9-4 Nginx缓存时间的操作方法
 ┏━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    时间方法名                  ┃    参数含义                      ┃    执行意义                                  ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
@@ -99,25 +99,25 @@ static char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
 ┃                                ┃用于cookie的时间后用来存放字      ┃符串                                          ┃
 ┃                                ┃符串的内存                        ┃                                              ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                ┃    t是需要转换的时间,它是格林   ┃                                              ┃
+┃                                ┃    t是需要转换的时间,它是格林     ┃                                              ┃
 ┃void ngx_gmtime                 ┃威治时间1970年1月1日凌晨O         ┃    将时间t转换成ngx_tm_t类型的时间.         ┃
-┃                                ┃点0分0秒到某一时间的秒数,tp      ┃                                              ┃
-┃(time_t t, ngx_tm_t *tp)        ┃                                  ┃下面会说明ngx_tm_t类型                        ┃
-┃                                ┃是ngx_tm_t类型的时间,实际上      ┃                                              ┃
+┃                                ┃点0分0秒到某一时间的秒数,tp        ┃                                              ┃
+┃(time_t t, ngx_tm_t *tp)        ┃                               ┃下面会说明ngx_tm_t类型                        ┃
+┃                                ┃是ngx_tm_t类型的时间,实际上       ┃                                              ┃
 ┃                                ┃就是标准的tm类型时间              ┃                                              ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                                ┃                                  ┃    返回一1表示失败,否则会返回:①如         ┃
+┃                                ┃                                  ┃    返回-1表示失败,否则会返回:1.如         ┃
 ┃                                ┃                                  ┃果when表示当天时间秒数,当它合并到            ┃
 ┃                                ┃                                  ┃实际时间后,已经超过当前时间,那么就          ┃
 ┃                                ┃                                  ┃返回when合并到实际时间后的秒数(相            ┃
-┃time_t ngx_next_time            ┃    when表不期待过期的时间,它    ┃对于格林威治时间1970年1月1日凌晨O             ┃
-┃(time_t when)    :              ┃仅表示一天内的秒数                ┃点O分O秒到某一时间的耖数);                  ┃
-┃                                ┃                                  ┃  ②反之,如果合并后的时间早于当前            ┃
+┃time_t ngx_next_time            ┃    when表不期待过期的时间,它         ┃对于格林威治时间1970年1月1日凌晨O             ┃
+┃(time_t when)    :              ┃仅表示一天内的秒数                    ┃点O分O秒到某一时间的耖数);                  ┃
+┃                                ┃                                  ┃  2.反之,如果合并后的时间早于当前            ┃
 ┃                                ┃                                  ┃时间,则返回下一天的同一时刻(当天时          ┃
 ┃                                ┃                                  ┃刻)的时间.它目前仅具有与expires配置         ┃
 ┃                                ┃                                  ┃项相关的缓存过期功能                          ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
-┃#define ngx_time                ┃    无                            ┃    获取到格林威治时间1970年1月1日            ┃
+┃#define ngx_time                ┃    无                            ┃获取到格林威治时间1970年1月1日            ┃
 ┃ngx_cached_time->sec            ┃                                  ┃凌晨0点0分0秒到当前时间的秒数                 ┃
 ┣━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━┫
 ┃#define ngx_timeofday           ┃    无                            ┃    获取缓存的ngx_time_t类型时间              ┃
@@ -141,8 +141,9 @@ ngx_time_init(void) { //初始化nginx环境的当前时间
 
 /*ngx_time_update()函数在master进程中的ngx_master_process_cycle()主循环中被调用,
 具体位置为sigsuspend()函数之后,也就是说master进程捕捉到并处理完一个信号返回的时候会更新时间缓存*/
+
 /*更新时间缓存
-为避免每次都调用OS的gettimeofday,nginx采用时间缓存,每个worker进程都能自行维护;为控制并发访问,每次更新时间缓存前需申请锁,而读时间缓存无须加锁;
+为避免每次都调用OS的gettimeofday,nginx采用时间缓存,所有worker进程共享;为控制并发访问,每次更新时间缓存前需申请锁,而读时间缓存无须加锁;
 为避免分裂读,即某worker进程读时间缓存过程中接受中断请求,期间时间缓存被其他worker更新,导致前后读取时间不一致;nginx引入时间缓存数组(共64个成员),每次都更新数组中的下一个元素;
 更新时间通过ngx_time_update()实现
 ngx_time_update()调用最频繁的是在worker进程处理事件时
@@ -159,9 +160,9 @@ nginx使用了原子变量ngx_time_lock来对时间变量进行写加锁,而且n
 slot的方式来尽量减少读访问冲突,基本原理就是,当读操作和写操作同时发生时(1,多线程时可能发生;2,当进程正在读时间缓存时,被一信号中断去执行
 信号处理函数,信号处理函数中会更新时间缓存),也就是读操作正在进行时(比如刚拷贝完ngx_cached_time->sec,或者拷贝ngx_cached_http_time.data进行
 到一半时),如果写操作改变了读操作的时间,读操作最终得到的时间就变混乱了.nginx这里采用了64个slot时间,也就是每次更新时间的时候都是更新下一个
-slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变,当然这里只能是尽量减少了时间混乱的几率,因为slot的个数不是无限的,slot是循环的,
-写操作总有几率会写到读操作的slot上.不过nginx现在实际上并没有采用多线程的方式,而且在信号处理中只是更新cached_err_log_time,所以对其他时间变量
-的读访问是不会发生混乱的. 另一个地方是两个函数中都调用了 ngx_memory_barrier() ,实际上这个也是一个宏,它的具体定义和编译器及体系结构有关,gcc
+slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变,当然这里只能是尽量减少了时间混乱的几率,因为slot的个数不是无限的,slot是循环的,写操作总有几率会写到读操作的slot上.
+ 不过1.nginx现在实际上并没有采用多线程的方式;2.在信号处理中只是更新cached_err_log_time,所以对其他时间变量的读访问是不会发生混乱的.
+ 另一个地方是两个函数中都调用了 ngx_memory_barrier() ,实际上这个也是一个宏,它的具体定义和编译器及体系结构有关,gcc
 和x86环境下,定义如下:
 #define ngx_memory_barrier()    __asm__ volatile ("" ::: "memory")
 它的作用实际上还是和防止读操作混乱有关,它告诉编译器不要将其后面的语句进行优化,不要打乱其执行顺序*/
@@ -169,6 +170,7 @@ slot,如果读操作同时进行,读到的还是之前的slot,并没有被改变
 /*这个缓存时间什么时候会更新呢?对于worker进程而言,除了Nginx启动时更新一次时间外,任何更新时间的操作都只能由ngx_epoll_process_events方法
 执行.回顾一下ngx_epoll_process_events方法的代码,当flags参数中有NGX_UPDATE_TIME标志位,或者ngx_event_timer_alarm标志
 位为1时,就会调用ngx_time_update方法更新缓存时间.*/
+
 //如果没有设置timer_resolution则定时器可能永远不超时,因为epoll_wait不返回,无法更新时间
 void
 ngx_time_update(void) {
@@ -188,7 +190,7 @@ ngx_time_update(void) {
     sec = tv.tv_sec;
     msec = tv.tv_usec / 1000;
 
-    ngx_current_msec = ngx_monotonic_time(sec, msec);
+    ngx_current_msec = ngx_monotonic_time(sec, msec);//返回自系统启动以来经过的时间,且进一步提高精度
 
     tp = &cached_time[slot]; //读当前时间缓存
 
@@ -298,7 +300,7 @@ ngx_monotonic_time(time_t sec, ngx_uint_t msec) {
 #if defined(CLOCK_MONOTONIC_FAST)
     clock_gettime(CLOCK_MONOTONIC_FAST, &ts);
 #else
-    clock_gettime(CLOCK_MONOTONIC, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);//CLOCK_MONOTONIC	计量系统启动后到现在的时间
 #endif
 
     sec = ts.tv_sec;

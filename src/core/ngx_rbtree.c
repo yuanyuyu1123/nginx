@@ -92,8 +92,7 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node) {
     ngx_rbt_black(*root);
 }
 
-/*
-Nginx为红黑树已经实现好的3种数据添加方法 (ngx_rbtree_insert_pt指向以下三种方法):
+/*Nginx为红黑树已经实现好的3种数据添加方法 (ngx_rbtree_insert_pt指向以下三种方法):
 ┏━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃    方法名                          ┃    参数含义                          ┃    执行意义                  ┃
 ┣━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━┫

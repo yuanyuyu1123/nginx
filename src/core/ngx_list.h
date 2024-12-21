@@ -27,6 +27,7 @@ struct ngx_list_part_s { //ngx_list_part_t只描述链表的一个元素   数�
 typedef struct { //ngx_list_t描述整个链表
     ngx_list_part_t  *last; //指向链表的最后一个数组元素.
     ngx_list_part_t   part; //链表的首个数组元素. part可能指向多个数组,通过part->next来指向当前数组所在的下一个数组的头部
+
     /*链表中的每个ngx_list_part_t元素都是一个数组.因为数组存储的是某种类型的数据结构,且ngx_list_t 是非常灵活的数据结构,所以它不会限制存储
     什么样的数据,只是通过size限制每一个数组元素的占用的空间大小,也就是用户要存储的一个数据所占用的字节数必须小于或等于size.*/
 

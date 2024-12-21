@@ -8,8 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-信号量的数据类型为结构sem_t,它本质上是一个长整型的数.函数sem_init()用来初始化一个信号量.它的原型为:　　
+/*信号量的数据类型为结构sem_t,它本质上是一个长整型的数.函数sem_init()用来初始化一个信号量.它的原型为:　　
 extern int sem_init __P ((sem_t *__sem, int __pshared, unsigned int __value));　　
 sem为指向信号量结构的一个指针;pshared不为０时此信号量在进程间共享,否则只能为当前进程的所有线程共享;value给出了信号量的初始值.　　
 函数sem_post( sem_t *sem )用来增加信号量的值.当有线程阻塞在这个信号量上时,调用这个函数会使其中的一个线程不在阻塞,选择机制同样是由线程的调度策略决定的.　　
@@ -68,8 +67,7 @@ nginx是原子变量和信号量合作以实现高效互斥锁的
 
 static void ngx_shmtx_wakeup(ngx_shmtx_t *mtx);
 
-/*
-ngx_shmtx_t结构体涉及两个宏:NGX_HAVE_ATOMIC_OPS、NGX_HAVE_POSIX_SEM,这两个宏对应着互斥锁的3种不同实现.
+/*ngx_shmtx_t结构体涉及两个宏:NGX_HAVE_ATOMIC_OPS、NGX_HAVE_POSIX_SEM,这两个宏对应着互斥锁的3种不同实现.
     第1种实现,当不支持原子操作时,会使用文件锁来实现ngx_shmtx_t互斥锁,这时它仅有fd和name成员(实际上还有spin成员,
     但这时没有任何意义).这两个成员使用文件锁来提供阻塞、非阻塞的互斥锁.
     第2种实现,支持原子操作却又不支持信号量.
@@ -81,8 +79,8 @@ lock取锁与自旋锁是一致的,而支持信号量后,ngx_shmtx_lock将在spi
 会使用sem_wait使得刍前进程进入睡眠状态,等其他进程释放了锁内核后才会唤醒这个进
 程.当然,在实际实现过程中,Nginx做了非常巧妙的设计,它使得ngx_shmtx_lock方法在
 运行一段时间后,如果其他进程始终不放弃锁,那么当前进程将有可能强制性地获得到这把
-锁,这也是出于Nginx不宜使用阻塞进程的睡眠锁方面的考虑.
-*/
+锁,这也是出于Nginx不宜使用阻塞进程的睡眠锁方面的考虑.*/
+
 //addr为共享内存ngx_shm_alloc开辟的空间中的一个128字节首地址  nginx是原子变量和信号量合作以实现高效互斥锁的
 ngx_int_t
 ngx_shmtx_create(ngx_shmtx_t *mtx, ngx_shmtx_sh_t *addr, u_char *name) {
@@ -100,8 +98,8 @@ ngx_shmtx_create(ngx_shmtx_t *mtx, ngx_shmtx_sh_t *addr, u_char *name) {
     /*
     int  sem init (sem_t  sem,  int pshared,  unsigned int value) ,
     其中,参数sem即为我们定义的信号量,而参数pshared将指明sem信号量是用于进程间同步还是用于线程间同步,当pshared为0时表示线程间同步,
-    而pshared为1时表示进程间同步.由于Nginx的每个进程都是单线程的,因此将参数pshared设为1即可.参数value表示信号量sem的初始值.
-     */
+    而pshared为1时表示进程间同步.由于Nginx的每个进程都是单线程的,因此将参数pshared设为1即可.参数value表示信号量sem的初始值.*/
+
     //以多进程使用的方式初始化sem信号量,sem初始值为0
     if (sem_init(&mtx->sem, 1, 0) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_errno,
@@ -130,27 +128,24 @@ ngx_shmtx_destroy(ngx_shmtx_t *mtx) {
 #endif
 }
 
-/*
-首先是判断mtx的lock域是否等于0,如果不等于,那么就直接返回false好了,如果等于的话,那么就要调用原子操作ngx_atomic_cmp_set了,
-它用于比较mtx的lock域,如果等于零,那么设置为当前进程的进程id号,否则返回false.
-*/ //不管能不能获得到锁都返回  nginx是原子变量和信号量合作以实现高效互斥锁的
+/*首先是判断mtx的lock域是否等于0,如果不等于,那么就直接返回false好了,如果等于的话,那么就要调用原子操作ngx_atomic_cmp_set了,
+它用于比较mtx的lock域,如果等于零,那么设置为当前进程的进程id号,否则返回false*/
+
+//不管能不能获得到锁都返回,nginx是原子变量和信号量合作以实现高效互斥锁的
 ngx_uint_t
 ngx_shmtx_trylock(ngx_shmtx_t *mtx) {
     return (*mtx->lock == 0 && ngx_atomic_cmp_set(mtx->lock, 0, ngx_pid));
 }
 
-/*
-阻塞式获取互斥锁的ngx_shmtx_lock方法较为复杂,在不支持信号量时它与14.3.3节介绍的自旋锁几乎完全相同,但在支持了信号量后,它
-将有可能使进程进入睡眠状态.
-*/
-//这里可以看出支持原子操作的系统,他的信号量其实就是自旋和信号量的结合   nginx是原子变量和信号量合作以实现高效互斥锁的
+/*阻塞式获取互斥锁的ngx_shmtx_lock方法较为复杂,在不支持信号量时它与14.3.3节介绍的自旋锁几乎完全相同,但在支持了信号量后,它将有可能使进程进入睡眠状态*/
+
+//这里可以看出支持原子操作的系统,他的信号量其实就是自旋和信号量的结合,nginx是原子变量和信号量合作以实现高效互斥锁的
 void
 ngx_shmtx_lock(ngx_shmtx_t *mtx) {
     ngx_uint_t i, n;
 
     ngx_log_debug0(NGX_LOG_DEBUG_CORE, ngx_cycle->log, 0, "shmtx lock");
-    //一个死循环,不断的去看是否获取了锁,直到获取了之后才退出
-    //所以支持原子变量的
+    //一个死循环,不断的去看是否获取了锁,直到获取了之后才退出,所以支持原子变量的
     for (;;) {
         //lock值是当前的锁状态.注意,lock一般是在共享内存中的,它可能会时刻变化,而val是当前进程的栈中变量,下面代码的执行中它可能与lock值不一致
         if (*mtx->lock == 0 && ngx_atomic_cmp_set(mtx->lock, 0, ngx_pid)) {
@@ -185,11 +180,10 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
             ngx_log_debug1(NGX_LOG_DEBUG_CORE, ngx_cycle->log, 0,
                            "shmtx wait %uA", *mtx->wait);
             //如果没有拿到锁,这时Nginx进程将会睡眠,直到其他进程释放了锁
-            /*
-                检查信号量sem的值,如果sem值为正数,则sem值减1,表示拿到了信号量互斥锁,同时sem wait方法返回o.如果sem值为0或
+
+            /*检查信号量sem的值,如果sem值为正数,则sem值减1,表示拿到了信号量互斥锁,同时sem wait方法返回o.如果sem值为0或
                 者负数,则当前进程进入睡眠状态,等待其他进程使用ngx_shmtx_unlock方法释放锁(等待sem信号量变为正数),到时Linux内核
-                会重新调度当前进程,继续检查sem值是否为正,重复以上流程
-               */
+                会重新调度当前进程,继续检查sem值是否为正,重复以上流程*/
             while (sem_wait(&mtx->sem) == -1) {
                 ngx_err_t err;
 
@@ -214,11 +208,9 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
     }
 }
 
-/*
-ngx_shmtx_unlock方法会释放锁,虽然这个释放过程不会阻塞进程,但设置原子变量lock值时是可能失败的,因为多进程在同时修改lock值,
-而ngx_atomic_cmp_s et方法要求参数old的值与lock值相同时才能修改成功,因此,ngx_atomic_cmp_set方法会在循环中反复执行,直到返回
-成功为止.
-*/
+/*ngx_shmtx_unlock方法会释放锁,虽然这个释放过程不会阻塞进程,但设置原子变量lock值时是可能失败的,因为多进程在同时修改lock值,
+而ngx_atomic_cmp_s et方法要求参数old的值与lock值相同时才能修改成功,因此,ngx_atomic_cmp_set方法会在循环中反复执行,直到返回成功为止.*/
+
 //判断锁的lock域与当前进程的进程id是否相等,如果相等的话,那么就将lock设置为0,然后就相当于释放了锁.
 void
 ngx_shmtx_unlock(ngx_shmtx_t *mtx) {
@@ -270,8 +262,7 @@ ngx_shmtx_wakeup(ngx_shmtx_t *mtx) {
 
     ngx_log_debug1(NGX_LOG_DEBUG_CORE, ngx_cycle->log, 0,
                    "shmtx wake %uA", wait);
-    //释放信号量锁时是不会使进程睡眠的
-    //通过sem_post将信号量sem加1,表示当前进程释放了信号量互斥锁,通知其他进程的sem_wait继续执行
+    //释放信号量锁时是不会使进程睡眠的,通过sem_post将信号量sem加1,表示当前进程释放了信号量互斥锁,通知其他进程的sem_wait继续执行
     if (sem_post(&mtx->sem) == -1) {
         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, ngx_errno,
                       "sem_post() failed while wake shmtx");
@@ -281,7 +272,7 @@ ngx_shmtx_wakeup(ngx_shmtx_t *mtx) {
 }
 
 
-#else //else后的锁是文件锁实现的ngx_shmtx_t锁   //不支持原子操作,则通过文件锁实现
+#else //else后的锁是文件锁实现的ngx_shmtx_t锁 ,不支持原子操作,则通过文件锁实现
 
 
 ngx_int_t
