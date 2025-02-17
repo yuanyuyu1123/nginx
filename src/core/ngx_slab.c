@@ -77,63 +77,60 @@ static void ngx_slab_free_pages(ngx_slab_pool_t *pool, ngx_slab_page_t *page,
 static void ngx_slab_error(ngx_slab_pool_t *pool, ngx_uint_t level,
                            char *text);
 
-//slab页面的大小,32位Linux中为4k,
-static ngx_uint_t ngx_slab_max_size; //设置ngx_slab_max_size = 2048B.如果一个页要存放多个obj,则obj size要小于这个数值
-/*由于指针是4的倍数,那么后两位一定为0,此时我们可以利用指针的后两位做标记,充分利用空间.
-在nginx的slab中,我们使用ngx_slab_page_s结构体中的指针pre的后两位做标记,用于指示该page页面的slot块数与ngx_slab_exact_size的关系.
-当page划分的slot块小于32时候,pre的后两位为NGX_SLAB_SMALL.
-当page划分的slot块等于32时候,pre的后两位为NGX_SLAB_EXACT
-当page划分的slot大于32块时候,pre的后两位为NGX_SLAB_BIG
-当page页面不划分slot时候,即将整个页面分配给用户,pre的后两位为NGX_SLAB_PAGE  */
+//slab页面的大小
+static ngx_uint_t ngx_slab_max_size; //设置ngx_slab_max_size = 2KB.如果一个页要存放多个obj,则obj的size要小于这个数值
 
-//划分32个slot块,每个slot的大小就是ngx_slab_exact_size
-static ngx_uint_t ngx_slab_exact_size; //设置ngx_slab_exact_size = 128B.分界是否要在缓存区分配额外空间给bitmap
-static ngx_uint_t ngx_slab_exact_shift; //ngx_slab_exact_shift = 7,即128的位表示 //每个slot块大小的位移是ngx_slab_exact_shift
+//划分64个slot块,每个slot的大小就是ngx_slab_exact_size
+static ngx_uint_t ngx_slab_exact_size; //设置ngx_slab_exact_size = 64Byte.分界是否要在缓存区分配额外空间给bitmap
+static ngx_uint_t ngx_slab_exact_shift; //ngx_slab_exact_shift = 6,即64的位表示,每个slot块大小的位移是ngx_slab_exact_shift
 
 void
 ngx_slab_sizes_init(void) {
     ngx_uint_t n;
-    /*假设每个page是4KB
-        设置ngx_slab_max_size = 2048B.如果一个页要存放多个obj,则obj size要小于这个数值
-        设置ngx_slab_exact_size = 128B.分界是否要在缓存区分配额外空间给bitmap
-        ngx_slab_exact_shift = 7,即128的位表示*/
-    ngx_slab_max_size = ngx_pagesize / 2;
-    ngx_slab_exact_size = ngx_pagesize / (8 * sizeof(uintptr_t));
-    for (n = ngx_slab_exact_size; n >>= 1; ngx_slab_exact_shift++) {
+    /*假设每个page是4KB,
+    设置ngx_slab_max_size = 2KB.如果一个页要存放多个obj,则obj size要小于这个数值
+    设置ngx_slab_exact_size = 64Byte.分界是否要在缓存区分配额外空间给bitmap
+    ngx_slab_exact_shift = 6,即64的位表示*/
+    ngx_slab_max_size = ngx_pagesize / 2;    //2kb
+    ngx_slab_exact_size = ngx_pagesize / (8 * sizeof(uintptr_t));  //64
+    for (n = ngx_slab_exact_size; n >>= 1; ngx_slab_exact_shift++) { //6
         /* void */
     }
 }
 
-/*注意,在ngx_slab_pool_t里面有两种类型的slab page,虽然都是ngx_slab_page_t定义的结构,但是功能不尽相同.一种是slots,用来表示存
-放较小obj的内存块(如果页大小是 4096B,则是<2048B的obj,即小于1/2页),另一种来表示所要分配的空间在缓存区的位置.Nginx把缓存obj分
-成大的 (>=2048B)和小的(<2048B).每次给大的obj分配一整个页,而把多个小obj存放在一个页中间,用bitmap等方法来表示 其占用情况.而小
-的obj又分为3种:小于128B,等于128B,大于128B且小于2048B.其中小于128B的obj需要在实际缓冲区额外分配 bitmap空间来表示内存使用情况
-(因为slab成员只有4个byte即32bit,一个缓存页4KB可以存放的obj超过32个,所以不能用slab 来表示),这样会造成一定的空间损失.等于或大
-于128B的obj因为可以用一个32bit的整形来表示其状态,所以就可以直接用slab成员.每次分配 的空间是2^n,最小是8byte,8,16,32,64,
-128,256,512,1024,2048.小于2^i且大于2^(i-1)的obj会被分 配一个2^i的空间,比如56byte的obj就会分配一个64byte的空间*/
+/*注意,在ngx_slab_pool_t里面有两种类型的slab page,虽然都是ngx_slab_page_t定义的结构,但是功能不尽相同:
+1.slots,用来表示存放较小obj的内存块(如果页大小是4KB,则是小于2kb的obj,即小于1/2页);
+2.表示所要分配的空间在缓存区的位置.
+Nginx把缓存obj分成大的(>=2kb)和小的(<2kb).每次给大的obj分配一整个页,而把多个小obj存放在一个页中间,用bitmap等方法来表示其占用情况.
+而小的obj又分为3种:小于128Byte;等于128Byte;大于128Byte且小于2kb;
+    其中小于128Byte的obj需要在实际缓冲区额外分配bitmap空间来表示内存使用情况,
+(因为slab成员只有4个byte即32bit,一个缓存页4KB可以存放的obj超过32个,所以不能用slab来表示),这样会造成一定的空间损失.
+等于或大于128B的obj因为可以用一个32bit的整形来表示其状态,所以就可以直接用slab成员.每次分配的空间是2^n,最小是8byte,8,16,32,64,
+128,256,512,1024,2048.小于2^i且大于2^(i-1)的obj会被分配一个2^i的空间,比如56byte的obj就会分配一个64byte的空间*/
 
-/*共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize(这是实际的数据部分,
-每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)*/
+/*共享内存的其实地址开始处数据:ngx_slab_pool_t + 9 * sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[]) +pages*ngx_pagesize
+(这是实际的数据部分,每个ngx_pagesize都由前面的一个ngx_slab_page_t进行管理,并且每个ngx_pagesize最前端第一个obj存放的是一个或者多个int类型bitmap,用于管理每块分配出去的内存)*/
 
+// |pool[|page1-9|stat1-9|(这9个用于存放小对象)]间隙bit|page+stat1-n|
 void
-ngx_slab_init(ngx_slab_pool_t *pool) { //pool指向的是整个共享内存空间的起始地址,slab结构是配合共享内存使用的 可以以limit req模块为例,参考ngx_http_limit_req_module
+ngx_slab_init(ngx_slab_pool_t *pool) { //pool指向的是整个共享内存空间的起始地址,slab结构是配合共享内存使用的.可以以limit_req模块为例,参考ngx_http_limit_req_module
     u_char *p;
     size_t size;
     ngx_int_t m;
     ngx_uint_t i, n, pages;
     ngx_slab_page_t *slots, *page;
 
-    pool->min_size = (size_t) 1 << pool->min_shift; //最小分配的空间是8byte
+    pool->min_size = (size_t) 1 << pool->min_shift; //min_shift = 3,min_size = 8Byte
 
     slots = ngx_slab_slots(pool);
 
-    p = (u_char *) slots; //共享内存前面的sizeof(ngx_slab_pool_t)是给slab poll的
+    p = (u_char *) slots; //共享内存前面的sizeof(ngx_slab_pool_t)是给slab pool的
     size = pool->end - p;  //size是总的共享内存 - sizeof(ngx_slab_pool_t)字节后的长度
 
     ngx_slab_junk(p, size);
 
     n = ngx_pagesize_shift - pool->min_shift; //12-3=9
-    /*这些slab page是给大小为8,16,32,64,128,256,512,1024,2048byte的内存块 这些slab page的位置是在pool->pages的前面初始化*/
+    /*这些slab page是给大小为8,16,32,64,128,256,512,1024,2048byte的内存块,这些slab page的位置是在pool->pages的前面初始化*/
     for (i = 0; i < n; i++) {  //这9个slots[]由9 * sizeof(ngx_slab_page_t)指向
         /* only "next" is used in list head */
         slots[i].slab = 0;
@@ -148,12 +145,11 @@ ngx_slab_init(ngx_slab_pool_t *pool) { //pool指向的是整个共享内存空�
 
     p += n * sizeof(ngx_slab_stat_t);
 
-    size -= n * (sizeof(ngx_slab_page_t) + sizeof(ngx_slab_stat_t));
-    /*计算这个空间总共可以分配的缓存页(4KB)的数量,每个页的overhead是一个slab page的大小
-    这儿的overhead还不包括之后给<128B物体分配的bitmap的损耗*/
+    size -= n * (sizeof(ngx_slab_page_t) + sizeof(ngx_slab_stat_t));//去除头部空间后的大小
+    /*计算这个空间总共可以分配的缓存页(4KB)的数量,每个页的overhead是一个slab page的大小,这儿的overhead还不包括之后给小于64Byte物体分配的bitmap的损耗*/
 
     //这里 + sizeof(ngx_slab_page_t)的原因是每个ngx_pagesize都有对应的ngx_slab_page_t进行管理
-    pages = (ngx_uint_t) (size / (ngx_pagesize + sizeof(ngx_slab_page_t))); //这里的size是不是应该把头部n * sizeof(ngx_slab_page_t)减去后在做计算更加准确?
+    pages = (ngx_uint_t) (size / (ngx_pagesize + sizeof(ngx_slab_page_t)));
 
     pool->pages = (ngx_slab_page_t *) p;
     //把每个缓存页最前面的sizeof(ngx_slab_page_t)字节对应的slab page归0
@@ -162,23 +158,22 @@ ngx_slab_init(ngx_slab_pool_t *pool) { //pool指向的是整个共享内存空�
     page = pool->pages;
 
     /* only "next" is used in list head */
+
     //初始化free,free.next是下次分配页时候的入口
     pool->free.slab = 0;
-    pool->free.next = page;
+    pool->free.next = page;//表头的slab包含剩余页的个数,作用不同,分配时从next开始分配
     pool->free.prev = 0;
     //更新第一个slab page的状态,这儿slab成员记录了整个缓存区的页数目
     page->slab = pages; //第一个pages->slab指定了共享内存中除去头部外剩余页的个数
     page->next = &pool->free;
     page->prev = (uintptr_t) &pool->free;
-    //实际缓存区(页)的开头,对齐   //因为对齐的原因,使得m_page数组和数据区域之间可能有些内存无法使用,
+    //实际缓存区(页)的开头,对齐;因为对齐的原因,使得m_page数组和数据区域之间可能有些内存无法使用,
     pool->start = ngx_align_ptr(p + pages * sizeof(ngx_slab_page_t),
                                 ngx_pagesize);
-    /*根据实际缓存区的开始和结尾再次更新内存页的数目
-    由于内存对齐操作(pool->start处内存对齐),可能导致pages减少,
-    所以要调整.m为调整后page页面的减小量.
-    其实下面几行代码就相当于:
-     pages =(pool->end - pool->start) / ngx_pagesize
-    pool->pages->slab = pages;  */
+    /*根据实际缓存区的开始和结尾再次更新内存页的数目.由于内存对齐操作(pool->start处内存对齐),可能导致pages减少,所以要调整.
+        m为调整后page页面的减小量.其实下面几行代码就相当于:
+        pages =(pool->end - pool->start) / ngx_pagesize
+        pool->pages->slab = pages;  */
     m = pages - (pool->end - pool->start) / ngx_pagesize;
     if (m > 0) {
         pages -= m;
@@ -207,7 +202,7 @@ ngx_slab_alloc(ngx_slab_pool_t *pool, size_t size) {
     return p;
 }
 
-/*对于给定size,从slab_pool中分配内存.
+/*对于给定size,从slab_pool中分配内存:
 1.如果size大于等于一页,那么从m_page中查找,如果有则直接返回,否则失败.
 2.如果size小于一页,如果链表中有空余slot块.
      (1).如果size大于ngx_slab_exact_size,
@@ -250,7 +245,7 @@ ngx_slab_alloc_locked(ngx_slab_pool_t *pool, size_t size) { //这儿假设page_s
     ngx_uint_t i, n, slot, shift, map;
     ngx_slab_page_t *page, *prev, *slots;
 
-    if (size > ngx_slab_max_size) { //如果是large obj, size >= 2048B
+    if (size > ngx_slab_max_size) { //如果是large obj, size > 2kb
 
         ngx_log_debug1(NGX_LOG_DEBUG_ALLOC, ngx_cycle->log, 0,
                        "slab alloc: %uz", size);
@@ -258,8 +253,8 @@ ngx_slab_alloc_locked(ngx_slab_pool_t *pool, size_t size) { //这儿假设page_s
         page = ngx_slab_alloc_pages(pool, (size >> ngx_pagesize_shift)
                                           + ((size % ngx_pagesize) ? 1 : 0));
         if (page) {
-            //获得page向对于page[0]的偏移量由于m_page和page数组是相互对应的,即m_page[0]管理page[0]页面,m_page[1]管理page[1]页面.
-            //所以获得page相对于m_page[0]的偏移量就可以根据start得到相应页面的偏移量.
+            /*获得page向对于page[0]的偏移量,由于m_page和page数组是相互对应的,即m_page[0]管理page[0]页面,m_page[1]管理page[1]页面.
+            所以获得page相对于m_page[0]的偏移量就可以根据start得到相应页面的偏移量.*/
             p = ngx_slab_page_addr(pool, page);
 
         } else {
@@ -268,9 +263,9 @@ ngx_slab_alloc_locked(ngx_slab_pool_t *pool, size_t size) { //这儿假设page_s
 
         goto done;
     }
-    //较小的obj, size < 2048B根据需要分配的size来确定在slots的位置,每个slot存放一种大小的obj的集合,如slots[0]表示8byte的空间,
-    //slots[3]表示64byte的空间如果obj过小(<1B),slot的位置是1B空间的位置,即最小分配1B
-    if (size > pool->min_size) { //计算使用哪个slots[],也就是需要分配的空间是多少  例如size=9,则会使用slot[1],也就是16字节
+    /*较小的obj, size <= 2kb根据需要分配的size来确定在slots的位置,每个slot存放一种大小的obj的集合,如slots[0]表示8byte的空间,
+    slots[3]表示64byte的空间如果obj过小(<1B),slot的位置是1B空间的位置,即最小分配1B*/
+    if (size > pool->min_size) { //计算使用哪个slots[],也就是需要分配的空间是多少,例如size=9,则会使用slot[1],也就是16字节
         shift = 1;
         for (s = size - 1; s >>= 1; shift++) { /* void */ }
         slot = shift - pool->min_shift;
@@ -450,6 +445,7 @@ ngx_slab_alloc_locked(ngx_slab_pool_t *pool, size_t size) { //这儿假设page_s
             page->slab = 1; //slab设置为1   page->slab存储obj的bitmap,例如这里为1,表示说第一个obj分配出去了 4K有32个128字节obj,因此一个slab位图刚好可以表示这32个obj
             page->next = &slots[slot];
             //用指针的后两位做标记,用NGX_SLAB_SMALL表示slot块小于ngx_slab_exact_shift
+
             /*设置slab的高16位(32位系统)存放solt对应的map,并且该对应为map的地位对应page中高位的slot块.slab的低16为存储slot块大小的位移*/
             page->prev = (uintptr_t) &slots[slot] | NGX_SLAB_EXACT;
 
@@ -676,8 +672,7 @@ ngx_slab_free_locked(ngx_slab_pool_t *pool, void *p) {
             if ((uintptr_t) p & (size - 1)) {
                 goto wrong_chunk;
             }
-            /*找到该slab块在位图中的位置.这里要注意一下,
-            位图存储在slab的高16位,所以要+16(即+ NGX_SLAB_MAP_SHIFT)*/
+            /*找到该slab块在位图中的位置.这里要注意一下,位图存储在slab的高16位,所以要+16(即+ NGX_SLAB_MAP_SHIFT)*/
             m = (uintptr_t) 1 << ((((uintptr_t) p & (ngx_pagesize - 1)) >> shift)
                                   + NGX_SLAB_MAP_SHIFT);
 
@@ -772,11 +767,11 @@ ngx_slab_free_locked(ngx_slab_pool_t *pool, void *p) {
 则前三个pages(page[0], page[1], page[2])会被分配好,最末尾page[5]的prev指向page[3],并且page[3]的slab指定现在只有6-3=3个page可以分配了,
 然后page[3]的next和prev指向free,free的next和prev也指向page[3],也就是下次只能从page[3]开始获取页*/
 
-//分配一个页面,并将页面从free中摘除.
+//分配一个页面,并将页面从free中摘除
 
 /*
 -------------------------------------------------------------------
-| page1  | page2 | page3 | page4| page5) | page6 | page7 | page8 |
+| page1  | page2 | page3 | page4| page5 | page6 | page7 | page8 |
 --------------------------------------------------------------------
 初始状态: pool->free指向page1,page1指向poll->free,其他的page的next和prev默认指向NULL,也就是pool->free指向整个page体,page1->slab=8
 1.假设第一次ngx_slab_alloc_pages获取两个page,则page1和page2会分配出去,page1为这两个page的首page1->slab只出这两个连续page是一起分配的,
@@ -800,20 +795,19 @@ ngx_slab_free_locked(ngx_slab_pool_t *pool, void *p) {
 ------- |    |    |--------------------------- |    |     | ----------
         ----------  \                           ---------
 5.当释放ngx_slab_free_pagespage3开始的3个page页后,page3也会连接到双向环表中,链如pool->free与page1[i]之间,注意这时候的page1和page2是紧靠一起的page
-  但没有对他们进行合并,page1->slab还是=2  page2->slab还是=3.并没有把他们合并为一个整体page->slab=5,如果下次想alloc一个4page的空间,是
+  但没有对他们进行合并,page1->slab还是=2,page2->slab还是=3.并没有把他们合并为一个整体page->slab=5,如果下次想alloc一个4page的空间,是
   分配不成功的*/
 static ngx_slab_page_t *
 ngx_slab_alloc_pages(ngx_slab_pool_t *pool, ngx_uint_t pages) {  //与ngx_slab_free_pages配合阅读理解
     ngx_slab_page_t *page, *p;
-    /*初始化的时候pool->free.next默认指向第一个pool->pages
-    从pool->free.next开始,每次取(slab page) page = page->next*/
+    /*初始化的时候pool->free.next默认指向第一个pool->pages(free本身作为head保存链表信息),从pool->free.next开始,每次取(slab page) page = page->next*/
     for (page = pool->free.next; page != &pool->free; page = page->next) {  //如果一个可用page页都没有,就不会进入循环体
-        /*本个slab page剩下的缓存页数目>=需要分配的缓存页数目pages则可以分配,否则继续遍历free,直到下一个首page及其后连续page数和大于等于需要分配的pages数,才可以分配
-        slab是首次分配page开始的slab个页的时候指定的,在释放的时候slab还是首次分配时候的slab,不会变,也就是说释放page后不会把相邻的两个page页的slab数合并,
+        /*如果slab page剩下的缓存页数目>=需要分配的缓存页数目pages则可以分配,否则继续遍历free,直到下一个首page及其后连续page数和大于等于需要分配的pages数,才可以分配.
+        slab是首次分配page开始的slab个页的时候指定的,在释放的时候slab还是首次分配时候的slab,不会变,也就是说释放page后不会把相邻的两个page页的slab数合并.
         例如首次开辟page1开始的3个page页空间,page1->slab=3,紧接着开辟page2开始的2个page页空间,page2->slab=2,当连续释放page1和page2对应的空间后,他们还是
         两个独立的page[]空间,slab分别是2和3,而不会把这两块连续空间进行合并为1个(也就是新的page3,page3首地址等于page2,并且page3->slab=3+2=5)*/
         if (page->slab >= pages) {
-            /*例如总共有6个page[],ngx_slab_init中page[0]的next和prev都指向free,free的next也指向page[0].当调用ngx_slab_alloc_pages向获取3个pages的时候
+            /*例如总共有6个page[],ngx_slab_init中page[0]的next和prev都指向free,free的next也指向page[0].当调用ngx_slab_alloc_pages获取3个pages的时候
             则前三个pages(page[0], page[1], page[2])会被分配好,最末尾page[5]的prev指向page[3],并且page[3]的slab指定现在只有6-3=3个page可以分配了,
             然后page[3]的next和prev指向free,free的next和prev也指向page[3],也就是下次只能从page[3]开始获取页*/
             if (page->slab > pages) {
@@ -830,8 +824,8 @@ ngx_slab_alloc_pages(ngx_slab_pool_t *pool, ngx_uint_t pages) {  //与ngx_slab_f
 
             } else { //page页不够用了,则free的next和prev都指向自己,所以下次再进入该函数进入for()循环的时候无法进入循环体中,也分配不到page
                 //如果free指向的page页可用页大小为2,单该函数要求获取3个页,则直接把这两个页返回出去,就是说这两个页你可以先用着,总比没有好.
-                p = (ngx_slab_page_t *) page->prev; //获取poll->free
-                p->next = page->next; //poll->free->next = poll->free
+                p = (ngx_slab_page_t *) page->prev; //获取pool->free
+                p->next = page->next; //poll->free->next = pool->free
                 page->next->prev = page->prev; //poll->free->prev = poll->free   free的next和prev都指向了自己,说明没有多余空间分配了
             }
             //NGX_SLAB_PAGE_START标记page是分配的pages个页的第一个页,并在第一个页page中记录出其后连续的pages个页是一起分配的

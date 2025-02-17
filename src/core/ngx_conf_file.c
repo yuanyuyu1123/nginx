@@ -177,7 +177,7 @@ ngx_conf_parse(ngx_conf_t *cf, ngx_str_t *filename) {
 
         3.开始解析配置项,这在对用户通过命令行-g参数输入的配置信息进行解析时处于这种状态,如:
         nginx -g ‘daemon on;’
-        nginx在调用ngx_conf_parse函数对配置信息’daemon on;’进行解析时就是这种状态,状态标记为type = parse_param;.
+        nginx在调用ngx_conf_parse函数对配置信息'daemon on;'进行解析时就是这种状态,状态标记为type = parse_param;.
         前面说过,nginx配置是由标记组成的,在区分好了解析状态之后,接下来就要读取配置内容,而函数ngx_conf_read_token就是做这个事情的*/
     enum {
         parse_file = 0,
@@ -475,11 +475,11 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last) {
             第二个if中执行的命令主要有(NGX_MAIN_CONF):http   events include等
             第三个if中执行的命令主要有(其他):http{}   events{} server server{} location及其location{}内部的命令*/
 
-            //conf为开辟的main_conf  srv_conf loc_conf空间指针,真正的空间为各个模块module的ctx成员中,
-            //可以参考ngx_http_mytest_config_module_ctx, http{}对应的空间开辟在ngx_http_block
-            //注意:通过在ngx_init_cycle中打印conf.ctx以及在这里打印cf->cxt,发现所有第一层(http{}外的配置,包括http这一行)的地址是一样的,也就是这里的conf.ctx始终等于cycle->conf_ctx;
-            //每到一层新的{},cf->cxt地址就会指向这一层中对应的ngx_http_conf_ctx_t.退出{}中后,会把cf->cxt恢复到上层的ngx_http_conf_ctx_t地址
-            //这时的cf->ctx一定等于ngx_cycle_s->conf_ctx,见ngx_init_cycle
+            /*conf为开辟的main_conf  srv_conf loc_conf空间指针,真正的空间为各个模块module的ctx成员中,
+            可以参考ngx_http_mytest_config_module_ctx, http{}对应的空间开辟在ngx_http_block
+            注意:通过在ngx_init_cycle中打印conf.ctx以及在这里打印cf->cxt,发现所有第一层(http{}外的配置,包括http这一行)的地址是一样的,也就是这里的conf.ctx始终等于cycle->conf_ctx;
+            每到一层新的{},cf->cxt地址就会指向这一层中对应的ngx_http_conf_ctx_t.退出{}中后,会把cf->cxt恢复到上层的ngx_http_conf_ctx_t地址
+            这时的cf->ctx一定等于ngx_cycle_s->conf_ctx,见ngx_init_cycle*/
             if (cmd->type & NGX_DIRECT_CONF) { //使用全局配置,主要包括以下命令//ngx_core_commands  ngx_openssl_commands  ngx_google_perftools_commands   ngx_regex_commands  ngx_thread_pool_commands
                 conf = ((void **) cf->ctx)[cf->cycle->modules[i]->index]; //ngx_core_commands对应的空间分配的地方参考ngx_core_module->ngx_core_module_ctx
 
@@ -1081,7 +1081,7 @@ char*(*set)(ngx_conf_t *cf, ngx_commandj 'vcmd,void *conf)
 ┏━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃    预设方法名              ┃    行为                                                                      ┃
 ┣━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫
-┃                            ┃  如果nginx．conf文件中某个配置项的参数是on或者off(即希望配置项表达打开      ┃
+┃                            ┃  如果nginx.conf文件中某个配置项的参数是on或者off(即希望配置项表达打开      ┃
 ┃                            ┃或者关闭某个功能的意思）,而且在Nginx模块的代码中使用ngx_flag_t变量来保       ┃
 ┃ngx_conf_set_flag_slot      ┃存这个配置项的参数,就可以将set回调方法设为ngx_conf_set_flag_slot.当nginx.   ┃
 ┃                            ┃conf文件中参数是on时,代码中的ngx_flag_t类型变量将设为1,参数为off时则        ┃

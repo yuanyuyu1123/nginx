@@ -47,8 +47,8 @@ static ngx_int_t ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx);
 在网络编程事件管理上简单了,但是编程中处理事件复杂了,需要不停的循环做处理;事件的函数回掉,次数也不确定,因此需
 要使用 context 上下文对象来保存发送到什么环节了*/
 
-//结合ngx_http_xxx_create_request(ngx_http_fastcgi_create_request)阅读,ctx->in中的数据实际上是从ngx_http_xxx_create_request组成ngx_chain_t来的,数据来源在ngx_http_xxx_create_request
-//向后端发送请求的调用过程ngx_http_upstream_send_request_body->ngx_output_chain->ngx_chain_writer
+/*结合ngx_http_xxx_create_request(ngx_http_fastcgi_create_request)阅读,ctx->in中的数据实际上是从ngx_http_xxx_create_request组成ngx_chain_t来的,数据来源在ngx_http_xxx_create_request
+向后端发送请求的调用过程ngx_http_upstream_send_request_body->ngx_output_chain->ngx_chain_writer*/
 
 /*
 如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数几乎一样,只是aio标记取值会变化,日志如下:
@@ -141,9 +141,9 @@ static ngx_int_t ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx);
    可以参考ngx_http_cache_send ngx_http_send_header ngx_http_output_filter */
 ngx_int_t
 ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要发送的chain链,上面存储的是实际要发送的数据
-    //ctx为&u->output, in为u->request_bufs这里nginx filter的主要逻辑都在这个函数里面,将in参数链表的缓冲块拷贝到
-    //ctx->in,然后将ctx->in的数据拷贝到out,然后调用output_filter发送出去.
-    //如果读取后端数据发往客户端,默认流程是//ngx_event_pipe->ngx_event_pipe_write_to_downstream->p->output_filter(p->output_ctx, p->out);走到这里
+    /*ctx为&u->output, in为u->request_bufs这里nginx filter的主要逻辑都在这个函数里面,将in参数链表的缓冲块拷贝到
+    ctx->in,然后将ctx->in的数据拷贝到out,然后调用output_filter发送出去.
+    如果读取后端数据发往客户端,默认流程是//ngx_event_pipe->ngx_event_pipe_write_to_downstream->p->output_filter(p->output_ctx, p->out);走到这里*/
     off_t bsize;
     ngx_int_t rc, last;
     ngx_chain_t *cl, *out, **last_out;
@@ -197,7 +197,8 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
             return NGX_AGAIN;
         }
 #endif
-        //结合ngx_http_xxx_create_request(ngx_http_fastcgi_create_request)阅读,ctx->in中的数据实际上是从ngx_http_xxx_create_request组成ngx_chain_t来的,数据来源在ngx_http_xxx_create_request
+        /* 结合ngx_http_xxx_create_request(ngx_http_fastcgi_create_request)阅读,
+         ctx->in中的数据实际上是从ngx_http_xxx_create_request组成ngx_chain_t来的,数据来源在ngx_http_xxx_create_request*/
         while (ctx->in) { //遍历所有待发送的数据.将他们一个个拷贝到out指向的链表中
 
             /*
@@ -206,7 +207,7 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
              */
 
             bsize = ngx_buf_size(ctx->in->buf);
-            //这块内存大小为0,然后又不是special 可能有问题. 如果是special的buf,应该是从ngx_http_send_special过来的
+            //这块内存大小为0,然后又不是special可能有问题. 如果是special的buf,应该是从ngx_http_send_special过来的
             if (bsize == 0 && !ngx_buf_special(ctx->in->buf)) {
 
                 ngx_log_error(NGX_LOG_ALERT, ctx->pool->log, 0,
@@ -252,8 +253,8 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
             if (ngx_output_chain_as_is(ctx, ctx->in->buf)) {
 
                 /* move the chain link to the output chain */
-                //把ctx->in->buf从ctx->in上面取下来,然后加入到lst_out链表中
-                /* 如果不需要复制,则直接链接chain到out,然后继续循环 */
+
+                //把ctx->in->buf从ctx->in上面取下来,然后加入到lst_out链表中,如果不需要复制,则直接链接chain到out,然后继续循环
                 cl = ctx->in;
                 ctx->in = cl->next; //已经赋值的会从ctx->in上面摘掉
 
@@ -263,9 +264,8 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
 
                 continue;
             }
-            //注意从后端接收的数据到缓存文件中后,在filter模块中,有可能是新的buf数据指针了,因为ngx_http_copy_filter->ngx_output_chain中会重新分配内存读取缓存文件内容
-
-            //如果是需要赋值buf(一般都是sendfile的时候),用户空间内存里面没有数据,所以需要开辟空间来把文件中的内容赋值一份出来
+            /*注意从后端接收的数据到缓存文件中后,在filter模块中,有可能是新的buf数据指针了,因为ngx_http_copy_filter->ngx_output_chain中会重新分配内存读取缓存文件内容,
+            如果是需要赋值buf(一般都是sendfile的时候),用户空间内存里面没有数据,所以需要开辟空间来把文件中的内容赋值一份出来*/
 
             /* 到达这里,说明我们需要拷贝buf,这里buf最终都会被拷贝进ctx->buf中, 因此这里先判断ctx->buf是否为空 */
             if (ctx->buf == NULL) {  //每次拷贝数据前,先给ctx->buf分配空间,在下面的ngx_output_chain_get_buf函数中
@@ -290,10 +290,8 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
                         ngx_free_chain(ctx->pool, cl);
 
                     } else if (out || ctx->allocated == ctx->bufs.num) { //output_buffers 1 32768都用完了
-                        /*
-                        如果已经等于buf的个数限制,则跳出循环,发送已经存在的buf. 这里可以看到如果out存在的话,nginx会跳出循环,然后发送out,
-                        等发送完会再次处理,这里很好的体现了nginx的流式处理
-                        */
+                        /*如果已经等于buf的个数限制,则跳出循环,发送已经存在的buf. 这里可以看到如果out存在的话,nginx会跳出循环,然后发送out,
+                        等发送完会再次处理,这里很好的体现了nginx的流式处理*/
                         break;
 
                     } else if (ngx_output_chain_get_buf(ctx, bsize) != NGX_OK) { /* 上面这个函数也比较关键,它用来取得buf.接下来会详细看这个函数 */
@@ -304,8 +302,8 @@ ngx_output_chain(ngx_output_chain_ctx_t *ctx, ngx_chain_t *in) {  //in为需要�
             }
             /* 从原来的buf中拷贝内容或者从原来的文件中读取内容 */  //注意如果是aio on或者aio thread=poll方式返回的是NGX_AGAIN
             rc = ngx_output_chain_copy_buf(ctx); //把ctx->in->buf中的内容赋值给ctx->buf
-            //ngx_output_chain_copy_bufc中tx->in中的内存数据或者缓存文件数据会拷贝到dst中,也就是ctx->buf,然后在ngx_output_chain_copy_buf函数
-            //外层会重新把ctx->buf赋值给新的chain,然后write出去 ,见下面的创建新chain
+            /*ngx_output_chain_copy_bufc中tx->in中的内存数据或者缓存文件数据会拷贝到dst中,也就是ctx->buf,然后在ngx_output_chain_copy_buf函数
+            外层会重新把ctx->buf赋值给新的chain,然后write出去,见下面的创建新chain*/
             if (rc == NGX_ERROR) {
                 return rc;
             }
@@ -368,8 +366,8 @@ ngx_output_chain_copy_buf() -> ngx_file_aio_read()
 */
 static ngx_inline ngx_int_t
 ngx_output_chain_as_is(ngx_output_chain_ctx_t *ctx, ngx_buf_t *buf) { //ngx_output_chain_as_is是aio还是sendfile的分支点
-    //看看这个节点是否可以拷贝.检测content是否在文件中.判断是否需要复制buf.
-    //返回1表示上层不需要拷贝buf,否则需要重新alloc一个节点,拷贝实际内存到另外一个节点.
+    /*看看这个节点是否可以拷贝.检测content是否在文件中.判断是否需要复制buf.
+    返回1表示上层不需要拷贝buf,否则需要重新alloc一个节点,拷贝实际内存到另外一个节点.*/
 
     /*如果返回0,表示需要在ngx_output_chain从新开辟空间,如果之前是in_file的,则会从新读取缓存文件内容到内存中,就变为内存型chain buf了 */
 
@@ -382,8 +380,8 @@ ngx_output_chain_as_is(ngx_output_chain_ctx_t *ctx, ngx_buf_t *buf) { //ngx_outp
     ngx_uint_t sendfile;
 
     if (ngx_buf_special(buf)) {
-        //说明buf中没有实际数据  例如进程在发送数据到后端后,都会调用一个ngx_http_send_special来触发ngx_http_write_filter立刻把数据发送出去
-        //这时候ngx_http_send_special就是填充的一个空buf
+        /*说明buf中没有实际数据,例如进程在发送数据到后端后,都会调用一个ngx_http_send_special来触发ngx_http_write_filter立刻把数据发送出去,
+        这时候ngx_http_send_special就是填充的一个空buf*/
         return 1;
     }
 
@@ -417,9 +415,8 @@ ngx_output_chain_as_is(ngx_output_chain_ctx_t *ctx, ngx_buf_t *buf) { //ngx_outp
      Ngx_http_gzip_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
      Ngx_http_mp4_module.c (src\http\modules):    b->file->directio = of.is_directio;
      Ngx_http_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
-    只会在上面这几个模块中置1,从这里返回,也就是说如果有配置这几个模块命令,在同时配置sendfile on; aio on;directio xxx;的前提下,
-    会从这里返回出去,然后从新获取空间
-    但是如果不是上面的这些模块,在同时配置sendfile on; aio on;directio xxx;的情况下还是会返回1,也就是还是采用sendfile方式*/
+    只会在上面这几个模块中置1,从这里返回,也就是说如果有配置这几个模块命令,在同时配置sendfile on; aio on;directio xxx;的前提下,会从这里返回出去,然后从新获取空间
+     但是如果不是上面的这些模块,在同时配置sendfile on; aio on;directio xxx;的情况下还是会返回1,也就是还是采用sendfile方式*/
 
     if (buf->in_file && buf->file->directio) {
         sendfile = 0; //如果buf在文件中,使用了directio,需要拷贝buf
@@ -429,7 +426,7 @@ ngx_output_chain_as_is(ngx_output_chain_ctx_t *ctx, ngx_buf_t *buf) { //ngx_outp
 
     if (!sendfile) {
 
-        if (!ngx_buf_in_memory(buf)) { //一般不启用sendfile on的时候从这里退出去  如果启用了aio on,没有启用sendfile on的情况下,也会从这里出去
+        if (!ngx_buf_in_memory(buf)) { //一般不启用sendfile on的时候从这里退出去,如果启用了aio on,没有启用sendfile on的情况下,也会从这里出去
             //不启用sendfile(要么未配置sendfile,要么配置了sendfile,但是文件太大,超过sendfile上限),并且buf在文件中,返回0,需要重新获取文件内容
             return 0;
         }
@@ -526,19 +523,17 @@ ngx_output_chain_align_file_buf(ngx_output_chain_ctx_t *ctx, off_t bsize) {  //�
 
     in = ctx->in->buf;
     /*
-     //Ngx_http_echo_subrequest.c (src\echo-nginx-module-master\src):        b->file->directio = of.is_directio;
-     //Ngx_http_flv_module.c (src\http\modules):    b->file->directio = of.is_directio;
-     //Ngx_http_gzip_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
-     //Ngx_http_mp4_module.c (src\http\modules):    b->file->directio = of.is_directio;
-     //Ngx_http_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
-     如果数据不在文件中而在内存中,或者没有在配置文件中配置上面这几个模块配置信息,或者获取的文件大小小于directio配置的大小,则直接返回
-     */
+     Ngx_http_echo_subrequest.c (src\echo-nginx-module-master\src):        b->file->directio = of.is_directio;
+     Ngx_http_flv_module.c (src\http\modules):    b->file->directio = of.is_directio;
+     Ngx_http_gzip_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
+     Ngx_http_mp4_module.c (src\http\modules):    b->file->directio = of.is_directio;
+     Ngx_http_static_module.c (src\http\modules):    b->file->directio = of.is_directio;
+     如果数据不在文件中而在内存中,或者没有在配置文件中配置上面这几个模块配置信息,或者获取的文件大小小于directio配置的大小,则直接返回*/
     if (in->file == NULL || !in->file->directio) {
         //如果没有启用direction,则直接返回,实际空间在该函数外层ngx_output_chain_get_buf中创建
         return NGX_DECLINED;
     }
-    /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio;这几个模块,
-       并且文件大小大于directio xxx中的大小 */
+    /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio;这几个模块,并且文件大小大于directio xxx中的大小 */
     ctx->directio = 1;
 
     size = (size_t) (in->file_pos - (in->file_pos & ~(ctx->alignment - 1)));
@@ -564,6 +559,7 @@ ngx_output_chain_align_file_buf(ngx_output_chain_ctx_t *ctx, off_t bsize) {  //�
         return NGX_ERROR;
     }
     //注意后面没有指明这段内存属于内存空间,ngx_output_chain_copy_buf->ngx_buf_in_memory不会满足条件
+
     /*
      * we do not set ctx->buf->tag, because we do not want
      * to reuse the buf via ctx->free list
@@ -576,8 +572,8 @@ ngx_output_chain_align_file_buf(ngx_output_chain_ctx_t *ctx, off_t bsize) {  //�
     return NGX_OK;
 }
 
-//只有ngx_output_chain_align_file_buf不分配内存直接返回后才会在ngx_output_chain_get_buf分配满足条件ngx_buf_in_memory的内存空间
-//获取bsize字节的空间
+/*只有ngx_output_chain_align_file_buf不分配内存直接返回后才会在ngx_output_chain_get_buf分配满足条件ngx_buf_in_memory的内存空间,
+获取bsize字节的空间*/
 static ngx_int_t
 ngx_output_chain_get_buf(ngx_output_chain_ctx_t *ctx, off_t bsize) { /* 下面开辟的是满足条件ngx_buf_in_memory的内存空间 */ //调用该函数的前提是需要重新分配空间,ngx_output_chain_as_is返回0
     size_t size;
@@ -736,10 +732,10 @@ ngx_output_chain_get_buf(ngx_output_chain_ctx_t *ctx, off_t bsize) { /* 下面�
 2016/01/07 18:47:27[          ngx_http_finalize_request,  2598]  [debug] 20923#20923: *1 http finalize request rc: 0, "/test2.php?" a:1, c:1
 */
 
-//如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数机会一样,参考上面日志
-//ngx_output_chain_as_is  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点
+/*如果是aio on | thread_pool方式,则会两次执行该函数,并且所有参数机会一样,参考上面日志.
+ngx_output_chain_as_is  ngx_output_chain_copy_buf是aio和sendfile和普通文件读写的分支点*/
 static ngx_int_t //注意如果是aio on或者aio thread=poll方式返回的是NGX_AGAIN
-ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx) { //将ctx->in->buf的缓冲拷贝到ctx->buf上面去.  注意是从新分配了数据空间,用来存储原来的in->buf中的数据,实际上现在就有两份相同的数据了(buf指向相同的内存空间)
+ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx) { //将ctx->in->buf的缓冲拷贝到ctx->buf上面去.注意是从新分配了数据空间,用来存储原来的in->buf中的数据,实际上现在就有两份相同的数据了(buf指向相同的内存空间)
     off_t size;
     ssize_t n;
     ngx_buf_t *src, *dst;
@@ -772,8 +768,8 @@ ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx) { //将ctx->in->buf的缓
         if (src->in_file) { //????????????? 这部分有点没弄明白 sendfile有点晕,后面分析
             //size的数据要么存在于文件中,要么就在内存中.前面的size = ngx_buf_size(src);也可以看出来
             if (sendfile) {
-                //在同时开启sendfile on; aio on以及direction xxx;的前提下,如果有模块执行过b->file->directio = 1(of.is_directio);
-                //但是文件大小小于direction的配置,则还是使用sendfile
+                /*在同时开启sendfile on; aio on以及direction xxx;的前提下,如果有模块执行过b->file->directio = 1(of.is_directio);
+                但是文件大小小于direction的配置,则还是使用sendfile*/
                 dst->in_file = 1;
                 dst->file = src->file;
                 //源文件中存储的内容指向
@@ -843,8 +839,7 @@ ngx_output_chain_copy_buf(ngx_output_chain_ctx_t *ctx) { //将ctx->in->buf的缓
         }
 
 #if (NGX_HAVE_ALIGNED_DIRECTIO)
-        /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio;这几个模块,
-        并且文件大小大于directio xxx中的大小 */
+        /* 数据在文件里面,并且程序有走到了 b->file->directio = of.is_directio;这几个模块,并且文件大小大于directio xxx中的大小 */
         if (ctx->unaligned) {
             ngx_err_t err;
 
@@ -1021,8 +1016,8 @@ ngx_chain_writer(void *data, ngx_chain_t *in) {
     if (size == 0 && !c->buffered) { //啥数据都么有,不用发了都
         return NGX_OK;
     }
-    //调用writev将ctx->out的数据全部发送出去.如果没法送完,则返回没发送完毕的部分.记录到out里面
-    //在ngx_event_connect_peer连接上游服务器的时候设置的发送链接函数ngx_send_chain=ngx_writev_chain.
+    /*调用writev将ctx->out的数据全部发送出去.如果没法送完,则返回没发送完毕的部分.记录到out里面
+    在ngx_event_connect_peer连接上游服务器的时候设置的发送链接函数ngx_send_chain=ngx_writev_chain.*/
     chain = c->send_chain(c, ctx->out, ctx->limit); //ngx_send_chain->ngx_writev_chain  到后端的请求报文是不会走filter过滤模块的,而是直接调用ngx_writev_chain->ngx_writev发送到后端
 
     ngx_log_debug1(NGX_LOG_DEBUG_CORE, c->log, 0,
@@ -1048,8 +1043,8 @@ ngx_chain_writer(void *data, ngx_chain_t *in) {
         ctx->last = &ctx->out;
 
         if (!c->buffered) {
-            //发送到后端的请求报文之前buffered一直都没有操作过为0,如果是应答给客户端的响应,则buffered可能在进入ngx_http_write_filter调用
-            //c->send_chain()之前已经有赋值给,发送给客户端包体的时候会经过所有的filter模块走到这里
+            /*发送到后端的请求报文之前buffered一直都没有操作过为0,如果是应答给客户端的响应,则buffered可能在进入ngx_http_write_filter调用
+            c->send_chain()之前已经有赋值给,发送给客户端包体的时候会经过所有的filter模块走到这里*/
             return NGX_OK;
         }
     }

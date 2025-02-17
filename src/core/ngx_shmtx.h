@@ -38,7 +38,7 @@ typedef struct {
     定整型val是负数或者正数时,可通过判断(val&Ox80000000)==0语句的真假进行*/
     ngx_atomic_t *lock; //如果支持原子锁的话,那么使用它,它指向的是一段共享内存空间,为0表示可以获得锁
 #if (NGX_HAVE_POSIX_SEM)
-    ngx_atomic_t *wait;  //如果lock锁原先的值为0,也就是说,并没有让某个进程持有锁,这时直接返回;或者,semaphore标志位为0,表示不需要使用信号量,也立即返回
+    ngx_atomic_t *wait;  //正在等待锁的进程数量
     ngx_uint_t semaphore; //信号量的值,这个值大于0表示该新号量可用,默认为1,semaphore为1时表示获取锁将可能使用到的信号量
     sem_t sem; // sem就是信号量锁
 #endif

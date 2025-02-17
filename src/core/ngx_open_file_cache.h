@@ -18,12 +18,12 @@
 //可以通过ngx_open_and_stat_file获取文件的相关属性信息
 typedef struct {
     ngx_fd_t fd;
-    ngx_file_uniq_t uniq; //文件inode节点号 同一个设备中的每个文件,这个值都是不同的
+    ngx_file_uniq_t uniq; //文件inode节点号,同一个设备中的每个文件,这个值都是不同的
     time_t mtime; //文件最后被修改的时间
     off_t size;
     off_t fs_size;
-    //取值是从ngx_http_core_loc_conf_s->directio  //在获取缓存文件内容的时候,只有文件大小大与等于directio的时候才会生效ngx_directio_on
-    //默认NGX_OPEN_FILE_DIRECTIO_OFF是个超级大的值,相当于不使能
+    /*取值是从ngx_http_core_loc_conf_s->directio,在获取缓存文件内容的时候,只有文件大小大与等于directio的时候才会生效ngx_directio_on
+    默认NGX_OPEN_FILE_DIRECTIO_OFF是个超级大的值*/
     off_t irectio; //生效见ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
     size_t read_ahead;  /* read_ahead配置,默认0 */
 
@@ -33,9 +33,8 @@ typedef struct {
     */
     ngx_err_t err;
     char *failed;
-    //open_file_cache_valid 60S
-    //表示60s后来的第一个请求要对文件stat信息做一次检查,检查是否发送变化,如果发送变化则从新获取文件stat信息或者从新创建该阶段,
-    //生效在ngx_open_cached_file中的(&& now - file->created < of->valid )
+    /*open_file_cache_valid 60S,表示60s后来的第一个请求要对文件stat信息做一次检查,检查是否发送变化,如果发送变化则从新获取文件stat信息或者从新创建该阶段,
+    生效在ngx_open_cached_file中的(&& now - file->created < of->valid )*/
     time_t valid; //of.valid = ngx_http_core_loc_conf_t->open_file_cache_valid;
 
     ngx_uint_t min_uses; //ngx_http_core_loc_conf_t->open_file_cache_min_uses;
@@ -99,8 +98,8 @@ struct ngx_cached_open_file_s { //ngx_open_cached_file中创建节点   主要�
     //是否检查文件路径是否有符号连接,见ngx_http_set_disable_symlinks  disable_symlinks命令配置,默认off;
     unsigned disable_symlinks: 2;
 #endif
-    //如果是文件,则在ngx_open_cached_file中加1,ngx_open_file_cleanup中减1,也就是表示有多少个客户端请求在使用该node节点ngx_cached_open_file_s
-    //只要有一个客户端r在使用该节点node,则不能释放该node节点,见ngx_close_cached_file
+    /*如果是文件,则在ngx_open_cached_file中加1,ngx_open_file_cleanup中减1,也就是表示有多少个客户端请求在使用该node节点ngx_cached_open_file_s
+    只要有一个客户端r在使用该节点node,则不能释放该node节点,见ngx_close_cached_file*/
     unsigned count:24;//ngx_open_cached_file中创建节点结构的时候默认置0  表示在引用该node节点的客户端个数
     unsigned close:1;//在ngx_expire_old_cached_files中从红黑树中移除节点后,会关闭文件,同时把close置1
     unsigned use_event:1;//ngx_open_cached_file中创建节点结构的时候默认置0

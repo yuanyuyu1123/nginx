@@ -72,6 +72,7 @@ typedef struct {
 struct ngx_pool_s {
     ngx_pool_data_t       d;//pool节点数据
     size_t                max;//当前内存节点可以申请的最大内存空间,即一次最多从pool中开辟的最大空间
+
     //每次从pool中分配内存的时候都是从curren开始遍历pool节点获取内存的
     ngx_pool_t           *current;//内存池中可以申请内存的第一个节点 当前正在使用的pool的指针 current 永远指向此pool的开始地址.current的意思是当前的pool地址
 

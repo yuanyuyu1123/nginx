@@ -10,61 +10,38 @@
 
 /*信号量的数据类型为结构sem_t,它本质上是一个长整型的数.函数sem_init()用来初始化一个信号量.它的原型为:　　
 extern int sem_init((sem_t *__sem, int __pshared, unsigned int __value));　　
-sem为指向信号量结构的一个指针;pshared不为0时此信号量在进程间共享,否则只能为当前进程的所有线程共享;value给出了信号量的初始值.　　
+初始化一个未命名信号量sem,sem为指向信号量结构的一个指针;pshared不为0时此信号量在进程间共享,否则只能为当前进程的所有线程共享(具体有无作用取决于操作系统,linux上无效);value给出了信号量的初始值.　　
 
-函数sem_post( sem_t *sem )用来增加信号量的值.当有线程阻塞在这个信号量上时,调用这个函数会使其中的一个线程不在阻塞,选择机制同样是由线程的调度策略决定的.　　
-函数sem_wait( sem_t *sem )被用来阻塞当前线程直到信号量sem的值大于0,解除阻塞后将sem的值减1,表明公共资源经使用后减少.
-函数sem_trywait ( sem_t *sem )是函数sem_wait()的非阻塞版本,它直接将信号量sem的值减1.　　
+函数sem_post(sem_t *sem)用来增加信号量的值.当有线程阻塞在这个信号量上时,调用这个函数会使其中的一个线程不在阻塞,选择机制同样是由线程的调度策略决定的.　　
+函数sem_wait(sem_t *sem)被用来阻塞当前线程直到信号量sem的值大于0,解除阻塞后将sem的值减1,表明公共资源经使用后减少.
+函数sem_trywait (sem_t *sem)是函数sem_wait()的非阻塞版本,如果递减操作无法立即被执行,那么sem_trywait()就会失败并返回 EAGAIN 错误。　
 函数sem_destroy(sem_t *sem)用来释放信号量sem.　
 
-信号量用sem_init函数创建的,下面是它的说明:
-#include<semaphore.h>
-       int sem_init (sem_t *sem, int pshared, unsigned int value);
-这个函数的作用是对由sem指定的信号量进行初始化,设置好它的共享选项,并指定一个整数类型的初始值.
-pshared参数控制着信号量的类型.如果pshared的值是0,就表示它是当前里程的局部信号量;否则,其它进程就能够共享这个信号量.
-我们现在只对不让进程共享的信号量感兴趣.(这个参数受版本影响),pshared传递一个非零将会使函数调用失败.
-这两个函数控制着信号量的值,它们的定义如下所示:
-#include <semaphore.h>
-int sem_wait(sem_t * sem);
-int sem_post(sem_t * sem);
-这两个函数都要用一个由sem_init调用初始化的信号量对象的指针做参数.
-sem_post函数的作用是给信号量的值加上一个"1",它是一个"原子操作",即同时对同一个信号量做加"1"操作的两个线程是不会冲突的;
-而同 时对同一个文件进行读、加和写操作的两个程序就有可能会引起冲突.信号量的值永远会正确地加一个"2",因为有两个线程试图改变它.
-sem_wait函数也是一个原子操作,它的作用是从信号量的值 减去一个"1",但它永远会先等待该信号量为一个非零值才开始做减法.
-也就是说,如果你对一个值为2的信号量调用sem_wait(),线程将会继续执行,介信号量的值将减到1.
-如果对一个值为0的信号量调用sem_wait(),这个函数就会地等待直到有其它线程增加了这个值使它不再是0为止.
-如果有两个线程都在sem_wait()中等待同一个信号量变成非零值,那么当它被第三个线程增加一个"1"时,等待线程中只有一个能够对信号量做减法并继续执行,另一个还将处于等待状态.
-信号量这种"只用一个函数就能原子化地测试和设置"的能力下正是它的价值所在.还有另外一个信号量函数sem_trywait,它是sem_wait的非阻塞搭档.
-最后一个信号量函数是sem_destroy.这个函数的作用是在我们用完信号量对它进行清理.下面的定义:
- #include<semaphore.h>
- int sem_destroy (sem_t *sem);
- 这个函数也使用一个信号量指针做参数,归还自己战胜的一切资源.在清理信号量的时候如果还有线程在等待它,用户就会收到一个错误.
-与其它的函数一样,这些函数在成功时都返回"0".
 信号量是如何实现互斥锁功能的呢?例如,最初的信号量sem值为0,调用sem_post方法将会把sem值加1,这个操作不会有任何阻塞;
-调用sem__wait方法将会把信号量sem的值减1,如果sem值已经小于或等于0了,则阻塞住当前进程(进程会进入睡眠状态),
+调用sem_wait方法将会把信号量sem的值减1,如果sem值已经小于或等于0了,则阻塞住当前进程(进程会进入睡眠状态),
 直到其他进程将信号量sem的值改变为正数后,这时才能继续通过将sem减1而使得当前进程继续向下执行.因此,sem_post方法可以实现解锁的功能,而sem_wait方法可以实现加锁的功能.
 nginx是原子变量和信号量合作以实现高效互斥锁的.
 互斥锁的5种操作方法:
 ┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
 ┃    方法名        ┃    参数                                      ┃    意义                        ┃
 ┣━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫
-┃                  ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁;  ┃                                ┃
-┃                  ┃当互斥锁由原子变量实现时,参数addr表示要操作  ┃                                ┃
-┃ngx_shmtx_create  ┃的原子变量锁,而互斥锁由文件实现时,参数addr  ┃  初始化mtx互斥锁               ┃
-┃                  ┃没有任何意义;参数name仅当互斥锁由文件实现时  ┃                                ┃
-┃                  ┃才有意义,它表示这个文件所在的路径及文件名    ┃                                ┃
+┃                  ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁;      ┃                                ┃
+┃                  ┃当互斥锁由原子变量实现时,参数addr表示要操作       ┃                                ┃
+┃ngx_shmtx_create  ┃的原子变量锁,而互斥锁由文件实现时,参数addr       ┃  初始化mtx互斥锁               ┃
+┃                  ┃没有任何意义;参数name仅当互斥锁由文件实现时      ┃                                ┃
+┃                  ┃才有意义,它表示这个文件所在的路径及文件名         ┃                                ┃
 ┣━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫
-┃ngx_shmtx_destory ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁    ┃  销毁mtx互斥锁                 ┃
+┃ngx_shmtx_destory ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁       ┃  销毁mtx互斥锁                 ┃
 ┣━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫
 ┃                  ┃                                              ┃  无阻塞地试图获取互斥锁,返回  ┃
-┃ngx_shmtx_trylock ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁    ┃1表示获取互斥锁成功,返回0表示  ┃
+┃ngx_shmtx_trylock ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁         ┃1表示获取互斥锁成功,返回0表示  ┃
 ┃                  ┃                                              ┃获取互斥锁失败                  ┃
 ┣━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫
 ┃                  ┃                                              ┃  以阻塞进程的方武获取互斥锁,  ┃
-┃ngx_shmtx_lock    ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁    ┃                                ┃
+┃ngx_shmtx_lock    ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁        ┃                                ┃
 ┃                  ┃                                              ┃在方法返回时就已经持有互斥锁了  ┃
 ┣━━━━━━━━━╋━━━━━━━━━━━━━━━━━━━━━━━╋━━━━━━━━━━━━━━━━┫
-┃ngx_shmtx_unlock  ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁    ┃  释放互斥锁                    ┃
+┃ngx_shmtx_unlock  ┃  参数mtx表示待操作的ngx_shmtx_t类型互斥锁       ┃  释放互斥锁                    ┃
 ┗━━━━━━━━━┻━━━━━━━━━━━━━━━━━━━━━━━┻━━━━━━━━━━━━━━━━┛
 */
 
@@ -88,10 +65,6 @@ ngx_shmtx_create(ngx_shmtx_t *mtx, ngx_shmtx_sh_t *addr, u_char *name) {
 #if (NGX_HAVE_POSIX_SEM)
 
     mtx->wait = &addr->wait;
-    /*
-    int  sem_init (sem_t  sem,  int pshared,  unsigned int value) ,
-    其中,参数sem即为我们定义的信号量,而参数pshared将指明sem信号量是用于进程间同步还是用于线程间同步,当pshared为0时表示线程间同步,
-    而pshared为1时表示进程间同步.由于Nginx的每个进程都是单线程的,因此将参数pshared设为1即可.参数value表示信号量sem的初始值.*/
 
     //以多进程使用的方式初始化sem信号量,sem初始值为0
     if (sem_init(&mtx->sem, 1, 0) == -1) {
@@ -123,8 +96,6 @@ ngx_shmtx_destroy(ngx_shmtx_t *mtx) {
 
 /*首先是判断mtx的lock域是否等于0,如果不等于,那么就直接返回false好了,如果等于的话,那么就要调用原子操作ngx_atomic_cmp_set了,
 它用于比较mtx的lock域,如果等于零,那么设置为当前进程的进程id号,否则返回false */
-
-//不管能不能获得到锁都返回,nginx是原子变量和信号量合作以实现高效互斥锁的
 ngx_uint_t
 ngx_shmtx_trylock(ngx_shmtx_t *mtx) {
     return (*mtx->lock == 0 && ngx_atomic_cmp_set(mtx->lock, 0, ngx_pid));
@@ -160,7 +131,7 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
             }
         }
 
-#if (NGX_HAVE_POSIX_SEM)  //支持信号量时才继续执行
+#if (NGX_HAVE_POSIX_SEM)  //只有一个核且支持信号量时才继续执行
 
         if (mtx->semaphore) { //semaphore标志位为1才使用信号量
             (void) ngx_atomic_fetch_add(mtx->wait, 1);
@@ -174,7 +145,7 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
                            "shmtx wait %uA", *mtx->wait);
             //如果没有拿到锁,这时Nginx进程将会睡眠,直到其他进程释放了锁
 
-            /*检查信号量sem的值,如果sem值为正数,则sem值减1,表示拿到了信号量互斥锁,同时sem wait方法返回o.如果sem值为0或
+            /*检查信号量sem的值,如果sem值为正数,则sem值减1,表示拿到了信号量互斥锁,同时sem_wait方法返回0.如果sem值为0或
                 者负数,则当前进程进入睡眠状态,等待其他进程使用ngx_shmtx_unlock方法释放锁(等待sem信号量变为正数),到时Linux内核
                 会重新调度当前进程,继续检查sem值是否为正,重复以上流程*/
             while (sem_wait(&mtx->sem) == -1) {
@@ -182,7 +153,7 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
 
                 err = ngx_errno;
 
-                if (err != NGX_EINTR) { //当EINTR信号出现时,表示sem wait只是被打断,并不是出错
+                if (err != NGX_EINTR) { //当EINTR信号出现时,表示sem_wait只是被打断,并不是出错
                     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, err,
                                   "sem_wait() failed while waiting on shmtx");
                     break;
@@ -197,12 +168,10 @@ ngx_shmtx_lock(ngx_shmtx_t *mtx) {
 
 #endif
 
-        ngx_sched_yield(); //在不使用信号量时,调用sched_yield将会使当前进程暂时“让出"处理器
+        ngx_sched_yield(); //在不使用信号量时,调用sched_yield将会使当前进程暂时"让出"处理器
     }
 }
 
-/*ngx_shmtx_unlock方法会释放锁,虽然这个释放过程不会阻塞进程,但设置原子变量lock值时是可能失败的,因为多进程在同时修改lock值,
-而ngx_atomic_cmp_set方法要求参数old的值与lock值相同时才能修改成功,因此,ngx_atomic_cmp_set方法会在循环中反复执行,直到返回成功为止.*/
 
 //判断锁的lock域与当前进程的进程id是否相等,如果相等的话,那么就将lock设置为0,然后就相当于释放了锁.
 void
@@ -243,7 +212,6 @@ ngx_shmtx_wakeup(ngx_shmtx_t *mtx) {
     for (;;) {
 
         wait = *mtx->wait;
-        //如果lock锁原先的值为0,也就是说,并没有让某个进程持有锁,这时直接返回;或者,semaphore标志位为0,表示不需要使用信号量,也立即返回
         if ((ngx_atomic_int_t) wait <= 0) {
             return;
         }

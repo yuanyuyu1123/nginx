@@ -78,9 +78,9 @@ ngx_uint_t   ngx_http_max_module;
 /*注意对于HTTP过滤模块来说,在ngx_modules数组中的位置越靠后,在实陈执行请求时就越优先执行.因为在初始化HTTP过滤模块时,每一个http
  过滤模块都是将自己插入到整个单链表的首部的*/
 
-//ngx_http_header_filter_module是最后一个header filter模块(ngx_http_top_header_filter = ngx_http_header_filter;他是最后发送头部的地方),
-//ngx_http_write_filter_module是最后一个包体writer模块(ngx_http_top_body_filter = ngx_http_write_filter;),他是最后放包体的地方
-//调用ngx_http_output_filter方法即可向客户端发送HTTP响应包体,ngx_http_send_header发送响应行和响应头部
+/*ngx_http_header_filter_module是最后一个header filter模块(ngx_http_top_header_filter = ngx_http_header_filter;他是最后发送头部的地方),
+ngx_http_write_filter_module是最后一个包体writer模块(ngx_http_top_body_filter = ngx_http_write_filter;),他是最后放包体的地方
+调用ngx_http_output_filter方法即可向客户端发送HTTP响应包体,ngx_http_send_header发送响应行和响应头部*/
 ngx_http_output_header_filter_pt  ngx_http_top_header_filter;//所有的HTTP头部过滤模块都添加到该指针上 ngx_http_send_header中调用链表中所有处理方法
 
 //该函数中的所有filter通过ngx_http_output_filter开始执行
@@ -171,7 +171,6 @@ ngx_module_t  ngx_http_module = {
 static char *
 ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 //这里的cf是从ngx_conf_handler里面的if (cmd->type & NGX_DIRECT_CONF)判断里面确定了
-//图形化参考:深入理解NGINX中的图9-2,图10-1,图4-2
 {
     char                        *rv;
     ngx_uint_t                   mi, m, s;

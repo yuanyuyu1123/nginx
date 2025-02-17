@@ -313,7 +313,7 @@ ngx_open_cached_file(ngx_open_file_cache_t *cache, ngx_str_t *name,
             goto failed;
         }
         /*下面主要是检查文件属性是否发送变化,检查项有:
-           现在name是目录,但是之前是文件,也就是文件变目录了,发生变化了.
+           现在name是目录,但是之前是文件,也就是文件变目录了.
            目录变文件,并且检测uniq是否发送变化*/
         if (of->is_dir) {
             //对文件前后状态对比的检查

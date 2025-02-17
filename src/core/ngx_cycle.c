@@ -1384,8 +1384,8 @@ ngx_reopen_files(ngx_cycle_t *cycle, ngx_uid_t user) {
     (void) ngx_log_redirect_stderr(cycle);
 }
 
-//先创建链表结构,用来存储配置文件中指定的需要的共享内存空间信息到cycle->shared_memory,然后在ngx_init_cycle中解析完配置文件后,把配置文件中
-//指定的需要共享内存信息从cycle->shared_memory链表取出来,在ngx_init_cycle解析完配置文件后统一进行共享内存分配创建
+/*先创建链表结构,用来存储配置文件中指定的需要的共享内存空间信息到cycle->shared_memory,然后在ngx_init_cycle中解析完配置文件后,把配置文件中
+指定的需要共享内存信息从cycle->shared_memory链表取出来,在ngx_init_cycle解析完配置文件后统一进行共享内存分配创建*/
 ngx_shm_zone_t *
 ngx_shared_memory_add(ngx_conf_t *cf, ngx_str_t *name, size_t size, void *tag) {
     ngx_uint_t i;

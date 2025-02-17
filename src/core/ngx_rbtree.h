@@ -41,19 +41,17 @@ struct ngx_rbtree_node_s {
 
 typedef struct ngx_rbtree_s ngx_rbtree_t;
 
-/*红黑树是一个通用的数据结构,它的节点(或者称为容器的元素)可以是包含基本红黑树节点的任意结构体.对于不同的结构体,很多场合
-下是允许不同的节点拥有相同的关键字的().例如,不同的字符串可能
-会散列出相同的关键字,这时它们在红黑树中的关键字是相同的,然而它们又是不同的节点,这样在添加时就不可以覆盖原有同名关键字节点,
-而是作为新插入的节点存在.因此,在添加元素时,需要考虑到这种情况.将添加元素的方法抽象出ngx_rbtree_insert_pt函数指针可以很好
-地实现这一思想,用户也可以灵活地定义自己的行为.Nginx帮助用户实现了3种简单行为的添加节点方法
-为解决不同节点含有相同关键字的元素冲突问题,红黑树设置了ngx_rbtree_insert_pt指针,这样可灵活地添加冲突元素*/
+/*红黑树是一个通用的数据结构,它的节点(或者称为容器的元素)可以是包含基本红黑树节点的任意结构体.对于不同的结构体,很多场合下是允许不同的节点拥有相同的关键字的().
+例如,不同的字符串可能会散列出相同的关键字,这时它们在红黑树中的关键字是相同的,然而它们又是不同的节点,这样在添加时就不可以覆盖原有同名关键字节点,而是作为新插入的节点存在.
+因此,在添加元素时,需要考虑到这种情况.将添加元素的方法抽象出ngx_rbtree_insert_pt函数指针可以很好地实现这一思想,用户也可以灵活的定义自己的行为.
+Nginx帮助用户实现了3种简单行为的添加节点方法,为解决不同节点含有相同关键字的元素冲突问题,红黑树设置了ngx_rbtree_insert_pt指针,这样可灵活地添加冲突元素*/
 
 typedef void (*ngx_rbtree_insert_pt)(ngx_rbtree_node_t *root,
                                      ngx_rbtree_node_t *node, ngx_rbtree_node_t *sentinel);
 
 struct ngx_rbtree_s {
     ngx_rbtree_node_t     *root;      //指向树的根节点.注意,根节点也是数据元素
-    ngx_rbtree_node_t     *sentinel;  //指向NIL峭兵节点  哨兵节点是所有最下层的叶子节点都指向一个NULL空节点,图形化参考:http://blog.csdn.net/xzongyuan/article/details/22389185
+    ngx_rbtree_node_t     *sentinel;  //指向NIL峭兵节点,哨兵节点是所有最下层的叶子节点都指向一个NULL空节点
     ngx_rbtree_insert_pt   insert;    //表示红黑树添加元素的函数指针,它决定在添加新节点时的行为究竟是替换还是新增
 };
 
